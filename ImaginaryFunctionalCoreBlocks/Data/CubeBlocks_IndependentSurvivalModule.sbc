@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CubeBlocks>
+    <Definition xsi:type="MyObjectBuilder_AssemblerDefinition">
+      <Id>
+        <TypeId>Assembler</TypeId>
+        <SubtypeId>CythonSuitAssembler</SubtypeId>
+      </Id>
+      <DisplayName>Suit Assembler</DisplayName>
+      <Public>false</Public>
+      <Icon>Textures\GUI\Icons\Cubes\container.dds</Icon>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\Small\SuitEverything_Small.mwm</Model>
+      <Components>
+        <Component Subtype="SteelPlate" Count="1" />
+	<Component Subtype="Computer" Count="1" />
+	<Component Subtype="SteelPlate" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Small\CargoContainerSmallConstruction_1.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\CargoContainerSmallConstruction_2.mwm" />
+      </BuildProgressModels>
+      <BlockPairName>CythonSuitAssembler</BlockPairName>
+      <EdgeType>Light</EdgeType>
+      <BuildTimeSeconds>120</BuildTimeSeconds>
+      <InventoryMaxVolume>0.075</InventoryMaxVolume>
+      <StandbyPowerConsumption>0.00001</StandbyPowerConsumption>
+      <OperationalPowerConsumption>0.2</OperationalPowerConsumption>
+      <ResourceSinkGroup>Utility</ResourceSinkGroup>
+      <BlueprintClasses>
+        <Class>SuitAssembler</Class>
+      </BlueprintClasses>
+      <DamageEffectId>212</DamageEffectId>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_RefineryDefinition">
+      <Id>
+        <TypeId>Refinery</TypeId>
+        <SubtypeId>CythonSuitRefinery</SubtypeId>
+      </Id>
+      <DisplayName>Suit Refinery</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\container.dds</Icon>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Public>false</Public>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\Small\SuitEverything_Small.mwm</Model>
+      <Components>
+        <Component Subtype="SteelPlate" Count="1" />
+	<Component Subtype="Computer" Count="1" />
+	<Component Subtype="SteelPlate" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Small\CargoContainerSmallConstruction_1.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\CargoContainerSmallConstruction_2.mwm" />
+      </BuildProgressModels>
+      <BlockPairName>CythonSuitRefinery</BlockPairName>
+      <EdgeType>Light</EdgeType>
+      <BuildTimeSeconds>140</BuildTimeSeconds>
+      <InventoryMaxVolume>0.05</InventoryMaxVolume>
+      <StandbyPowerConsumption>0.00001</StandbyPowerConsumption>
+      <OperationalPowerConsumption>0.2</OperationalPowerConsumption>
+      <BlueprintClasses>
+        <!-- <Class>SuitRefinery</Class> No longer necessary because CommonMetals does it -->
+		<Class>CommonMetals</Class> <!-- Added because I think it makes sense, plus it adds compatibility with AwwScrap -->
+      </BlueprintClasses>
+      <RefineSpeed>1.0</RefineSpeed>
+      <MaterialEfficiency>0.8</MaterialEfficiency>
+      <DamageEffectId>212</DamageEffectId>
+      <ResourceSinkGroup>Utility</ResourceSinkGroup>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_RefineryDefinition">
+      <Id>
+        <TypeId>Refinery</TypeId>
+        <SubtypeId>CythonSuitFuelConverter</SubtypeId>
+      </Id>
+      <DisplayName>Suit Fuel Converter</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\container.dds</Icon>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Public>false</Public>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\Small\SuitEverything_Small.mwm</Model>
+      <Components>
+        <Component Subtype="SteelPlate" Count="1" />
+	<Component Subtype="Computer" Count="1" />
+	<Component Subtype="SteelPlate" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Small\CargoContainerSmallConstruction_1.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\CargoContainerSmallConstruction_2.mwm" />
+      </BuildProgressModels>
+      <BlockPairName>CythonSuitFuelConverter</BlockPairName>
+      <EdgeType>Light</EdgeType>
+      <BuildTimeSeconds>140</BuildTimeSeconds>
+      <InventoryMaxVolume>0.05</InventoryMaxVolume>
+      <StandbyPowerConsumption>0.00001</StandbyPowerConsumption>
+      <OperationalPowerConsumption>0.00001</OperationalPowerConsumption>
+      <BlueprintClasses>
+        <Class>SuitFuelConverter</Class>
+      </BlueprintClasses>
+      <RefineSpeed>1.0</RefineSpeed>
+      <MaterialEfficiency>0.8</MaterialEfficiency>
+      <DamageEffectId>212</DamageEffectId>
+      <ResourceSinkGroup>Utility</ResourceSinkGroup>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_MedicalRoomDefinition">
+      <Id>
+        <TypeId>MedicalRoom</TypeId>
+        <SubtypeId>CythonSuitMedicalRoom</SubtypeId>
+      </Id>
+      <DisplayName>Suit Medical Room</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\medical_room.dds</Icon>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Public>false</Public>
+      <Model>Models\Cubes\Small\SuitMedicalRoom_Small.mwm</Model>
+      <ProgressSound>BlockMedicalProgress</ProgressSound>
+      <Components>
+        <Component Subtype="InteriorPlate" Count="220" />
+        <Component Subtype="Construction" Count="80" />
+        <Component Subtype="MetalGrid" Count="60" />
+        <Component Subtype="SmallTube" Count="20" />
+        <Component Subtype="LargeTube" Count="5" />
+        <Component Subtype="Display" Count="10" />
+        <Component Subtype="Computer" Count="10" />
+        <Component Subtype="Medical" Count="15" />
+        <Component Subtype="InteriorPlate" Count="20" />
+      </Components>
+      <CriticalComponent Subtype="Medical" Index="0" />
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\MedicalRoomConstruction_1.mwm" />
+        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\MedicalRoomConstruction_2.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\MedicalRoomConstruction_3.mwm" />
+      </BuildProgressModels>
+      <RespawnAllowed>false</RespawnAllowed>
+      <HealingAllowed>false</HealingAllowed>
+      <RefuelAllowed>true</RefuelAllowed>
+      <VoxelPlacement>
+        <!--Possible settings Both,InVoxel,OutsideVoxel,Volumetric. If volumetric set than MaxAllowed and MinAllowed will be used.-->
+        <StaticMode>
+          <PlacementMode>Volumetric</PlacementMode>
+          <MaxAllowed>0.2</MaxAllowed>
+          <MinAllowed>0</MinAllowed>
+        </StaticMode>
+        <DynamicMode>
+          <PlacementMode>Volumetric</PlacementMode>
+          <MaxAllowed>0.2</MaxAllowed>
+          <MinAllowed>0.01</MinAllowed>
+        </DynamicMode>
+      </VoxelPlacement>
+      <BlockPairName>CythonSuitMedicalRoom</BlockPairName>
+      <StandbyPowerConsumption>0.00001</StandbyPowerConsumption>
+      <OperationalPowerConsumption>0.0001</OperationalPowerConsumption>
+      <EdgeType>Light</EdgeType>
+      <BuildTimeSeconds>50</BuildTimeSeconds>
+      <ResourceSinkGroup>Factory</ResourceSinkGroup>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_ReactorDefinition">
+      <Id>
+        <TypeId>Reactor</TypeId>
+        <SubtypeId>CythonSuitFuelCell</SubtypeId>
+      </Id>
+      <Public>false</Public>
+      <DisplayName>Suit Fuel Cell</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\nuclear_reactor.dds</Icon>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\Small\SuitEverything_Small.mwm</Model>
+      <SilenceableByShipSoundSystem>true</SilenceableByShipSoundSystem>
+      <Components>
+        <Component Subtype="SteelPlate" Count="1" />
+	<Component Subtype="Computer" Count="1" />
+	<Component Subtype="SteelPlate" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+        <MountPoint Side="Right" StartX="0" StartY="0" EndX="1" EndY="1" />
+        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1" />
+        <MountPoint Side="Top" StartX="0" StartY="0" EndX="1" EndY="1" />
+        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="1" EndY="1" />
+        <MountPoint Side="Front" StartX="0" StartY="0" EndX="1" EndY="1" />
+        <MountPoint Side="Back" StartX="0" StartY="0" EndX="1" EndY="1" />
+      </MountPoints>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Small\GeneratorSmallConstruction_1.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\GeneratorSmallConstruction_2.mwm" />
+      </BuildProgressModels>
+      <BlockPairName>CythonSuitFuelCell</BlockPairName>
+      <MirroringY>Z</MirroringY>
+      <MirroringZ>Y</MirroringZ>
+      <EdgeType>Light</EdgeType>
+      <BuildTimeSeconds>20</BuildTimeSeconds>
+      
+      <ResourceSourceGroup>SolarPanels</ResourceSourceGroup>
+      <MaxPowerOutput>0.8</MaxPowerOutput>
+      
+      <InventorySize>
+        <X>1</X>
+        <Y>1</Y>
+        <Z>0.1</Z>
+      </InventorySize>
+      <FuelId>
+        <TypeId>Ingot</TypeId>
+        <SubtypeId>SuitFuel</SubtypeId>
+      </FuelId>
+      <DamageEffectId>210</DamageEffectId>
+      <DamagedSound>ParticleReactor</DamagedSound>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_ReactorDefinition">
+      <Id>
+        <TypeId>Reactor</TypeId>
+        <SubtypeId>CythonSuitRTGReactor</SubtypeId>
+      </Id>
+      <DisplayName>Suit RTG Reactor</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\nuclear_reactor.dds</Icon>
+      <Public>false</Public>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\Small\SuitEverything_Small.mwm</Model>
+      <SilenceableByShipSoundSystem>true</SilenceableByShipSoundSystem>
+      <Components>
+        <Component Subtype="SteelPlate" Count="1" />
+	<Component Subtype="Computer" Count="1" />
+	<Component Subtype="SteelPlate" Count="1" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+        <MountPoint Side="Right" StartX="0" StartY="0" EndX="1" EndY="1" />
+        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1" />
+        <MountPoint Side="Top" StartX="0" StartY="0" EndX="1" EndY="1" />
+        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="1" EndY="1" />
+        <MountPoint Side="Front" StartX="0" StartY="0" EndX="1" EndY="1" />
+        <MountPoint Side="Back" StartX="0" StartY="0" EndX="1" EndY="1" />
+      </MountPoints>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Small\GeneratorSmallConstruction_1.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\GeneratorSmallConstruction_2.mwm" />
+      </BuildProgressModels>
+      <BlockPairName>CythonSuitRTGReactor</BlockPairName>
+      <MirroringY>Z</MirroringY>
+      <MirroringZ>Y</MirroringZ>
+      <EdgeType>Light</EdgeType>
+      <BuildTimeSeconds>20</BuildTimeSeconds>
+      
+      <ResourceSourceGroup>Reactors</ResourceSourceGroup>
+      <MaxPowerOutput>0.00018</MaxPowerOutput>
+      
+      <InventorySize>
+        <X>1</X>
+        <Y>1</Y>
+        <Z>0.1</Z>
+      </InventorySize>
+      <FuelId>
+        <TypeId>Ingot</TypeId>
+        <SubtypeId>SuitRTGPellet</SubtypeId>
+      </FuelId>
+      
+      <DamageEffectId>210</DamageEffectId>
+      <DamagedSound>ParticleReactor</DamagedSound>
+    </Definition>
+    <Definition xsi:type="MyObjectBuilder_OxygenGeneratorDefinition">
+      <Id>
+        <TypeId>OxygenGenerator</TypeId>
+        <SubtypeId>CythonSuitOxygenGenerator</SubtypeId>
+      </Id>
+      <DisplayName>Suit Oxygen Generator</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\OxygenGenerator.dds</Icon>
+      <Public>false</Public>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\Small\SuitEverything_Small.mwm</Model>
+      <Components>
+        <Component Subtype="SteelPlate" Count="110" />
+        <Component Subtype="Construction" Count="5" />
+        <Component Subtype="LargeTube" Count="2" />
+        <Component Subtype="Motor" Count="4" />
+        <Component Subtype="Computer" Count="5" />
+        <Component Subtype="SteelPlate" Count="10" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+        <MountPoint Side="Back" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Front" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Bottom" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Top" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Left" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+        <MountPoint Side="Right" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" />
+      </MountPoints>
+      <MirroringZ>Y</MirroringZ>
+      <MirroringY>Z</MirroringY>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\OxygenGeneratorConstruction_1.mwm" />
+        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\OxygenGeneratorConstruction_2.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\OxygenGeneratorConstruction_3.mwm" />
+      </BuildProgressModels>
+      <BlockPairName>CythonSuitOxygenGenerator</BlockPairName>
+      <EdgeType>Light</EdgeType>
+      <BuildTimeSeconds>20</BuildTimeSeconds>
+      <ResourceSourceGroup>Reactors</ResourceSourceGroup>
+      <ResourceSinkGroup>Utility</ResourceSinkGroup>
+      <IceConsumptionPerSecond>167</IceConsumptionPerSecond>
+      <InventoryMaxVolume>4</InventoryMaxVolume>
+      <InventorySize>
+        <X>0.1</X>
+        <Y>1</Y>
+        <Z>1</Z>
+      </InventorySize>
+      <StandbyPowerConsumption>0.00001</StandbyPowerConsumption>
+      <OperationalPowerConsumption>0.2</OperationalPowerConsumption>
+      <ProducedGases>
+        <GasInfo>
+          <Id>
+            <TypeId>GasProperties</TypeId>
+            <SubtypeId>Oxygen</SubtypeId>
+          </Id>
+          <IceToGasRatio>1</IceToGasRatio>
+        </GasInfo>
+        <GasInfo>
+          <Id>
+            <TypeId>GasProperties</TypeId>
+            <SubtypeId>Hydrogen</SubtypeId>
+          </Id>
+          <IceToGasRatio>1</IceToGasRatio>
+        </GasInfo>
+      </ProducedGases>
+      <BlueprintClasses>
+        <Class>Ice</Class>
+        <Class>OxygenBottles</Class>
+        <Class>HydrogenBottles</Class>
+      </BlueprintClasses>
+      <DamageEffectId>213</DamageEffectId>
+      <DamagedSound>ParticleWeapExpl</DamagedSound>
+      <GenerateSound>BlockOxyGenProcess</GenerateSound>
+      
+<!--       <Effects>
+        <Effect Name="Damage" ParameterMin="0.5">
+          <ParticleEffects>
+            <ParticleEffect Origin="Damage_02" Name="SmokeWhite" Loop="true" Duration="3" SpawnTimeMin="2" SpawnTimeMax="5" />
+            <ParticleEffect Origin="Damage_04" Name="SmokeWhite" Loop="true" Duration="3" SpawnTimeMin="2" SpawnTimeMax="5" />
+          </ParticleEffects>
+        </Effect>
+        
+        
+        <Effect Name="Damage" ParameterMin="0" ParameterMax="0.5">
+          <ParticleEffects>
+            <ParticleEffect Origin="Damage_01" Name="SmokeBlack" Loop="true" Delay="2" />
+            <ParticleEffect Origin="Damage_02" Name="SmokeWhite" Loop="true" />
+            <ParticleEffect Origin="Damage_03" Name="SmokeBlack" Loop="true" Delay="4" />
+            <ParticleEffect Origin="Damage_04" Name="SmokeWhite" Loop="true" />
+          </ParticleEffects>
+        </Effect>
+      </Effects> -->
+    </Definition>
+  </CubeBlocks>
+</Definitions>
