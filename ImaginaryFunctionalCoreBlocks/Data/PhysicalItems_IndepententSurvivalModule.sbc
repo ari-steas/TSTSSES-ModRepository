@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <PhysicalItems>
+    <PhysicalItem>
+      <Id>
+        <TypeId>Ingot</TypeId>
+        <SubtypeId>SuitFuel</SubtypeId>
+      </Id>
+      <DisplayName>Suit Fuel</DisplayName>
+      <Icon>Textures\Icons\SuitFuel.dds</Icon>
+      <Size>
+        <X>0.037</X>
+        <Y>0.037</Y>
+        <Z>0.037</Z>
+      </Size>
+      <Mass>0.0003</Mass>
+      <Volume>0.052</Volume>
+      <Model>Models\Ingots\uranium_ingot.mwm</Model>
+      <PhysicalMaterial>Metal</PhysicalMaterial>
+      <IconSymbol>H2</IconSymbol>
+    </PhysicalItem>
+    <PhysicalItem>
+      <Id>
+        <TypeId>Ingot</TypeId>
+        <SubtypeId>SuitRTGPellet</SubtypeId>
+      </Id>
+      <DisplayName>Suit RTG Pellet</DisplayName>
+      <Icon>Textures\Icons\RTGFuel.dds</Icon>
+      <Size>
+        <X>0.037</X>
+        <Y>0.037</Y>
+        <Z>0.037</Z>
+      </Size>
+      <Mass>1.0</Mass>
+      <Volume>0.052</Volume>
+      <Model>Models\Ingots\uranium_ingot.mwm</Model>
+      <PhysicalMaterial>Metal</PhysicalMaterial>
+      <IconSymbol>Pu</IconSymbol>
+    </PhysicalItem>
+	<PhysicalItem xsi:type="MyObjectBuilder_WeaponItemDefinition">
+      <Id>
+        <TypeId>PhysicalGunObject</TypeId>
+        <SubtypeId>EmergencyBlasterItem</SubtypeId>
+      </Id>
+      <DisplayName>Emergency Blaster</DisplayName>
+      <Icon>Textures\GUI\Icons\WeaponAutomaticRifle.dds</Icon>
+      <Size>
+        <X>0.8</X>
+        <Y>0.24</Y>
+        <Z>0.08</Z>
+      </Size>
+      <Mass>3</Mass>
+      <Volume>14</Volume>
+      <Model>Models\Weapons\AutomaticRifle.mwm</Model>
+      <PhysicalMaterial>Metal</PhysicalMaterial>
+      <WeaponDefinitionId Subtype="EmergencyBlaster" />
+      <ShowAmmoCount>true</ShowAmmoCount>
+    </PhysicalItem>
+  </PhysicalItems>
+</Definitions>
