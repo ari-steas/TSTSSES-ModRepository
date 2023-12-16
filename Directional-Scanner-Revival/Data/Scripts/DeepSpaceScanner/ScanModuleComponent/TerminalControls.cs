@@ -87,7 +87,7 @@ namespace DeepSpaceScanner
             MyAPIGateway.TerminalControls.AddControl<IMyCameraBlock>(popup);
 
             var b0 = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlButton, IMyCameraBlock>("Scan");
-            b0.Title = MyStringId.GetOrCompute("Start Scan");
+            b0.Title = MyStringId.GetOrCompute("Start Scan");    //this one's the terminal
             b0.Visible = visible;
             b0.Action = startScan;
             b0.Enabled = b =>
@@ -189,7 +189,7 @@ namespace DeepSpaceScanner
             var p = MyAPIGateway.Utilities.GamePaths.ContentPath;
             var icon = $@"{p}\Textures\GUI\Icons\Actions\SwitchOn.dds";
             var a = MyAPIGateway.TerminalControls.CreateAction<IMyCameraBlock>("ScanOn");
-            a.Name = new StringBuilder("Start Scan");
+            a.Name = new StringBuilder("Start Scan");         //this one's the cockpit control
             a.Icon = icon;
             a.ValidForGroups = true;
             a.Action = startScan;
