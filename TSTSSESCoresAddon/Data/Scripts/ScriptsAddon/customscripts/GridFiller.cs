@@ -16,19 +16,20 @@ namespace CustomNamespace
     public class SimpleGridFiller : MyGameLogicComponent
     {
         private IMyCubeBlock block;
-        private const string FrigateReactorSubtype = "FrigateCore_Reactor";
-        private const int MaxDistance = 1;
-        private const int RequiredReactorCount = 2; // Specify the required number of reactors
-        private bool hasErrors = false;
+        private const string FrigateReactorSubtype = "FrigateCore_Reactor"; // Subtype of the reactor
+        private const string FrigateCargoSubtype = "FrigateCore_Cargo"; // Subtype of the cargo container
+        private const int MaxDistance = 1; // Maximum distance for blocks to be considered adjacent
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
             base.Init(objectBuilder);
             block = (IMyCubeBlock)Entity;
 
-            AddFrigateReactor(new Vector3I(0, 0, 1));
-            AddFrigateReactor(new Vector3I(0, 0, -1));
+            // Place FrigateReactor blocks forward and backward of the block
+            AddFrigateReactor(new Vector3I(0, 0, 1)); // Forward
+            AddFrigateReactor(new Vector3I(0, 0, -1)); // Backward
 
+            // Periodic check to ensure the assembly is intact
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
         }
 
@@ -61,15 +62,10 @@ namespace CustomNamespace
 
         public override void UpdateAfterSimulation100()
         {
-            bool isAssemblyIntact = IsAssemblyIntact();
-
-            if (isAssemblyIntact)
+            // Check if all required blocks are present and adjacent
+            if (!IsAssemblyIntact())
             {
-                hasErrors = false;
-            }
-            else
-            {
-                hasErrors = !hasErrors;
+                MyAPIGateway.Utilities.ShowNotification("Part of the Frigate assembly is missing or not adjacent to the FrigateCore!", 5000, MyFontEnum.Red);
             }
         }
 
@@ -78,32 +74,24 @@ namespace CustomNamespace
             var grid = block.CubeGrid;
             var reactorPosition = block.Position;
 
-            var blocks = new List<IMySlimBlock>();
-            grid.GetBlocks(blocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateReactorSubtype);
+            var reactorBlocks = new List<IMySlimBlock>();
+            var cargoBlocks = new List<IMySlimBlock>();
 
-            // Check if the required number of FrigateReactor blocks are present
-            int reactorCount = blocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
+            // Use GetBlocks to get all reactor and cargo blocks
+            grid.GetBlocks(reactorBlocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateReactorSubtype);
+            grid.GetBlocks(cargoBlocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateCargoSubtype);
 
-            // Adjust the number based on how many reactors are expected
-            if (reactorCount == RequiredReactorCount)
-            {
-                return true;
-            }
-            else if (reactorCount > RequiredReactorCount)
-            {
-                // Handle the case where there are more than the required number of reactors
-                MyAPIGateway.Utilities.ShowNotification("Too many FrigateReactors on the grid!", 5000, MyFontEnum.Red);
-                return false;
-            }
-            else
-            {
-                return false;
-            }
+            // Check if the required number of FrigateReactor blocks and FrigateCargo blocks are present
+            int reactorCount = reactorBlocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
+            int cargoCount = cargoBlocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
+
+            return reactorCount >= 1 && cargoCount >= 1;
         }
 
         public override void Close()
         {
             base.Close();
+            // Additional cleanup if needed
         }
     }
 }
