@@ -24,38 +24,37 @@ namespace CustomNamespace
             block = (IMyCubeBlock)Entity;
 
             // Place FrigateReactor blocks forward and backward of the block
-            AddFrigateReactor(new Vector3I(0, 0, 1)); // Forward
-            AddFrigateReactor(new Vector3I(0, 0, -1)); // Backward
+            AddBlock<MyObjectBuilder_CubeBlock>(block, new Vector3I(0, 0, 1), FrigateReactorSubtype); // Forward
+            AddBlock<MyObjectBuilder_CubeBlock>(block, new Vector3I(0, 0, -1), FrigateReactorSubtype); // Backward
 
             // Periodic check to ensure the assembly is intact
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
         }
 
-        private void AddFrigateReactor(Vector3I direction)
+        public static long AddBlock<T>(IMyCubeBlock block, Vector3I direction, string subtypeName) where T : MyObjectBuilder_CubeBlock, new()
         {
             var grid = block.CubeGrid;
             var position = block.Position + direction;
 
-            var blockBuilder = new MyObjectBuilder_CubeBlock
+            var nextBlockBuilder = new T
             {
-                SubtypeName = FrigateReactorSubtype,
+                SubtypeName = subtypeName,
                 Min = position,
-                BlockOrientation = new MyBlockOrientation(Base6Directions.Direction.Forward, Base6Directions.Direction.Up),
+                BlockOrientation = block.Orientation,
                 ColorMaskHSV = new SerializableVector3(0, -1, 0),
                 Owner = block.OwnerId,
                 EntityId = 0,
                 ShareMode = MyOwnershipShareModeEnum.None
             };
 
-            IMySlimBlock newBlock = grid.AddBlock(blockBuilder, false);
+            IMySlimBlock newBlock = block.CubeGrid.AddBlock(nextBlockBuilder, false);
+
             if (newBlock == null)
-            {
-                MyAPIGateway.Utilities.ShowNotification($"Failed to add FrigateReactor at {position}", 1000);
-            }
+                MyAPIGateway.Utilities.ShowNotification($"Failed to add {subtypeName} at {position}", 1000);
             else
-            {
-                MyAPIGateway.Utilities.ShowNotification($"FrigateReactor added at {position}", 1000);
-            }
+                MyAPIGateway.Utilities.ShowNotification($"{subtypeName} added at {position}", 1000);
+
+            return newBlock.FatBlock.EntityId;
         }
 
         public override void UpdateAfterSimulation100()
