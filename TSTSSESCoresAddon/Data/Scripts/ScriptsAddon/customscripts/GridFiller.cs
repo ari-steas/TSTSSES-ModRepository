@@ -1,108 +1,82 @@
 ﻿using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
-using Scripts.Specials.ShipClass;
-using System;
-using System.Collections.Generic;
 using VRage;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
 using VRageMath;
+using System.Collections.Generic; // Required for List
 
-namespace TSTSSESCoresAddon.Data.Scripts.ScriptsAddon.customscripts
+namespace CustomNamespace
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate)]
-    public class GridFiller : MySessionComponentBase
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_Beacon), false, "TSTSSES_FrigateCore")]
+    public class SimpleGridFiller : MyGameLogicComponent
     {
-        private static bool isServer;
-        private static Dictionary<long, HashSet<long>> blockGroups = new Dictionary<long, HashSet<long>>();
+        private IMyCubeBlock block;
+        private List<long> addedBlockEntityIds; // List to track IDs of added blocks
 
-        static GridFiller()
+        public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            SpecBlockHooks.OnReady += HooksOnOnReady;
+            base.Init(objectBuilder);
+            block = (IMyCubeBlock)Entity;
+            addedBlockEntityIds = new List<long>();
+
+            // Register event for block removal
+            block.CubeGrid.OnBlockRemoved += OnBlockRemoved;
+
+            // Place armor blocks forward and backward of the block
+            AddArmorBlock(new Vector3I(0, 0, 1)); // Forward
+            AddArmorBlock(new Vector3I(0, 0, -1)); // Backward
         }
 
-        public override void LoadData()
-        {
-            isServer = MyAPIGateway.Session.IsServer;
-        }
-
-        private static void HooksOnOnReady()
-        {
-            if (isServer)
-            {
-                SpecBlockHooks.OnSpecBlockCreated += OnSpecBlockCreated;
-                SpecBlockHooks.OnSpecBlockDestroyed += OnSpecBlockDestroyed;
-            }
-        }
-
-        private static void OnSpecBlockCreated(object specBlock)
-        {
-            var tBlock = SpecBlockHooks.GetBlockSpecCore(specBlock);
-            if (tBlock == null)
-                return;
-
-            MyAPIGateway.Utilities.ShowNotification($"SpecBlock {tBlock.DisplayNameText} placed!");
-
-            HashSet<long> associatedBlocks = new HashSet<long>();
-            associatedBlocks.Add(AddBlock<MyObjectBuilder_Reactor>(tBlock, "LargeBlockSmallGenerator", tBlock.Position + (Vector3I)tBlock.LocalMatrix.Forward));
-            associatedBlocks.Add(AddBlock<MyObjectBuilder_CargoContainer>(tBlock, "LargeBlockSmallContainer", tBlock.Position + (Vector3I)tBlock.LocalMatrix.Backward));
-
-            blockGroups.Add(tBlock.EntityId, associatedBlocks);
-            tBlock.CubeGrid.OnBlockRemoved += Grid_OnBlockRemoved;
-        }
-
-        private static void OnSpecBlockDestroyed(object specBlock)
-        {
-            var tBlock = SpecBlockHooks.GetBlockSpecCore(specBlock);
-            if (tBlock == null)
-                return;
-
-            MyAPIGateway.Utilities.ShowNotification($"SpecBlock {tBlock.DisplayNameText} removed!");
-            blockGroups.Remove(tBlock.EntityId);
-
-            tBlock.CubeGrid.OnBlockRemoved -= Grid_OnBlockRemoved;
-        }
-
-        private static long AddBlock<T>(IMyTerminalBlock block, string subtypeName, Vector3I position) where T : MyObjectBuilder_CubeBlock, new()
+        private void AddArmorBlock(Vector3I direction)
         {
             var grid = block.CubeGrid;
+            var position = block.Position + direction;
 
-            var nextBlockBuilder = new T
+            var blockBuilder = new MyObjectBuilder_CubeBlock
             {
-                SubtypeName = subtypeName,
+                SubtypeName = "LargeBlockSmallGenerator", // Adjust subtype name for desired block type
                 Min = position,
-                BlockOrientation = block.Orientation,
+                BlockOrientation = new MyBlockOrientation(Base6Directions.Direction.Forward, Base6Directions.Direction.Up),
                 ColorMaskHSV = new SerializableVector3(0, -1, 0),
                 Owner = block.OwnerId,
                 EntityId = 0,
                 ShareMode = MyOwnershipShareModeEnum.None
             };
 
-            IMySlimBlock newBlock = grid.AddBlock(nextBlockBuilder, false);
-
+            IMySlimBlock newBlock = grid.AddBlock(blockBuilder, false);
             if (newBlock == null)
             {
-                MyAPIGateway.Utilities.ShowNotification($"Failed to add {subtypeName}", 1000);
-                return 0;
+                MyAPIGateway.Utilities.ShowNotification($"Failed to add armor block at {position}", 1000);
             }
-            MyAPIGateway.Utilities.ShowNotification($"{subtypeName} added at {position}", 1000);
-            return newBlock.FatBlock.EntityId;
+            else
+            {
+                MyAPIGateway.Utilities.ShowNotification($"Armor block added at {position}", 1000);
+                addedBlockEntityIds.Add(newBlock.FatBlock.EntityId); // Track the ID of the added block
+            }
         }
 
-        private static void Grid_OnBlockRemoved(IMySlimBlock block)
+        private void OnBlockRemoved(IMySlimBlock block)
         {
-            long removedBlockId = block.FatBlock?.EntityId ?? 0;
-            foreach (var group in blockGroups)
+            if (block.FatBlock != null && addedBlockEntityIds.Contains(block.FatBlock.EntityId))
             {
-                if (group.Value.Contains(removedBlockId))
-                {
-                    MyAPIGateway.Utilities.ShowNotification("A part of a SpecBlock assembly has been removed!", 5000);
-                    break;
-                }
+                // Notification when a part of the assembly is removed
+                MyAPIGateway.Utilities.ShowNotification($"Part of the assembly has been removed!", 5000, MyFontEnum.Red);
             }
+        }
+
+        public override void Close()
+        {
+            // Unregister the event when the component is closed
+            if (block != null && block.CubeGrid != null)
+            {
+                block.CubeGrid.OnBlockRemoved -= OnBlockRemoved;
+            }
+
+            base.Close();
         }
     }
 }
