@@ -13,13 +13,14 @@ using VRageMath;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
 using EmptyKeys.UserInterface.Generated.ContractsBlockView_Gamepad_Bindings;
+using CustomNamespace;
 
 namespace TSTSSESCoresAddon.Data.Scripts.ScriptsAddon.customscripts
 {
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_Beacon), false, new string[] {
         "CoreKit_1",
     })]
-    public class corekit_script : MyGameLogicComponent
+    public class CoreKitReplacer : MyGameLogicComponent
     {
         private IMyCubeBlock block;
 
@@ -49,35 +50,12 @@ namespace TSTSSESCoresAddon.Data.Scripts.ScriptsAddon.customscripts
             if (!block.IsFunctional)
                 return;
 
-            MyAPIGateway.Utilities.ShowNotification("KILL MYSELF NOW!");
+            //MyAPIGateway.Utilities.ShowNotification("KILL MYSELF NOW!");
             var grid = block.CubeGrid;
 
             grid.RemoveBlock(block.SlimBlock);
 
-            AddBlock(block, "TSTSSES_FrigateCore", block.Position);
-        }
-
-        private static void AddBlock(IMyCubeBlock block, string subtypeName, Vector3I position)
-        {
-            var nextBlockBuilder = new MyObjectBuilder_Beacon
-            {
-                SubtypeName = subtypeName,
-                Min = position,
-                BlockOrientation = block.Orientation,
-                ColorMaskHSV = new SerializableVector3(0, -1, 0),
-                Owner = block.OwnerId,
-                EntityId = 0,
-                ShareMode = MyOwnershipShareModeEnum.None
-            };
-
-            IMySlimBlock newBlock = block.CubeGrid.AddBlock(nextBlockBuilder, false);
-
-            if (newBlock == null)
-            {
-                MyAPIGateway.Utilities.ShowNotification($"Failed to add {subtypeName}", 1000);
-                return;
-            }
-            MyAPIGateway.Utilities.ShowNotification($"{subtypeName} added at {position}", 1000);
+            SimpleGridFiller.AddBlock<MyObjectBuilder_Beacon>(block, Vector3I.Zero, "TSTSSES_FrigateCore");
         }
     }
 }

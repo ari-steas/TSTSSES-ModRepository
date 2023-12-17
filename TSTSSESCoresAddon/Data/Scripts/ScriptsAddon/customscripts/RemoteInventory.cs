@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.Entity.UseObject;
 using VRage.Game.ModAPI;
