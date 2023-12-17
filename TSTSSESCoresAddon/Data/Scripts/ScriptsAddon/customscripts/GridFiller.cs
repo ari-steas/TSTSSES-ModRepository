@@ -8,6 +8,7 @@ using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
 using VRageMath;
 using System.Collections.Generic; // Required for List
+using System.Linq; // Required for LINQ queries
 
 namespace CustomNamespace
 {
@@ -15,30 +16,29 @@ namespace CustomNamespace
     public class SimpleGridFiller : MyGameLogicComponent
     {
         private IMyCubeBlock block;
-        private List<long> addedBlockEntityIds; // List to track IDs of added blocks
+        private const string FrigateReactorSubtype = "FrigateCore_Reactor"; // Subtype of the reactor
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
             base.Init(objectBuilder);
             block = (IMyCubeBlock)Entity;
-            addedBlockEntityIds = new List<long>();
 
-            // Register event for block removal
-            block.CubeGrid.OnBlockRemoved += OnBlockRemoved;
+            // Place FrigateReactor blocks forward and backward of the block
+            AddFrigateReactor(new Vector3I(0, 0, 1)); // Forward
+            AddFrigateReactor(new Vector3I(0, 0, -1)); // Backward
 
-            // Place armor blocks forward and backward of the block
-            AddArmorBlock(new Vector3I(0, 0, 1)); // Forward
-            AddArmorBlock(new Vector3I(0, 0, -1)); // Backward
+            // Periodic check to ensure the assembly is intact
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
         }
 
-        private void AddArmorBlock(Vector3I direction)
+        private void AddFrigateReactor(Vector3I direction)
         {
             var grid = block.CubeGrid;
             var position = block.Position + direction;
 
             var blockBuilder = new MyObjectBuilder_CubeBlock
             {
-                SubtypeName = "LargeBlockSmallGenerator", // Adjust subtype name for desired block type
+                SubtypeName = FrigateReactorSubtype,
                 Min = position,
                 BlockOrientation = new MyBlockOrientation(Base6Directions.Direction.Forward, Base6Directions.Direction.Up),
                 ColorMaskHSV = new SerializableVector3(0, -1, 0),
@@ -50,33 +50,37 @@ namespace CustomNamespace
             IMySlimBlock newBlock = grid.AddBlock(blockBuilder, false);
             if (newBlock == null)
             {
-                MyAPIGateway.Utilities.ShowNotification($"Failed to add armor block at {position}", 1000);
+                MyAPIGateway.Utilities.ShowNotification($"Failed to add FrigateReactor at {position}", 1000);
             }
             else
             {
-                MyAPIGateway.Utilities.ShowNotification($"Armor block added at {position}", 1000);
-                addedBlockEntityIds.Add(newBlock.FatBlock.EntityId); // Track the ID of the added block
+                MyAPIGateway.Utilities.ShowNotification($"FrigateReactor added at {position}", 1000);
             }
         }
 
-        private void OnBlockRemoved(IMySlimBlock block)
+        public override void UpdateAfterSimulation100()
         {
-            if (block.FatBlock != null && addedBlockEntityIds.Contains(block.FatBlock.EntityId))
+            // Check if all required blocks are present
+            if (!IsAssemblyIntact())
             {
-                // Notification when a part of the assembly is removed
-                MyAPIGateway.Utilities.ShowNotification($"Part of the assembly has been removed!", 5000, MyFontEnum.Red);
+                MyAPIGateway.Utilities.ShowNotification("Part of the Frigate assembly is missing!", 5000, MyFontEnum.Red);
             }
+        }
+
+        private bool IsAssemblyIntact()
+        {
+            var grid = block.CubeGrid;
+            var blocks = new List<IMySlimBlock>();
+            grid.GetBlocks(blocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateReactorSubtype);
+
+            // Check if the required number of FrigateReactor blocks are present
+            return blocks.Count == 2; // Adjust the number based on how many reactors are expected
         }
 
         public override void Close()
         {
-            // Unregister the event when the component is closed
-            if (block != null && block.CubeGrid != null)
-            {
-                block.CubeGrid.OnBlockRemoved -= OnBlockRemoved;
-            }
-
             base.Close();
+            // Additional cleanup if needed
         }
     }
 }
