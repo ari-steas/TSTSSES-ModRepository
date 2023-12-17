@@ -17,6 +17,8 @@ namespace CustomNamespace
     {
         private IMyCubeBlock block;
         private const string FrigateReactorSubtype = "FrigateCore_Reactor"; // Subtype of the reactor
+        private const string FrigateCargoSubtype = "FrigateCore_Cargo"; // Subtype of the cargo container
+        private const int MaxDistance = 1; // Maximum distance for blocks to be considered adjacent
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
@@ -59,21 +61,30 @@ namespace CustomNamespace
 
         public override void UpdateAfterSimulation100()
         {
-            // Check if all required blocks are present
+            // Check if all required blocks are present and adjacent
             if (!IsAssemblyIntact())
             {
-                MyAPIGateway.Utilities.ShowNotification("Part of the Frigate assembly is missing!", 5000, MyFontEnum.Red);
+                MyAPIGateway.Utilities.ShowNotification("Part of the Frigate assembly is missing or not adjacent to the FrigateCore!", 5000, MyFontEnum.Red);
             }
         }
 
         private bool IsAssemblyIntact()
         {
             var grid = block.CubeGrid;
-            var blocks = new List<IMySlimBlock>();
-            grid.GetBlocks(blocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateReactorSubtype);
+            var reactorPosition = block.Position;
 
-            // Check if the required number of FrigateReactor blocks are present
-            return blocks.Count == 2; // Adjust the number based on how many reactors are expected
+            var reactorBlocks = new List<IMySlimBlock>();
+            var cargoBlocks = new List<IMySlimBlock>();
+
+            // Use GetBlocks to get all reactor and cargo blocks
+            grid.GetBlocks(reactorBlocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateReactorSubtype);
+            grid.GetBlocks(cargoBlocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateCargoSubtype);
+
+            // Check if the required number of FrigateReactor blocks and FrigateCargo blocks are present
+            int reactorCount = reactorBlocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
+            int cargoCount = cargoBlocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
+
+            return reactorCount >= 1 && cargoCount >= 1;
         }
 
         public override void Close()

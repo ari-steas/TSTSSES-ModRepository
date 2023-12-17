@@ -23,12 +23,12 @@
       </Components>
       <CriticalComponent Subtype="Computer" Index="0"/>
       <MountPoints>
-        <MountPoint Side="Bottom" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" Default="true"/>
-        <MountPoint Side="Top" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9"/>
-        <MountPoint Side="Left" StartX="0.175" StartY="0.1" EndX="0.825" EndY="0.9"/>
-        <MountPoint Side="Right" StartX="0.175" StartY="0.1" EndX="0.825" EndY="0.9"/>
-        <MountPoint Side="Front" StartX="0.175" StartY="0.1" EndX="0.825" EndY="0.9"/>
-        <MountPoint Side="Back" StartX="0.175" StartY="0.1" EndX="0.825" EndY="0.9"/>
+        <MountPoint Side="Bottom" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" Default="true" CouplingTag="FrigateCoreMount" AllowCouplingWithItself="false"/>
+        <MountPoint Side="Top" StartX="0.1" StartY="0.1" EndX="0.9" EndY="0.9" CouplingTag="FrigateCoreMount" AllowCouplingWithItself="false"/>
+        <MountPoint Side="Left" StartX="0.175" StartY="0.1" EndX="0.825" EndY="0.9" CouplingTag="FrigateCoreMount" AllowCouplingWithItself="false"/>
+        <MountPoint Side="Right" StartX="0.175" StartY="0.1" EndX="0.825" EndY="0.9" CouplingTag="FrigateCoreMount" AllowCouplingWithItself="false"/>
+        <MountPoint Side="Front" StartX="0.175" StartY="0.1" EndX="0.825" EndY="0.9" CouplingTag="FrigateCoreMount" AllowCouplingWithItself="false"/>
+        <MountPoint Side="Back" StartX="0.175" StartY="0.1" EndX="0.825" EndY="0.9" CouplingTag="FrigateCoreMount" AllowCouplingWithItself="false"/>
       </MountPoints>
       <!-- Build stages must be removed so beacon is always functional -->
       <!--<BuildProgressModels>
