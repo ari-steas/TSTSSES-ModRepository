@@ -51,7 +51,6 @@ namespace TSTSSESCoresAddon.Data.Scripts.ScriptsAddon.customscripts
             associatedBlocks.Add(AddBlock<MyObjectBuilder_CargoContainer>(tBlock, "LargeBlockSmallContainer", tBlock.Position + (Vector3I)tBlock.LocalMatrix.Backward));
 
             blockGroups.Add(tBlock.EntityId, associatedBlocks);
-
             tBlock.CubeGrid.OnBlockRemoved += Grid_OnBlockRemoved;
         }
 
@@ -70,6 +69,7 @@ namespace TSTSSESCoresAddon.Data.Scripts.ScriptsAddon.customscripts
         private static long AddBlock<T>(IMyTerminalBlock block, string subtypeName, Vector3I position) where T : MyObjectBuilder_CubeBlock, new()
         {
             var grid = block.CubeGrid;
+
             var nextBlockBuilder = new T
             {
                 SubtypeName = subtypeName,
