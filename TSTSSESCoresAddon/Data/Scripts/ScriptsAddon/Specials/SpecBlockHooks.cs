@@ -152,7 +152,7 @@ namespace Scripts.Specials.ShipClass
         
         public static void RegisterSpecCorePointCustomFx(int pointId, Func<object, List<IMyCubeGrid>, float> fx)
         {
-            registerSpecCorePointCustomFx.Invoke(pointId, fx);
+            registerSpecCorePointCustomFx?.Invoke(pointId, fx);
         }
         
         public static void RegisterCustomLimitConsumer(string Id, C OnNewConsumerRegistered, A CanWork, FF CheckConditions, F CanBeDisabled, F IsDrainingPoints, A Disable)
@@ -162,52 +162,52 @@ namespace Scripts.Specials.ShipClass
 
         public static object GetMainSpecCore(IMyCubeGrid grid)
         {
-            return getMainSpecCore.Invoke(grid);
+            return getMainSpecCore?.Invoke(grid);
         }
         
         public static IMyTerminalBlock GetMainSpecCoreBlock(IMyCubeGrid grid)
         {
-            return getMainSpecCoreBlock.Invoke(grid);
+            return getMainSpecCoreBlock?.Invoke(grid);
         }
         
         public static void GetSpecCoreLimits(object specCore, IDictionary<int, float> buffer, GetSpecCoreLimitsEnum limits)
         {
-            getSpecCoreLimits.Invoke(specCore, buffer, (int) limits);
+            getSpecCoreLimits?.Invoke(specCore, buffer, (int) limits);
         }
         
         public static void GetSpecCoreUpgrades(object specCore, List<int> buffer)
         {
-            getSpecCoreUpgrades.Invoke(specCore, buffer);
+            getSpecCoreUpgrades?.Invoke(specCore, buffer);
         }
         
         public static void SetSpecCoreCustomValues(object specCore, IDictionary<int, float> staticValues, IDictionary<int, float> dynamicValues)
         {
-            setSpecCoreCustomValues.Invoke(specCore, staticValues, dynamicValues);
+            setSpecCoreCustomValues?.Invoke(specCore, staticValues, dynamicValues);
         }
         
         public static void AddSpecCoreLimitsInterceptor(Action<IMyTerminalBlock, object, Dictionary<int, float>, Dictionary<int, float>> fx)
         {
-            addSpecCoreLimitsInterceptor.Invoke(fx);
+            addSpecCoreLimitsInterceptor?.Invoke(fx);
         }
 
         public static object GetSpecCoreBlock(IMyTerminalBlock block)
         {
-            return getSpecCoreBlock.Invoke(block);
+            return getSpecCoreBlock?.Invoke(block);
         }
 
         public static IMyTerminalBlock GetBlockSpecCore(object block)
         {
-            return getBlockSpecCore.Invoke(block);
+            return getBlockSpecCore?.Invoke(block);
         }
         
         public static object GetLimitedBlock(IMyTerminalBlock block)
         {
-            return getLimitedBlock.Invoke(block);
+            return getLimitedBlock?.Invoke(block);
         }
 
         public static IMyTerminalBlock GetLimitedBlockBlock(object block)
         {
-            return getLimitedBlockBlock.Invoke(block);
+            return getLimitedBlockBlock?.Invoke(block);
         }
 
         public static void RegisterCustomLimitConsumer(string Id, Func<IMyTerminalBlock, ILimitedBlock> creator)

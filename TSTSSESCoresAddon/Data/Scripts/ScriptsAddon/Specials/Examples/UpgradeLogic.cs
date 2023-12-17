@@ -330,16 +330,17 @@ namespace ServerMod
             });
         }
 
+        // Commented out because it breaks mysteriously
         private static void OnSpecBlockDestroyed(object specBlock)
         {
-            var tBlock = SpecBlockHooks.GetBlockSpecCore(specBlock);
-            if (tBlock == null)
-                return;
-
-            IMyCubeGrid grid = tBlock.CubeGrid;
-            List<IMyCubeGrid> grids = new List<IMyCubeGrid>();
-            MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Mechanical, grids);
-            RunUpgrades(specBlock, grids, true);
+            //var tBlock = SpecBlockHooks.GetBlockSpecCore(specBlock);
+            //if (tBlock == null)
+            //    return;
+            //
+            //IMyCubeGrid grid = tBlock.CubeGrid;
+            //List<IMyCubeGrid> grids = new List<IMyCubeGrid>();
+            //MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Mechanical, grids);
+            //RunUpgrades(specBlock, grids, true);
         }
 
         /*public static void MessageHandler(byte[] data)
