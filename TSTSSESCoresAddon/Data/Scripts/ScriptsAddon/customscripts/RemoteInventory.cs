@@ -16,11 +16,12 @@ namespace Aristeas.RemoteInventory.Data.Scripts
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation | MyUpdateOrder.AfterSimulation | MyUpdateOrder.Simulation)]
     public class InventoryGrabber : MySessionComponentBase
     {
+        // TODO replace with core container
         const double MaxRange = 1000;
         const int TimeBetweenInventory = 60;
         public static readonly string[] ValidBlockSubtypes = new string[]
         {
-            "LargeBlockLargeGenerator"
+            "LargeBlockSmallContainer"
         };
 
 
