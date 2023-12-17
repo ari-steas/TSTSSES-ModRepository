@@ -19,7 +19,7 @@ namespace TSTSSESCoresAddon.Data.Scripts.ScriptsAddon.customscripts
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_Beacon), false, new string[] {
         "CoreKit_1",
     })]
-    public class epstein_script : MyGameLogicComponent
+    public class corekit_script : MyGameLogicComponent
     {
         private IMyCubeBlock block;
 
@@ -54,7 +54,7 @@ namespace TSTSSESCoresAddon.Data.Scripts.ScriptsAddon.customscripts
 
             grid.RemoveBlock(block.SlimBlock);
 
-            AddBlock(block, "SAIDS_FrigateCore", block.Position);
+            AddBlock(block, "TSTSSES_FrigateCore", block.Position);
         }
 
         private static void AddBlock(IMyCubeBlock block, string subtypeName, Vector3I position)
