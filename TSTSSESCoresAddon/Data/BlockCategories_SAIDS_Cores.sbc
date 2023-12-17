@@ -11,15 +11,15 @@
       <Name>.Ship Cores</Name>
       <StrictSearch>true</StrictSearch>
       <ItemIds>
-        <string>SAIDS_FrigateCore</string>
-        <string>SAIDS_DestroyerCore</string>
-        <string>SAIDS_CruiserCore</string>
-        <string>SAIDS_BattlecruiserCore</string>
-        <string>SAIDS_BattleshipCore</string>
-        <string>SAIDS_CapitalCore</string>
-        <string>SAIDS_FighterCore</string>
-        <string>SAIDS_DroneCore</string>
-        <string>SAIDS_StationCore</string>
+        <string>TSTSSES_FrigateCore</string>
+        <string>TSTSSES_DestroyerCore</string>
+        <string>TSTSSES_CruiserCore</string>
+        <string>TSTSSES_BattlecruiserCore</string>
+        <string>TSTSSES_BattleshipCore</string>
+        <string>TSTSSES_CapitalCore</string>
+        <string>TSTSSES_FighterCore</string>
+        <string>TSTSSES_DroneCore</string>
+        <string>TSTSSES_StationCore</string>
 
 
 
