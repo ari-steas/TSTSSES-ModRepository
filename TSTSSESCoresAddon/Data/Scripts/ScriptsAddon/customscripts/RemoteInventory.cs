@@ -1,9 +1,13 @@
 ﻿using Sandbox.Game.Entities;
+using Sandbox.Game.Gui;
+using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using Sandbox.ModAPI.Ingame;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.Entity.UseObject;
 using VRage.Game.ModAPI;
@@ -23,6 +27,8 @@ namespace Aristeas.RemoteInventory.Data.Scripts
             "LargeBlockSmallContainer"
         };
 
+        private Dictionary<long, IMyCubeBlock> lockedContainers = null;
+
 
         int lastInventoryTry = 0;
 
@@ -30,22 +36,32 @@ namespace Aristeas.RemoteInventory.Data.Scripts
         {
             base.UpdateBeforeSimulation();
 
+            //if (lockedContainer != null)
+            //{
+            //    MyAPIGateway.Players.GetPlayers(null, player => lockedContainers.ContainsKey(player.PlayerID));
+            //}
+
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
                 // If not currently in GUI screen && Ctrl-R pressed
-                if (
-                    MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None &&
-                    MyAPIGateway.Input.IsKeyPress(VRage.Input.MyKeys.LeftControl) &&
-                    MyAPIGateway.Input.IsKeyPress(VRage.Input.MyKeys.R))
-                {
-                    // Wait between calls, as I suspect there is a large performance implication for this
-                    if (lastInventoryTry > TimeBetweenInventory)
+                if (MyAPIGateway.Input.IsKeyPress(VRage.Input.MyKeys.Control) && MyAPIGateway.Input.IsKeyPress(VRage.Input.MyKeys.R) && IsPlayerValid()) {
+                    //if (MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.Inventory)
+                    //    MyAPIGateway.Gui.
+
+                    if (MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None)
                     {
-                        GetInventory();
-                        lastInventoryTry = 0;
+                        // Wait between calls, as I suspect there is a large performance implication for this
+                        if (lastInventoryTry > TimeBetweenInventory)
+                        {
+                            GetInventory();
+                            lastInventoryTry = 0;
+                        }
+                        
                     }
                 }
 
+                if (MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None)
+                    MyConstants.DEFAULT_INTERACTIVE_DISTANCE = 5f;
                 lastInventoryTry++;
             }
         }
@@ -108,15 +124,25 @@ namespace Aristeas.RemoteInventory.Data.Scripts
 
                 if (useObjects.Count > 0)
                 {
-                    useObjects[0].Use(UseActionEnum.OpenInventory, MyAPIGateway.Session.Player.Controller.ControlledEntity.Entity);
-                    return true;
+                    foreach (var useObject in useObjects)
+                    {
+                        // Loop over all actions to look for inventory
+                        if (useObject.PrimaryAction != UseActionEnum.OpenInventory)
+                            continue;
+
+                        //MyAPIGateway.Session.Player.Controller.ControlledEntity.Entity.SetPosition(interactBlock.WorldMatrix.Translation);
+                        MyConstants.DEFAULT_INTERACTIVE_DISTANCE = (float)MaxRange;
+                        useObject.Use(UseActionEnum.OpenInventory, MyAPIGateway.Session.Player.Controller.ControlledEntity.Entity);
+                        
+                        return true;
+                    }
                 }
                 else
                 {
                     MyAPIGateway.Utilities.ShowNotification("NO USEOBJECTS", 5000);
                 }
             }
-            catch (Exception e)
+            catch
             {
                 MyAPIGateway.Utilities.ShowNotification("NULL IN INNER METHOD", 5000);
             }
