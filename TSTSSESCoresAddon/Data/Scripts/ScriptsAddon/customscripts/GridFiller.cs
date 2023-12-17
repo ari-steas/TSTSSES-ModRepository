@@ -1,108 +1,86 @@
 ﻿using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
-using Scripts.Specials.ShipClass;
-using System;
-using System.Collections.Generic;
 using VRage;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
 using VRageMath;
+using System.Collections.Generic; // Required for List
+using System.Linq; // Required for LINQ queries
 
-namespace TSTSSESCoresAddon.Data.Scripts.ScriptsAddon.customscripts
+namespace CustomNamespace
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate)]
-    public class GridFiller : MySessionComponentBase
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_Beacon), false, "TSTSSES_FrigateCore")]
+    public class SimpleGridFiller : MyGameLogicComponent
     {
-        private static bool isServer;
-        private static Dictionary<long, HashSet<long>> blockGroups = new Dictionary<long, HashSet<long>>();
+        private IMyCubeBlock block;
+        private const string FrigateReactorSubtype = "FrigateCore_Reactor"; // Subtype of the reactor
 
-        static GridFiller()
+        public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            SpecBlockHooks.OnReady += HooksOnOnReady;
+            base.Init(objectBuilder);
+            block = (IMyCubeBlock)Entity;
+
+            // Place FrigateReactor blocks forward and backward of the block
+            AddFrigateReactor(new Vector3I(0, 0, 1)); // Forward
+            AddFrigateReactor(new Vector3I(0, 0, -1)); // Backward
+
+            // Periodic check to ensure the assembly is intact
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
         }
 
-        public override void LoadData()
-        {
-            isServer = MyAPIGateway.Session.IsServer;
-        }
-
-        private static void HooksOnOnReady()
-        {
-            if (isServer)
-            {
-                SpecBlockHooks.OnSpecBlockCreated += OnSpecBlockCreated;
-                SpecBlockHooks.OnSpecBlockDestroyed += OnSpecBlockDestroyed;
-            }
-        }
-
-        private static void OnSpecBlockCreated(object specBlock)
-        {
-            var tBlock = SpecBlockHooks.GetBlockSpecCore(specBlock);
-            if (tBlock == null)
-                return;
-
-            MyAPIGateway.Utilities.ShowNotification($"SpecBlock {tBlock.DisplayNameText} placed!");
-
-            HashSet<long> associatedBlocks = new HashSet<long>();
-            associatedBlocks.Add(AddBlock<MyObjectBuilder_Reactor>(tBlock, "LargeBlockSmallGenerator", tBlock.Position + (Vector3I)tBlock.LocalMatrix.Forward));
-            associatedBlocks.Add(AddBlock<MyObjectBuilder_CargoContainer>(tBlock, "LargeBlockSmallContainer", tBlock.Position + (Vector3I)tBlock.LocalMatrix.Backward));
-
-            blockGroups.Add(tBlock.EntityId, associatedBlocks);
-            tBlock.CubeGrid.OnBlockRemoved += Grid_OnBlockRemoved;
-        }
-
-        private static void OnSpecBlockDestroyed(object specBlock)
-        {
-            var tBlock = SpecBlockHooks.GetBlockSpecCore(specBlock);
-            if (tBlock == null)
-                return;
-
-            MyAPIGateway.Utilities.ShowNotification($"SpecBlock {tBlock.DisplayNameText} removed!");
-            blockGroups.Remove(tBlock.EntityId);
-
-            tBlock.CubeGrid.OnBlockRemoved -= Grid_OnBlockRemoved;
-        }
-
-        private static long AddBlock<T>(IMyTerminalBlock block, string subtypeName, Vector3I position) where T : MyObjectBuilder_CubeBlock, new()
+        private void AddFrigateReactor(Vector3I direction)
         {
             var grid = block.CubeGrid;
+            var position = block.Position + direction;
 
-            var nextBlockBuilder = new T
+            var blockBuilder = new MyObjectBuilder_CubeBlock
             {
-                SubtypeName = subtypeName,
+                SubtypeName = FrigateReactorSubtype,
                 Min = position,
-                BlockOrientation = block.Orientation,
+                BlockOrientation = new MyBlockOrientation(Base6Directions.Direction.Forward, Base6Directions.Direction.Up),
                 ColorMaskHSV = new SerializableVector3(0, -1, 0),
                 Owner = block.OwnerId,
                 EntityId = 0,
                 ShareMode = MyOwnershipShareModeEnum.None
             };
 
-            IMySlimBlock newBlock = grid.AddBlock(nextBlockBuilder, false);
-
+            IMySlimBlock newBlock = grid.AddBlock(blockBuilder, false);
             if (newBlock == null)
             {
-                MyAPIGateway.Utilities.ShowNotification($"Failed to add {subtypeName}", 1000);
-                return 0;
+                MyAPIGateway.Utilities.ShowNotification($"Failed to add FrigateReactor at {position}", 1000);
             }
-            MyAPIGateway.Utilities.ShowNotification($"{subtypeName} added at {position}", 1000);
-            return newBlock.FatBlock.EntityId;
+            else
+            {
+                MyAPIGateway.Utilities.ShowNotification($"FrigateReactor added at {position}", 1000);
+            }
         }
 
-        private static void Grid_OnBlockRemoved(IMySlimBlock block)
+        public override void UpdateAfterSimulation100()
         {
-            long removedBlockId = block.FatBlock?.EntityId ?? 0;
-            foreach (var group in blockGroups)
+            // Check if all required blocks are present
+            if (!IsAssemblyIntact())
             {
-                if (group.Value.Contains(removedBlockId))
-                {
-                    MyAPIGateway.Utilities.ShowNotification("A part of a SpecBlock assembly has been removed!", 5000);
-                    break;
-                }
+                MyAPIGateway.Utilities.ShowNotification("Part of the Frigate assembly is missing!", 5000, MyFontEnum.Red);
             }
+        }
+
+        private bool IsAssemblyIntact()
+        {
+            var grid = block.CubeGrid;
+            var blocks = new List<IMySlimBlock>();
+            grid.GetBlocks(blocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateReactorSubtype);
+
+            // Check if the required number of FrigateReactor blocks are present
+            return blocks.Count == 2; // Adjust the number based on how many reactors are expected
+        }
+
+        public override void Close()
+        {
+            base.Close();
+            // Additional cleanup if needed
         }
     }
 }
