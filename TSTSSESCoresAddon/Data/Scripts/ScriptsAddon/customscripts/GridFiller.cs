@@ -17,6 +17,7 @@ namespace CustomNamespace
     {
         private IMyCubeBlock block;
         private const string FrigateReactorSubtype = "FrigateCore_Reactor"; // Subtype of the reactor
+        private const int MaxDistance = 1; // Maximum distance for blocks to be considered adjacent
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
@@ -60,21 +61,24 @@ namespace CustomNamespace
 
         public override void UpdateAfterSimulation100()
         {
-            // Check if all required blocks are present
+            // Check if all required blocks are present and adjacent
             if (!IsAssemblyIntact())
             {
-                MyAPIGateway.Utilities.ShowNotification("Part of the Frigate assembly is missing!", 5000, MyFontEnum.Red);
+                MyAPIGateway.Utilities.ShowNotification("Part of the Frigate assembly is missing or not adjacent to the FrigateCore!", 5000, MyFontEnum.Red);
             }
         }
 
         private bool IsAssemblyIntact()
         {
             var grid = block.CubeGrid;
+            var reactorPosition = block.Position;
+
             var blocks = new List<IMySlimBlock>();
             grid.GetBlocks(blocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateReactorSubtype);
 
             // Check if the required number of FrigateReactor blocks are present
-            return blocks.Count == 2; // Adjust the number based on how many reactors are expected
+            int adjacentBlocks = blocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
+            return adjacentBlocks == 2; // Adjust the number based on how many reactors are expected
         }
 
         public override void Close()
