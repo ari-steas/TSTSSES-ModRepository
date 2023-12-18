@@ -1,6 +1,7 @@
 ﻿using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
+using VRage.ModAPI;
 using VRage;
 using VRage.Game;
 using VRage.Game.Components;
@@ -9,6 +10,10 @@ using VRage.ObjectBuilders;
 using VRageMath;
 using System.Collections.Generic;
 using System.Linq;
+using VRage.Game.ModAPI.Ingame;
+using IMyEntity = VRage.Game.ModAPI.Ingame.IMyEntity;
+using IMyCubeBlock = VRage.Game.ModAPI.IMyCubeBlock;
+using IMySlimBlock = VRage.Game.ModAPI.IMySlimBlock;
 
 namespace CustomNamespace
 {
@@ -16,18 +21,17 @@ namespace CustomNamespace
     public class SimpleGridFiller : MyGameLogicComponent
     {
         private IMyCubeBlock block;
-        private const string FrigateReactorSubtype = "FrigateCore_Reactor"; // Subtype of the reactor
-        private const string FrigateCargoSubtype = "FrigateCore_Cargo"; // Subtype of the cargo container
-        private const int MaxDistance = 1; // Maximum distance for blocks to be considered adjacent
-        private const int MaxFrigateReactors = 1; // Maximum allowed FrigateReactor blocks
-        private const int MaxFrigateCargos = 1; // Maximum allowed FrigateCargo blocks
+        private const string FrigateReactorSubtype = "FrigateCore_Reactor";
+        private const string FrigateCargoSubtype = "FrigateCore_Cargo";
+        private const int MaxDistance = 1;
+        private const int MaxFrigateReactors = 1;
+        private const int MaxFrigateCargos = 1;
+        private const double NotificationRadius = 50.0; // Radius for player notification
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
             base.Init(objectBuilder);
             block = (IMyCubeBlock)Entity;
-
-            // Removed automatic block placement functionality
 
             // Periodic check to ensure the assembly is intact
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
@@ -38,9 +42,26 @@ namespace CustomNamespace
             // Check if all required blocks are present and adjacent
             if (!IsAssemblyIntact())
             {
-                MyAPIGateway.Utilities.ShowNotification("Part of the Frigate assembly is missing or not adjacent to the FrigateCore!", 5000, MyFontEnum.Red);
+                NotifyPlayersInRange("Part of the Frigate assembly is missing or not adjacent to the FrigateCore!", block.GetPosition(), NotificationRadius, MyFontEnum.Red);
             }
         }
+
+        public void NotifyPlayersInRange(string text, Vector3D position, double radius, string font)
+        {
+            var bound = new BoundingSphereD(position, radius);
+            List<VRage.ModAPI.IMyEntity> nearEntities = MyAPIGateway.Entities.GetEntitiesInSphere(ref bound);
+
+            foreach (var entity in nearEntities)
+            {
+                var character = entity as VRage.Game.ModAPI.IMyCharacter;
+                if (character != null && character.IsPlayer && bound.Contains(character.GetPosition()) != ContainmentType.Disjoint)
+                {
+                    var notification = MyAPIGateway.Utilities.CreateNotification(text, 300, font);
+                    notification.Show();
+                }
+            }
+        }
+
 
         private bool IsAssemblyIntact()
         {
