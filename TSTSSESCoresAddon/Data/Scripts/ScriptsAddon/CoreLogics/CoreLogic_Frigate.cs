@@ -16,10 +16,10 @@ using IMyCubeBlock = VRage.Game.ModAPI.IMyCubeBlock;
 using IMySlimBlock = VRage.Game.ModAPI.IMySlimBlock;
 using System.Text;
 
-namespace CustomNamespace
+namespace TSTSSESCoresAddon.Data.Scripts.ScriptsAddon.CoreLogics
 {
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_Beacon), false, "TSTSSES_FrigateCore")]
-    public class SimpleGridFiller : MyGameLogicComponent
+    public class CoreLogic_Frigate : MyGameLogicComponent
     {
         private IMyCubeBlock block;
         private const string FrigateReactorSubtype = "FrigateCore_Reactor";
@@ -35,7 +35,7 @@ namespace CustomNamespace
             block = (IMyCubeBlock)Entity;
 
             // Periodic check to ensure the assembly is intact
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
+            NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
         }
 
         public override void UpdateAfterSimulation100()
@@ -57,7 +57,7 @@ namespace CustomNamespace
 
             foreach (var entity in nearEntities)
             {
-                var character = entity as VRage.Game.ModAPI.IMyCharacter;
+                var character = entity as IMyCharacter;
                 if (character != null && character.IsPlayer && bound.Contains(character.GetPosition()) != ContainmentType.Disjoint)
                 {
                     var notification = MyAPIGateway.Utilities.CreateNotification(text, 1600, font);
