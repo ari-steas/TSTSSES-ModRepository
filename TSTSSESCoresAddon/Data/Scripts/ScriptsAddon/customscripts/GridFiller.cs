@@ -14,6 +14,7 @@ using VRage.Game.ModAPI.Ingame;
 using IMyEntity = VRage.Game.ModAPI.Ingame.IMyEntity;
 using IMyCubeBlock = VRage.Game.ModAPI.IMyCubeBlock;
 using IMySlimBlock = VRage.Game.ModAPI.IMySlimBlock;
+using System.Text;
 
 namespace CustomNamespace
 {
@@ -39,12 +40,15 @@ namespace CustomNamespace
 
         public override void UpdateAfterSimulation100()
         {
-            // Check if all required blocks are present and adjacent
-            if (!IsAssemblyIntact())
+            string errorMessages = IsAssemblyIntact();
+            if (!string.IsNullOrEmpty(errorMessages))
             {
-                NotifyPlayersInRange("Part of the Frigate assembly is missing or not adjacent to the FrigateCore!", block.GetPosition(), NotificationRadius, MyFontEnum.Red);
+                IMyTerminalBlock terminalBlock = block as IMyTerminalBlock; // Cast to IMyTerminalBlock
+                string notificationText = $"[Grid: {block.CubeGrid.DisplayName}] '{terminalBlock.CustomName}' status:\n{errorMessages}";
+                NotifyPlayersInRange(notificationText, block.GetPosition(), NotificationRadius, MyFontEnum.Red);
             }
         }
+
 
         public void NotifyPlayersInRange(string text, Vector3D position, double radius, string font)
         {
@@ -56,7 +60,7 @@ namespace CustomNamespace
                 var character = entity as VRage.Game.ModAPI.IMyCharacter;
                 if (character != null && character.IsPlayer && bound.Contains(character.GetPosition()) != ContainmentType.Disjoint)
                 {
-                    var notification = MyAPIGateway.Utilities.CreateNotification(text, 1500, font);
+                    var notification = MyAPIGateway.Utilities.CreateNotification(text, 1600, font);
                     notification.Show();
                 }
             }
@@ -64,36 +68,61 @@ namespace CustomNamespace
 
 
 
-        private bool IsAssemblyIntact()
+        private string IsAssemblyIntact()
         {
             var grid = block.CubeGrid;
-            var reactorPosition = block.Position;
+            var corePosition = block.Position;
 
-            var reactorBlocks = new List<IMySlimBlock>();
-            var cargoBlocks = new List<IMySlimBlock>();
+            // List all blocks of the specific subtypes on the grid
+            var allReactorBlocks = new List<IMySlimBlock>();
+            var allCargoBlocks = new List<IMySlimBlock>();
 
-            // Use GetBlocks to get all reactor and cargo blocks
-            grid.GetBlocks(reactorBlocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateReactorSubtype);
-            grid.GetBlocks(cargoBlocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateCargoSubtype);
+            grid.GetBlocks(allReactorBlocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateReactorSubtype);
+            grid.GetBlocks(allCargoBlocks, b => b.FatBlock != null && b.FatBlock.BlockDefinition.SubtypeId == FrigateCargoSubtype);
 
-            // Check if the required number of FrigateReactor blocks and FrigateCargo blocks are present
-            int reactorCount = reactorBlocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
-            int cargoCount = cargoBlocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
+            // Filter the blocks to only those that are adjacent to the core
+            var adjacentReactorBlocks = allReactorBlocks.Where(b => Vector3I.DistanceManhattan(b.Position, corePosition) <= MaxDistance).ToList();
+            var adjacentCargoBlocks = allCargoBlocks.Where(b => Vector3I.DistanceManhattan(b.Position, corePosition) <= MaxDistance).ToList();
+
+            StringBuilder errorMessage = new StringBuilder();
+
+            // Check if the number of adjacent blocks is within the allowed range
+            int reactorCount = adjacentReactorBlocks.Count;
+            int cargoCount = adjacentCargoBlocks.Count;
 
             if (reactorCount > MaxFrigateReactors)
             {
-                //MyAPIGateway.Utilities.ShowNotification($"Too many FrigateReactor blocks detected! Maximum allowed: {MaxFrigateReactors}", 5000, MyFontEnum.Red);
-                return false;
+                errorMessage.AppendLine($"Exceeds maximum {FrigateReactorSubtype} count (Max: {MaxFrigateReactors}).");
+            }
+            else if (reactorCount < MaxFrigateReactors)
+            {
+                errorMessage.AppendLine($"{FrigateReactorSubtype} required.");
             }
 
             if (cargoCount > MaxFrigateCargos)
             {
-               // MyAPIGateway.Utilities.ShowNotification($"Too many FrigateCargo blocks detected! Maximum allowed: {MaxFrigateCargos}", 5000, MyFontEnum.Red);
-                return false;
+                errorMessage.AppendLine($"Exceeds maximum {FrigateCargoSubtype} count (Max: {MaxFrigateCargos}).");
+            }
+            else if (cargoCount < MaxFrigateCargos)
+            {
+                errorMessage.AppendLine($"{FrigateCargoSubtype} required.");
             }
 
-            return reactorCount >= 1 && cargoCount >= 1;
+            // Backup check for non-adjacent reactors or cargos
+            if (allReactorBlocks.Count > reactorCount)
+            {
+                errorMessage.AppendLine($"Detected non-adjacent {FrigateReactorSubtype} blocks.");
+            }
+
+            if (allCargoBlocks.Count > cargoCount)
+            {
+                errorMessage.AppendLine($"Detected non-adjacent {FrigateCargoSubtype} blocks.");
+            }
+
+            return errorMessage.ToString().Trim();
         }
+
+
 
         public override void Close()
         {
