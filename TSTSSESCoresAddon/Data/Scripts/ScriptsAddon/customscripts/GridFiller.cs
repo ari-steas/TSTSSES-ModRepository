@@ -56,11 +56,12 @@ namespace CustomNamespace
                 var character = entity as VRage.Game.ModAPI.IMyCharacter;
                 if (character != null && character.IsPlayer && bound.Contains(character.GetPosition()) != ContainmentType.Disjoint)
                 {
-                    var notification = MyAPIGateway.Utilities.CreateNotification(text, 300, font);
+                    var notification = MyAPIGateway.Utilities.CreateNotification(text, 1500, font);
                     notification.Show();
                 }
             }
         }
+
 
 
         private bool IsAssemblyIntact()
@@ -81,13 +82,13 @@ namespace CustomNamespace
 
             if (reactorCount > MaxFrigateReactors)
             {
-                MyAPIGateway.Utilities.ShowNotification($"Too many FrigateReactor blocks detected! Maximum allowed: {MaxFrigateReactors}", 5000, MyFontEnum.Red);
+                //MyAPIGateway.Utilities.ShowNotification($"Too many FrigateReactor blocks detected! Maximum allowed: {MaxFrigateReactors}", 5000, MyFontEnum.Red);
                 return false;
             }
 
             if (cargoCount > MaxFrigateCargos)
             {
-                MyAPIGateway.Utilities.ShowNotification($"Too many FrigateCargo blocks detected! Maximum allowed: {MaxFrigateCargos}", 5000, MyFontEnum.Red);
+               // MyAPIGateway.Utilities.ShowNotification($"Too many FrigateCargo blocks detected! Maximum allowed: {MaxFrigateCargos}", 5000, MyFontEnum.Red);
                 return false;
             }
 
