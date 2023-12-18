@@ -27,39 +27,10 @@ namespace CustomNamespace
             base.Init(objectBuilder);
             block = (IMyCubeBlock)Entity;
 
-            // Place FrigateReactor blocks forward and backward of the block
-            AddFrigateReactor(new Vector3I(0, 0, 1)); // Forward
-            AddFrigateReactor(new Vector3I(0, 0, -1)); // Backward
+            // Removed automatic block placement functionality
 
             // Periodic check to ensure the assembly is intact
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
-        }
-
-        private void AddFrigateReactor(Vector3I direction)
-        {
-            var grid = block.CubeGrid;
-            var position = block.Position + direction;
-
-            var blockBuilder = new MyObjectBuilder_CubeBlock
-            {
-                SubtypeName = FrigateReactorSubtype,
-                Min = position,
-                BlockOrientation = new MyBlockOrientation(Base6Directions.Direction.Forward, Base6Directions.Direction.Up),
-                ColorMaskHSV = new SerializableVector3(0, -1, 0),
-                Owner = block.OwnerId,
-                EntityId = 0,
-                ShareMode = MyOwnershipShareModeEnum.None
-            };
-
-            IMySlimBlock newBlock = grid.AddBlock(blockBuilder, false);
-            if (newBlock == null)
-            {
-                MyAPIGateway.Utilities.ShowNotification($"Failed to add FrigateReactor at {position}", 1000);
-            }
-            else
-            {
-                MyAPIGateway.Utilities.ShowNotification($"FrigateReactor added at {position}", 1000);
-            }
         }
 
         public override void UpdateAfterSimulation100()
