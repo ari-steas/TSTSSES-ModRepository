@@ -7,8 +7,8 @@ using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
 using VRageMath;
-using System.Collections.Generic; // Required for List
-using System.Linq; // Required for LINQ queries
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CustomNamespace
 {
@@ -19,44 +19,18 @@ namespace CustomNamespace
         private const string FrigateReactorSubtype = "FrigateCore_Reactor"; // Subtype of the reactor
         private const string FrigateCargoSubtype = "FrigateCore_Cargo"; // Subtype of the cargo container
         private const int MaxDistance = 1; // Maximum distance for blocks to be considered adjacent
+        private const int MaxFrigateReactors = 1; // Maximum allowed FrigateReactor blocks
+        private const int MaxFrigateCargos = 1; // Maximum allowed FrigateCargo blocks
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
             base.Init(objectBuilder);
             block = (IMyCubeBlock)Entity;
 
-            // Place FrigateReactor blocks forward and backward of the block
-            AddBlock<MyObjectBuilder_CubeBlock>(block, new Vector3I(0, 0, 1), FrigateReactorSubtype); // Forward
-            AddBlock<MyObjectBuilder_CubeBlock>(block, new Vector3I(0, 0, -1), FrigateReactorSubtype); // Backward
+            // Removed automatic block placement functionality
 
             // Periodic check to ensure the assembly is intact
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
-        }
-
-        public static long AddBlock<T>(IMyCubeBlock block, Vector3I direction, string subtypeName) where T : MyObjectBuilder_CubeBlock, new()
-        {
-            var grid = block.CubeGrid;
-            var position = block.Position + direction;
-
-            var nextBlockBuilder = new T
-            {
-                SubtypeName = subtypeName,
-                Min = position,
-                BlockOrientation = block.Orientation,
-                ColorMaskHSV = new SerializableVector3(0, -1, 0),
-                Owner = block.OwnerId,
-                EntityId = 0,
-                ShareMode = MyOwnershipShareModeEnum.None
-            };
-
-            IMySlimBlock newBlock = block.CubeGrid.AddBlock(nextBlockBuilder, false);
-
-            if (newBlock == null)
-                MyAPIGateway.Utilities.ShowNotification($"Failed to add {subtypeName} at {position}", 1000);
-            else
-                MyAPIGateway.Utilities.ShowNotification($"{subtypeName} added at {position}", 1000);
-
-            return newBlock.FatBlock.EntityId;
         }
 
         public override void UpdateAfterSimulation100()
@@ -83,6 +57,18 @@ namespace CustomNamespace
             // Check if the required number of FrigateReactor blocks and FrigateCargo blocks are present
             int reactorCount = reactorBlocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
             int cargoCount = cargoBlocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
+
+            if (reactorCount > MaxFrigateReactors)
+            {
+                MyAPIGateway.Utilities.ShowNotification($"Too many FrigateReactor blocks detected! Maximum allowed: {MaxFrigateReactors}", 5000, MyFontEnum.Red);
+                return false;
+            }
+
+            if (cargoCount > MaxFrigateCargos)
+            {
+                MyAPIGateway.Utilities.ShowNotification($"Too many FrigateCargo blocks detected! Maximum allowed: {MaxFrigateCargos}", 5000, MyFontEnum.Red);
+                return false;
+            }
 
             return reactorCount >= 1 && cargoCount >= 1;
         }
