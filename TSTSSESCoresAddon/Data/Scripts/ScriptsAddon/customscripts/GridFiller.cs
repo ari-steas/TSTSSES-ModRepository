@@ -7,8 +7,8 @@ using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
 using VRageMath;
-using System.Collections.Generic; // Required for List
-using System.Linq; // Required for LINQ queries
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CustomNamespace
 {
@@ -19,6 +19,8 @@ namespace CustomNamespace
         private const string FrigateReactorSubtype = "FrigateCore_Reactor"; // Subtype of the reactor
         private const string FrigateCargoSubtype = "FrigateCore_Cargo"; // Subtype of the cargo container
         private const int MaxDistance = 1; // Maximum distance for blocks to be considered adjacent
+        private const int MaxFrigateReactors = 1; // Maximum allowed FrigateReactor blocks
+        private const int MaxFrigateCargos = 1; // Maximum allowed FrigateCargo blocks
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
@@ -84,6 +86,18 @@ namespace CustomNamespace
             // Check if the required number of FrigateReactor blocks and FrigateCargo blocks are present
             int reactorCount = reactorBlocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
             int cargoCount = cargoBlocks.Count(b => Vector3I.DistanceManhattan(b.Position, reactorPosition) <= MaxDistance);
+
+            if (reactorCount > MaxFrigateReactors)
+            {
+                MyAPIGateway.Utilities.ShowNotification($"Too many FrigateReactor blocks detected! Maximum allowed: {MaxFrigateReactors}", 5000, MyFontEnum.Red);
+                return false;
+            }
+
+            if (cargoCount > MaxFrigateCargos)
+            {
+                MyAPIGateway.Utilities.ShowNotification($"Too many FrigateCargo blocks detected! Maximum allowed: {MaxFrigateCargos}", 5000, MyFontEnum.Red);
+                return false;
+            }
 
             return reactorCount >= 1 && cargoCount >= 1;
         }
