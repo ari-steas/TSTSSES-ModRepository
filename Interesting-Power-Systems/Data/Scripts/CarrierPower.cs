@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
@@ -14,7 +13,7 @@ using VRage.Utils;
 // Mostly stolen (with permission) from Klime - see https://steamcommunity.com/sharedfiles/filedetails/?id=1844150178
 namespace CarrierPower
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
+    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class CarrierPower : MySessionComponentBase
     {
         static readonly float powerRadius = 100; // currently defunct, uses beacon range
@@ -37,30 +36,27 @@ namespace CarrierPower
 
         private void OnEntityCreate(IMyEntity entity)
         {
-            var block = entity as IMyCubeBlock;
-            if (block != null)
+            if (entity is IMyCubeBlock)
             {
-                var subtype = block.BlockDefinition.SubtypeId;
-                if (subtype == receiverSubtype && !receiverList.Contains(block))
+                // check block subtype and add to lists
+                var subtype = (entity as IMyCubeBlock).BlockDefinition.SubtypeId;
+                if (subtype == receiverSubtype && !receiverList.Contains(entity as IMyTerminalBlock))
                 {
-                    receiverList.Add((IMyTerminalBlock)block);
-                    MyAPIGateway.Utilities.ShowNotification($"Receiver added: {block.DisplayName}", 5000, MyFontEnum.Green);
+                    receiverList.Add(entity as IMyTerminalBlock);
                 }
-                else if (subtype == transmitterSubtype && !transmitterList.Contains(block))
+                // transmitters
+                if (subtype == transmitterSubtype && !transmitterList.Contains(entity as IMyTerminalBlock))
                 {
-                    transmitterList.Add((IMyTerminalBlock)block);
-                    MyAPIGateway.Utilities.ShowNotification($"Transmitter added: {block.DisplayName}", 5000, MyFontEnum.Green);
+                    transmitterList.Add(entity as IMyTerminalBlock);
                 }
             }
         }
-
-
 
         public override void Init(MyObjectBuilder_SessionComponent sessionComponent)
         {
             base.Init(sessionComponent);
             MyVisualScriptLogicProvider.BlockBuilt += BlockBuilt;
-            MyVisualScriptLogicProvider.BlockDestroyed += BlockDestroyed;   
+            MyVisualScriptLogicProvider.BlockDestroyed += BlockDestroyed;
         }
 
         private void BlockBuilt(string typeid, string subtypeid, string gridname, long blockid)
@@ -103,11 +99,9 @@ namespace CarrierPower
             // maybe do something here idk
         }
 
-        public override void UpdateAfterSimulation()
+        public override void UpdateBeforeSimulation()
         {
             _timer += 1;
-
-            MyAPIGateway.Utilities.ShowNotification("FUCK");
 
             // every tick check one receiver
 
@@ -128,13 +122,13 @@ namespace CarrierPower
                 }
                 receiverIterator++;
             }
-            
+
             // clear junk every 100 ticks
             // did there used to be a function for this?
 
             if (_timer % 100 == 0)
             {
-                
+
                 #region old
                 /*
                 allPlayer.Clear();
@@ -165,7 +159,6 @@ namespace CarrierPower
 
         }
 
-
         protected void checkTransmitters(IMyTerminalBlock receiver)
         {
             var receiverFaction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(receiver.OwnerId);
@@ -180,15 +173,15 @@ namespace CarrierPower
                     && transmitter.IsWorking
                     && receiverFaction == transmitterFaction)
                 {
+                    // if radius found
+                    // power on block and return for this cycle
+
                     var distance = (receiver.WorldMatrix.Translation - transmitter.WorldMatrix.Translation).LengthSquared();
                     var radius = (transmitter as IMyBeacon).Radius;
                     if (distance < radius * radius)
                     {
                         (receiver as IMyBatteryBlock).Enabled = true;
-
-                        // Debug notification
-                        MyAPIGateway.Utilities.ShowNotification($"Receiver {receiver.CustomName} is in range of Transmitter {transmitter.CustomName}", 2000, MyFontEnum.Blue);
-
+                        //MyAPIGateway.Utilities.ShowNotification("TRANSMITTER FOUND");
                         return;
                     }
                 }
@@ -198,12 +191,7 @@ namespace CarrierPower
             // force power off
             (receiver as IMyBatteryBlock).Enabled = false;
 
-            // Debug notification for receiver out of range
-            MyAPIGateway.Utilities.ShowNotification($"Receiver {receiver.CustomName} is out of range of any Transmitter", 2000, MyFontEnum.Red);
         }
-
-
-
 
         private void clearDeletedBlocks()
         {
