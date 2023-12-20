@@ -19,11 +19,11 @@ namespace Aristeas.RemoteInventory.Data.Scripts
     public class InventoryGrabber : MySessionComponentBase
     {
         // TODO replace with core container
-        const double MaxRange = 1000;
+        const double MaxRange = 100;
         const int TimeBetweenInventory = 60;
         public static readonly string[] ValidBlockSubtypes = new string[]
         {
-            "LargeBlockSmallContainer"
+            "FrigateCore_Cargo"
         };
 
         private Dictionary<long, IMyCubeBlock> lockedContainers = null;
