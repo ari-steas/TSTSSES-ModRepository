@@ -17,15 +17,15 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
     public class WeaponPartGetter : MySessionComponentBase
     {
         public static WeaponPartGetter Instance; // the only way to access session comp from other classes and the only accepted static field.
-        public static Dictionary<IMySlimBlock, WeaponPart> AllWeaponParts = new Dictionary<IMySlimBlock, WeaponPart>();
+        public Dictionary<IMySlimBlock, WeaponPart> AllWeaponParts = new Dictionary<IMySlimBlock, WeaponPart>();
+        public List<PhysicalWeapon> AllPhysicalWeapons = new List<PhysicalWeapon>();
 
         private List<IMySlimBlock> queuedBlockAdds = new List<IMySlimBlock>();
 
-        public static WcApi wAPI;
+        public WcApi wAPI = new WcApi();
 
         public override void LoadData()
         {
-            wAPI = new WcApi();
             Instance = this;
             MyAPIGateway.Entities.OnEntityAdd += OnGridAdd;
             wAPI.Load();
@@ -33,9 +33,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         protected override void UnloadData()
         {
-            AllWeaponParts = null;
-            wAPI = null;
-
             Instance = null; // important for avoiding this object to remain allocated in memory
         }
 
@@ -49,6 +46,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 OnBlockAdd(queuedBlock);
             }
             queuedBlockAdds.Clear();
+
+            foreach (var weapon in AllPhysicalWeapons)
+                weapon.Update();
         }
 
         private void OnGridAdd(IMyEntity entity)
@@ -98,12 +98,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             if (projectileExists)
                 wAPI.SetProjectileState(projectileId, WeaponDefiniton.ChangeProjectileData(firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition));
         }
-
-
-
-
-
-
 
         private void OnBlockRemove(IMySlimBlock block)
         {
