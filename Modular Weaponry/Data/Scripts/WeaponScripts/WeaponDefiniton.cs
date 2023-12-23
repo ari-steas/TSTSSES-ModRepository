@@ -25,7 +25,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public static VRage.MyTuple<bool, Vector3D, Vector3D, float> ChangeProjectileData(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition)
         {
-            Vector3D velocityOffset = -WeaponPartGetter.wAPI.GetProjectileState(projectileId).Item2 / (numReactors > 0 ? numReactors : 1);
+            Vector3D velocityOffset = -WeaponPartGetter.Instance.wAPI.GetProjectileState(projectileId).Item2 / (numReactors > 0 ? numReactors : 1);
             MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(velocityOffset.Length(), 2));
 
             return new VRage.MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, velocityOffset, 0);

@@ -25,10 +25,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             //MyAPIGateway.Utilities.ShowNotification("Placed valid WeaponPart");
 
-            if (WeaponPartGetter.AllWeaponParts.ContainsKey(block))
+            if (WeaponPartGetter.Instance.AllWeaponParts.ContainsKey(block))
                 return;
 
-            WeaponPartGetter.AllWeaponParts.Add(block, this);
+            WeaponPartGetter.Instance.AllWeaponParts.Add(block, this);
 
             if (WeaponDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
                 memberWeapon = new PhysicalWeapon(this);
@@ -43,7 +43,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             foreach (var nBlock in neighbors)
             {
                 WeaponPart nBlockPart;
-                if (WeaponPartGetter.AllWeaponParts.TryGetValue(nBlock, out nBlockPart) && nBlockPart.memberWeapon != null)
+                if (WeaponPartGetter.Instance.AllWeaponParts.TryGetValue(nBlock, out nBlockPart) && nBlockPart.memberWeapon != null)
                 {
                     nBlockPart.memberWeapon.AddPart(this);
                     //MyAPIGateway.Utilities.ShowNotification("Added");

@@ -11,8 +11,8 @@ using VRage.Utils;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation | MyUpdateOrder.AfterSimulation)]
-    public class PhysicalWeapon : MySessionComponentBase
+    //[MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation | MyUpdateOrder.AfterSimulation)]
+    public class PhysicalWeapon
     {
         public WeaponPart basePart;
         private List<WeaponPart> componentParts = new List<WeaponPart>();
@@ -73,7 +73,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 {
                     WeaponPart neighborPart;
                     
-                    if (WeaponPartGetter.AllWeaponParts.TryGetValue(neighbor, out neighborPart))
+                    if (WeaponPartGetter.Instance.AllWeaponParts.TryGetValue(neighbor, out neighborPart))
                     {
                         // Avoid double-including blocks
                         if (componentParts.Contains(neighborPart))

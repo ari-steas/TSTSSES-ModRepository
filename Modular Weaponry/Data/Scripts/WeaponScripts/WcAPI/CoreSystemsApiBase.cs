@@ -199,7 +199,7 @@ namespace CoreSystems.Api
         // block/grid/player, Threat, Other 
         public MyTuple<bool, bool> IsInRange(MyEntity entity) =>
             _isInRange?.Invoke(entity) ?? new MyTuple<bool, bool>();
-
+        
         /// <summary>
         /// Set projectile values *Warning* be sure to pass in Vector3D.MinValue or float.MinValue to NOT set that value.
         /// bool = EndNow
