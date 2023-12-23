@@ -1,4 +1,5 @@
-﻿using Sandbox.Game.Entities.Cube;
+﻿using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
+using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -8,24 +9,32 @@ using System.Threading.Tasks;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.Utils;
+using VRageMath;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 {
-    //[MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation | MyUpdateOrder.AfterSimulation)]
     public class PhysicalWeapon
     {
         public WeaponPart basePart;
-        private List<WeaponPart> componentParts = new List<WeaponPart>();
+        private readonly List<WeaponPart> componentParts = new List<WeaponPart>();
 
         public int numReactors = 0;
+        private Color color;
+
+        public void Update()
+        {
+            foreach (var part in componentParts)
+                DebugDrawManager.Instance.DrawGridPoint0(part.block.Position, part.block.CubeGrid, color);
+        }
 
         public PhysicalWeapon(WeaponPart basePart)
         {
             this.basePart = basePart;
-            RecursiveWeaponChecker(basePart);
             componentParts.Add(basePart);
-
-            MyAPIGateway.Utilities.ShowNotification("Weapon parts: " + componentParts.Count);
+            WeaponPartGetter.Instance.AllPhysicalWeapons.Add(this);
+            RecursiveWeaponChecker(basePart);
+            Random r = new Random();
+            color = new Color(r.Next(255), r.Next(255), r.Next(255));
         }
 
         public void AddPart(WeaponPart part)
@@ -58,18 +67,18 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 return;
             componentParts.Remove(part);
             MyAPIGateway.Utilities.ShowNotification("Weapon parts: " + componentParts.Count);
+            if (componentParts.Count == 0)
+                WeaponPartGetter.Instance.AllPhysicalWeapons.Remove(this);
         }
 
         private void RecursiveWeaponChecker(WeaponPart currentBlock)
         {
-            componentParts.Clear();
-
             List<IMySlimBlock> slimNeighbors = new List<IMySlimBlock>();
             currentBlock.block.GetNeighbours(slimNeighbors);
-
+        
             foreach (IMySlimBlock neighbor in slimNeighbors)
             {
-                if (WeaponDefiniton.IsBlockAllowed(neighbor))
+                if (WeaponDefiniton.IsBlockAllowed(neighbor) && WeaponDefiniton.DoesBlockConnect(currentBlock.block, neighbor))
                 {
                     WeaponPart neighborPart;
                     
@@ -77,10 +86,13 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                     {
                         // Avoid double-including blocks
                         if (componentParts.Contains(neighborPart))
+                        {
+                            MyLog.Default.WriteLineAndConsole("Skip part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
                             continue;
-
+                        }
+        
                         MyLog.Default.WriteLineAndConsole("Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
-
+        
                         componentParts.Add(neighborPart);
                         RecursiveWeaponChecker(neighborPart);
                     }

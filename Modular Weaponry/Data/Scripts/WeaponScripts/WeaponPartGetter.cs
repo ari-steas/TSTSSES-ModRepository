@@ -18,6 +18,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
     {
         public static WeaponPartGetter Instance; // the only way to access session comp from other classes and the only accepted static field.
         public Dictionary<IMySlimBlock, WeaponPart> AllWeaponParts = new Dictionary<IMySlimBlock, WeaponPart>();
+        public List<PhysicalWeapon> AllPhysicalWeapons = new List<PhysicalWeapon>();
 
         private List<IMySlimBlock> queuedBlockAdds = new List<IMySlimBlock>();
 
@@ -45,6 +46,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 OnBlockAdd(queuedBlock);
             }
             queuedBlockAdds.Clear();
+
+            foreach (var weapon in AllPhysicalWeapons)
+                weapon.Update();
         }
 
         private void OnGridAdd(IMyEntity entity)
@@ -94,12 +98,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             if (projectileExists)
                 wAPI.SetProjectileState(projectileId, WeaponDefiniton.ChangeProjectileData(firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition));
         }
-
-
-
-
-
-
 
         private void OnBlockRemove(IMySlimBlock block)
         {

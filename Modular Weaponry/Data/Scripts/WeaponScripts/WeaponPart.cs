@@ -18,6 +18,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
     {
         public IMySlimBlock block;
         public PhysicalWeapon memberWeapon = null;
+        public List<WeaponPart> connectedParts;
 
         public WeaponPart(IMySlimBlock block)
         {
@@ -31,22 +32,30 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             WeaponPartGetter.Instance.AllWeaponParts.Add(block, this);
 
             if (WeaponDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
+            {
                 memberWeapon = new PhysicalWeapon(this);
+            }
             else
                 CheckForExistingWeapon();
         }
 
         private void CheckForExistingWeapon()
         {
+            // You can't have two baseblocks per weapon
+            if (WeaponDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
+                return;
+
             List<IMySlimBlock> neighbors = new List<IMySlimBlock>();
             block.GetNeighbours(neighbors);
             foreach (var nBlock in neighbors)
             {
+                if (!WeaponDefiniton.DoesBlockConnect(block, nBlock, true))
+                    continue;
+
                 WeaponPart nBlockPart;
                 if (WeaponPartGetter.Instance.AllWeaponParts.TryGetValue(nBlock, out nBlockPart) && nBlockPart.memberWeapon != null)
                 {
                     nBlockPart.memberWeapon.AddPart(this);
-                    //MyAPIGateway.Utilities.ShowNotification("Added");
                     return;
                 }
             }
