@@ -56,23 +56,57 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 }
             }
             WeaponDefiniton.numReactors = numReactors;
-            MyAPIGateway.Utilities.ShowNotification("Reactors: " + numReactors);
+            //MyAPIGateway.Utilities.ShowNotification("Reactors: " + numReactors);
 
             MyAPIGateway.Utilities.ShowNotification("Weapon parts: " + componentParts.Count);
         }
 
-        public void Remove(WeaponPart part)
+        public void Remove(WeaponPart part, bool removeFromList = true)
         {
-            if (!componentParts.Contains(part))
-                return;
-            componentParts.Remove(part);
+            if (removeFromList)
+            {
+                if (!componentParts.Contains(part))
+                    return;
+                componentParts.Remove(part);
+            }
+
             MyAPIGateway.Utilities.ShowNotification("Weapon parts: " + componentParts.Count);
-            if (componentParts.Count == 0)
+            MyAPIGateway.Utilities.ShowNotification("Subpart parts: " + part.connectedParts.Count);
+
+            // Clear self if basepart was removed
+            if (part == basePart)
+            {
+                foreach (var cPart in componentParts)
+                    Remove(cPart, false);
+                componentParts.Clear();
+            }
+            // Split apart if necessary. Recalculates every connection - suboptimal but neccessary, I believe.
+            else if (part.connectedParts.Count > 1)
+            {
+                foreach (var cPart in componentParts)
+                {
+                    part.connectedParts = null;
+                    part.memberWeapon = null;
+                }
+                componentParts.Clear();
+                MyAPIGateway.Utilities.ShowNotification("Recreating connections...");
+                RecursiveWeaponChecker(basePart);
+                MyAPIGateway.Utilities.ShowNotification("Total weapon parts: " + componentParts.Count);
+
+                return;
+            }
+
+            part.connectedParts = null;
+            part.memberWeapon = null;
+
+            if (removeFromList && componentParts.Count == 0)
                 WeaponPartGetter.Instance.AllPhysicalWeapons.Remove(this);
         }
 
         private void RecursiveWeaponChecker(WeaponPart currentBlock)
         {
+            // TODO split between threads/ticks
+
             List<IMySlimBlock> slimNeighbors = new List<IMySlimBlock>();
             currentBlock.block.GetNeighbours(slimNeighbors);
         

@@ -18,7 +18,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
     {
         public IMySlimBlock block;
         public PhysicalWeapon memberWeapon = null;
-        public List<WeaponPart> connectedParts;
+        public List<WeaponPart> connectedParts = new List<WeaponPart>();
 
         public WeaponPart(IMySlimBlock block)
         {
@@ -45,20 +45,76 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             if (WeaponDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
                 return;
 
+            // Search for neighboring PhysicalWeapons
+            List<WeaponPart> validNeighbors = GetValidNeighborParts();
+
+            foreach (var nBlockPart in validNeighbors)
+            {
+                if (nBlockPart.memberWeapon == null)
+                    continue;
+                nBlockPart.memberWeapon.AddPart(this);
+                break;
+            }
+
+            if (memberWeapon == null)
+            {
+                MyAPIGateway.Utilities.ShowNotification("Null memberWeapon");
+                return;
+            }
+            connectedParts.Clear();
+
+            // Connect non-member blocks & populate connectedParts
+            foreach (var nBlockPart in validNeighbors)
+            {
+                connectedParts.Add(nBlockPart);
+
+                if (nBlockPart.memberWeapon == null) {
+                    nBlockPart.CheckForExistingWeapon();
+                    MyAPIGateway.Utilities.ShowNotification("Forced a weapon join");
+                    break;
+                }
+
+                if (nBlockPart.memberWeapon != memberWeapon)
+                    MyAPIGateway.Utilities.ShowNotification("Invalid memberWeapon");
+            }
+
+            MyAPIGateway.Utilities.ShowNotification("Connected: " + connectedParts.Count + " | Failed: " + (GetValidNeighbors().Count - connectedParts.Count));
+        }
+
+        /// <summary>
+        /// Returns attached (as per WeaponPart) neighbor blocks.
+        /// </summary>
+        /// <returns></returns>
+        private List<IMySlimBlock> GetValidNeighbors()
+        {
             List<IMySlimBlock> neighbors = new List<IMySlimBlock>();
             block.GetNeighbours(neighbors);
+            List<IMySlimBlock> validNeighbors = new List<IMySlimBlock>();
             foreach (var nBlock in neighbors)
             {
-                if (!WeaponDefiniton.DoesBlockConnect(block, nBlock, true))
-                    continue;
+                if (WeaponDefiniton.DoesBlockConnect(block, nBlock, true))
+                    validNeighbors.Add(nBlock);
+            }
+            return validNeighbors;
+        }
 
+        /// <summary>
+        /// Returns attached (as per WeaponPart) neighbor blocks's parts.
+        /// </summary>
+        /// <returns></returns>
+        private List<WeaponPart> GetValidNeighborParts()
+        {
+            List<WeaponPart> validNeighbors = new List<WeaponPart>();
+            foreach (var nBlock in GetValidNeighbors())
+            {
                 WeaponPart nBlockPart;
-                if (WeaponPartGetter.Instance.AllWeaponParts.TryGetValue(nBlock, out nBlockPart) && nBlockPart.memberWeapon != null)
+                if (WeaponPartGetter.Instance.AllWeaponParts.TryGetValue(nBlock, out nBlockPart))
                 {
-                    nBlockPart.memberWeapon.AddPart(this);
-                    return;
+                    validNeighbors.Add(nBlockPart);
                 }
             }
+
+            return validNeighbors;
         }
     }
 }
