@@ -38,12 +38,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
             Instance = null;
         }
 
-        public void AddPoint(Vector3D globalPos, int duration, Color color)
+        public void AddPoint(Vector3D globalPos, float duration, Color color)
         {
             if (QueuedPoints.ContainsKey(globalPos))
-                QueuedPoints[globalPos] = new MyTuple<long, Color>(DateTime.Now.Ticks + duration * TimeSpan.TicksPerSecond, color);
+                QueuedPoints[globalPos] = new MyTuple<long, Color>((long)(DateTime.Now.Ticks + duration * TimeSpan.TicksPerSecond), color);
             else
-                QueuedPoints.Add(globalPos, new MyTuple<long, Color>(DateTime.Now.Ticks + duration * TimeSpan.TicksPerSecond, color));
+                QueuedPoints.Add(globalPos, new MyTuple<long, Color>((long)(DateTime.Now.Ticks + duration * TimeSpan.TicksPerSecond), color));
         }
 
         public void DrawPoint0(Vector3D globalPos, Color color)
@@ -56,18 +56,16 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
             MyTransparentGeometry.AddPointBillboard(MaterialDot, color, GridToGlobal(blockPos, grid), 1.25f, 0, blendType: BlendTypeEnum.PostPP);
         }
 
-        public void AddGPS(string name, Vector3D position, int duration)
+        public void AddGPS(string name, Vector3D position, float duration)
         {
             IMyGps gps = MyAPIGateway.Session.GPS.Create(name, string.Empty, position, showOnHud: true, temporary: true);
-            gps.DiscardAt = new TimeSpan(duration*TimeSpan.TicksPerSecond);
+            gps.DiscardAt = MyAPIGateway.Session.ElapsedPlayTime.Add(new TimeSpan((long)(duration * TimeSpan.TicksPerSecond)));
             MyAPIGateway.Session.GPS.AddLocalGps(gps);
         }
 
-        public void AddGridGPS(string name, Vector3I gridPosition, IMyCubeGrid grid, int duration)
+        public void AddGridGPS(string name, Vector3I gridPosition, IMyCubeGrid grid, float duration)
         {
-            Vector3D position = GridToGlobal(gridPosition, grid);
-            IMyGps gps = MyAPIGateway.Session.GPS.Create(name, string.Empty, position, showOnHud: true, temporary: true);
-            gps.DiscardAt = MyAPIGateway.Session.ElapsedPlayTime.Add(new TimeSpan(duration * TimeSpan.TicksPerSecond));
+            AddGPS(name, GridToGlobal(gridPosition, grid), duration);
         }
 
         public void AddGridPoint(Vector3I blockPos, IMyCubeGrid grid, int duration, Color color)

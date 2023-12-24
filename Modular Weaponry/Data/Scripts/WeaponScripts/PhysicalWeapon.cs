@@ -16,7 +16,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
     public class PhysicalWeapon
     {
         public WeaponPart basePart;
-        private readonly List<WeaponPart> componentParts = new List<WeaponPart>();
+        private List<WeaponPart> componentParts = new List<WeaponPart>();
 
         public int numReactors = 0;
         private Color color;
@@ -25,6 +25,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         {
             foreach (var part in componentParts)
                 DebugDrawManager.Instance.DrawGridPoint0(part.block.Position, part.block.CubeGrid, color);
+            MyAPIGateway.Utilities.ShowNotification("PW Parts: " + componentParts.Count, 1000 / 60);
         }
 
         public PhysicalWeapon(WeaponPart basePart)
@@ -100,7 +101,14 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             part.memberWeapon = null;
 
             if (removeFromList && componentParts.Count == 0)
-                WeaponPartGetter.Instance.AllPhysicalWeapons.Remove(this);
+                Close();
+        }
+
+        public void Close()
+        {
+            componentParts = null;
+            basePart = null;
+            WeaponPartGetter.Instance.AllPhysicalWeapons.Remove(this);
         }
 
         private void RecursiveWeaponChecker(WeaponPart currentBlock)

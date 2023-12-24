@@ -41,6 +41,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         private void CheckForExistingWeapon()
         {
+            connectedParts.Clear();
+            memberWeapon = null;
+
             // You can't have two baseblocks per weapon
             if (WeaponDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
                 return;
@@ -61,7 +64,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 MyAPIGateway.Utilities.ShowNotification("Null memberWeapon");
                 return;
             }
-            connectedParts.Clear();
 
             // Connect non-member blocks & populate connectedParts
             foreach (var nBlockPart in validNeighbors)
@@ -76,6 +78,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
                 if (nBlockPart.memberWeapon != memberWeapon)
                     MyAPIGateway.Utilities.ShowNotification("Invalid memberWeapon");
+
+                MyAPIGateway.Utilities.ShowNotification("" + (nBlockPart.memberWeapon == null) + " | " + (nBlockPart.memberWeapon == memberWeapon));
             }
 
             MyAPIGateway.Utilities.ShowNotification("Connected: " + connectedParts.Count + " | Failed: " + (GetValidNeighbors().Count - connectedParts.Count));

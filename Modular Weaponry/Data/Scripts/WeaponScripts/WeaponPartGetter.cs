@@ -1,4 +1,5 @@
 ﻿using CoreSystems.Api;
+using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         {
             Instance = this;
             MyAPIGateway.Entities.OnEntityAdd += OnGridAdd;
+            MyAPIGateway.Entities.OnEntityRemove += OnGridRemove;
             wAPI.Load();
         }
 
@@ -49,6 +51,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             foreach (var weapon in AllPhysicalWeapons)
                 weapon.Update();
+
+            MyAPIGateway.Utilities.ShowNotification("Weapons: " + AllPhysicalWeapons.Count + " | Parts: " + AllWeaponParts.Count, 1000 / 60);
         }
 
         private void OnGridAdd(IMyEntity entity)
@@ -97,6 +101,33 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         {
             if (projectileExists)
                 wAPI.SetProjectileState(projectileId, WeaponDefiniton.ChangeProjectileData(firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition));
+        }
+
+        private void OnGridRemove(IMyEntity entity)
+        {
+            if (!(entity is IMyCubeGrid))
+                return;
+
+            IMyCubeGrid grid = (IMyCubeGrid)entity;
+
+            // Exclude projected and held grids
+            if (grid.Physics == null)
+                return;
+
+            List<WeaponPart> toRemove = new List<WeaponPart>();
+            foreach (var partKvp in AllWeaponParts)
+            {
+                if (partKvp.Key.CubeGrid == grid)
+                {
+                    toRemove.Add(partKvp.Value);
+                }
+            }
+
+            foreach (var deadPart in toRemove)
+            {
+                deadPart.memberWeapon?.Remove(deadPart);
+                AllWeaponParts.Remove(deadPart.block);
+            }
         }
 
         private void OnBlockRemove(IMySlimBlock block)
