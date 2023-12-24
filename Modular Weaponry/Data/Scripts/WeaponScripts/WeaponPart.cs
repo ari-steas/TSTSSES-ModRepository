@@ -1,4 +1,5 @@
 ﻿using Sandbox.Common.ObjectBuilders;
+using Sandbox.Game;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
 using System;
@@ -36,18 +37,18 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 memberWeapon = new PhysicalWeapon(this);
             }
             else
-                CheckForExistingWeapon();
+                WeaponPartGetter.Instance.QueuedConnectionChecks.Add(this);
         }
 
-        private void CheckForExistingWeapon()
+        public void CheckForExistingWeapon()
         {
             // You can't have two baseblocks per weapon
-            if (WeaponDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
-                return;
+            if (WeaponDefiniton.BaseBlock != block.BlockDefinition.Id.SubtypeName)
+                memberWeapon = null;
 
-            // Search for neighboring PhysicalWeapons
             List<WeaponPart> validNeighbors = GetValidNeighborParts();
 
+            // Search for neighboring PhysicalWeapons
             foreach (var nBlockPart in validNeighbors)
             {
                 if (nBlockPart.memberWeapon == null)
@@ -58,24 +59,26 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             if (memberWeapon == null)
             {
-                MyAPIGateway.Utilities.ShowNotification("Null memberWeapon");
+                //MyAPIGateway.Utilities.ShowNotification("Null memberWeapon");
+                if (WeaponDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
+                    MyVisualScriptLogicProvider.SendChatMessage($"CRITICAL ERROR BaseBlock Null memberWeapon", "MW");
                 return;
             }
-            connectedParts.Clear();
 
             // Connect non-member blocks & populate connectedParts
             foreach (var nBlockPart in validNeighbors)
             {
                 connectedParts.Add(nBlockPart);
 
-                if (nBlockPart.memberWeapon == null) {
-                    nBlockPart.CheckForExistingWeapon();
+                if (nBlockPart.memberWeapon == null)
+                {
+                    WeaponPartGetter.Instance.QueuedConnectionChecks.Add(nBlockPart);
                     MyAPIGateway.Utilities.ShowNotification("Forced a weapon join");
-                    break;
                 }
-
-                if (nBlockPart.memberWeapon != memberWeapon)
+                else if (nBlockPart.memberWeapon != memberWeapon)
                     MyAPIGateway.Utilities.ShowNotification("Invalid memberWeapon");
+                else if (!nBlockPart.connectedParts.Contains(this))
+                    nBlockPart.connectedParts.Add(this);
             }
 
             MyAPIGateway.Utilities.ShowNotification("Connected: " + connectedParts.Count + " | Failed: " + (GetValidNeighbors().Count - connectedParts.Count));
@@ -85,7 +88,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         /// Returns attached (as per WeaponPart) neighbor blocks.
         /// </summary>
         /// <returns></returns>
-        private List<IMySlimBlock> GetValidNeighbors()
+        public List<IMySlimBlock> GetValidNeighbors()
         {
             List<IMySlimBlock> neighbors = new List<IMySlimBlock>();
             block.GetNeighbours(neighbors);
