@@ -59,7 +59,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             if (memberWeapon == null)
             {
-                //MyAPIGateway.Utilities.ShowNotification("Null memberWeapon");
+                MyAPIGateway.Utilities.ShowNotification("Null memberWeapon " + validNeighbors.Count);
                 if (WeaponDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
                     MyVisualScriptLogicProvider.SendChatMessage($"CRITICAL ERROR BaseBlock Null memberWeapon", "MW");
                 return;
@@ -80,6 +80,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 else if (!nBlockPart.connectedParts.Contains(this))
                     nBlockPart.connectedParts.Add(this);
             }
+
+            if (connectedParts.Count == 0)
+                MyAPIGateway.Utilities.ShowNotification("ERR 0 | " + validNeighbors.Count);
 
             MyAPIGateway.Utilities.ShowNotification("Connected: " + connectedParts.Count + " | Failed: " + (GetValidNeighbors().Count - connectedParts.Count));
         }

@@ -45,6 +45,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void AddPart(WeaponPart part)
         {
+            if (componentParts.Contains(part))
+                componentParts.Remove(part);
+
             componentParts.Add(part);
             part.memberWeapon = this;
 
@@ -84,7 +87,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             {
                 foreach (var cPart in componentParts.ToList())
                     ResetPart(cPart);
-                componentParts.Clear();
                 Close();
                 return;
             }
@@ -100,6 +102,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 componentParts.Add(basePart);
 
                 MyAPIGateway.Utilities.ShowNotification("Recreating connections...");
+                WeaponPartGetter.Instance.QueuedConnectionChecks.Add(basePart);
                 WeaponPartGetter.Instance.QueuedWeaponChecks.Add(basePart, this);
 
                 return;
@@ -126,10 +129,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         {
             if (part == null)
                 return;
-
             part.memberWeapon = null;
             part.connectedParts.Clear();
-            //WeaponPartGetter.Instance.QueuedConnectionChecks.Add(part);
+            WeaponPartGetter.Instance.QueuedConnectionChecks.Add(part);
         }
 
         public void Close()
@@ -145,7 +147,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public void RecursiveWeaponChecker(WeaponPart currentBlock)
         {
             // Safety check
-            if (currentBlock == null) return;
+            if (currentBlock == null || currentBlock.block == null) return;
 
             // TODO split between threads/ticks
             currentBlock.memberWeapon = this;
@@ -155,6 +157,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         
             foreach (IMySlimBlock neighbor in slimNeighbors)
             {
+                // Another safety check
+                if (neighbor == null) continue;
+
                 if (WeaponDefiniton.IsBlockAllowed(neighbor) && WeaponDefiniton.DoesBlockConnect(currentBlock.block, neighbor))
                 {
                     WeaponPart neighborPart;
