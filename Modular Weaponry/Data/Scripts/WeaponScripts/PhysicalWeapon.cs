@@ -40,7 +40,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             Random r = new Random();
             color = new Color(r.Next(255), r.Next(255), r.Next(255));
 
-            WeaponPartGetter.Instance.QueuedWeaponChecks.Add(this);
+            WeaponPartGetter.Instance.QueuedWeaponChecks.Add(basePart, this);
         }
 
         public void AddPart(WeaponPart part)
@@ -83,22 +83,16 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             if (part == basePart)
             {
                 foreach (var cPart in componentParts.ToList())
-                    if (cPart != null)
-                        Remove(cPart, false);
+                    ResetPart(cPart);
                 componentParts.Clear();
+                Close();
+                return;
             }
             // Split apart if necessary. Recalculates every connection - suboptimal but neccessary, I believe.
             else if (part.connectedParts.Count > 1)
             {
                 foreach (var cPart in componentParts.ToList())
-                {
-                    if (cPart == null)
-                        continue;
-
-                    cPart.memberWeapon = null;
-                    cPart.connectedParts.Clear();
-                    WeaponPartGetter.Instance.QueuedConnectionChecks.Add(cPart);
-                }
+                    ResetPart(cPart);
                 componentParts.Clear();
 
                 // Above loop removes all parts's memberWeapons, but the base should always have one.
@@ -106,7 +100,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 componentParts.Add(basePart);
 
                 MyAPIGateway.Utilities.ShowNotification("Recreating connections...");
-                WeaponPartGetter.Instance.QueuedWeaponChecks.Add(this);
+                WeaponPartGetter.Instance.QueuedWeaponChecks.Add(basePart, this);
 
                 return;
             }
@@ -128,6 +122,16 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 Close();
         }
 
+        private void ResetPart(WeaponPart part)
+        {
+            if (part == null)
+                return;
+
+            part.memberWeapon = null;
+            part.connectedParts.Clear();
+            //WeaponPartGetter.Instance.QueuedConnectionChecks.Add(part);
+        }
+
         public void Close()
         {
             if (componentParts == null)
@@ -140,6 +144,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void RecursiveWeaponChecker(WeaponPart currentBlock)
         {
+            // Safety check
+            if (currentBlock == null) return;
+
             // TODO split between threads/ticks
             currentBlock.memberWeapon = this;
 
@@ -161,10 +168,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                             continue;
                         }
         
-                        MyLog.Default.WriteLineAndConsole("Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
+                        //MyLog.Default.WriteLineAndConsole("Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
         
                         componentParts.Add(neighborPart);
-                        RecursiveWeaponChecker(neighborPart);
+                        WeaponPartGetter.Instance.QueuedConnectionChecks.Add(neighborPart);
+                        WeaponPartGetter.Instance.QueuedWeaponChecks.Add(neighborPart, this);
                     }
                 }
             }
