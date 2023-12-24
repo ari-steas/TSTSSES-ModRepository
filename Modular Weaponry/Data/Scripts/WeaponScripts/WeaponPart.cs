@@ -78,8 +78,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
                 if (nBlockPart.memberWeapon != memberWeapon)
                     MyAPIGateway.Utilities.ShowNotification("Invalid memberWeapon");
-
-                MyAPIGateway.Utilities.ShowNotification("" + (nBlockPart.memberWeapon == null) + " | " + (nBlockPart.memberWeapon == memberWeapon));
             }
 
             MyAPIGateway.Utilities.ShowNotification("Connected: " + connectedParts.Count + " | Failed: " + (GetValidNeighbors().Count - connectedParts.Count));

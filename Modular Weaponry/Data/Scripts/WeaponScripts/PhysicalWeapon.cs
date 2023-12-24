@@ -24,7 +24,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public void Update()
         {
             foreach (var part in componentParts)
-                DebugDrawManager.Instance.DrawGridPoint0(part.block.Position, part.block.CubeGrid, color);
+                //DebugDrawManager.Instance.DrawGridPoint0(part.block.Position, part.block.CubeGrid, color);
+                foreach (var conPart in part.connectedParts)
+                    DebugDrawManager.Instance.AddLine(DebugDrawManager.GridToGlobal(part.block.Position, part.block.CubeGrid), DebugDrawManager.GridToGlobal(conPart.block.Position, part.block.CubeGrid), color, 1/60);
             MyAPIGateway.Utilities.ShowNotification("PW Parts: " + componentParts.Count, 1000 / 60);
         }
 
