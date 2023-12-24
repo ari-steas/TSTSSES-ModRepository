@@ -24,7 +24,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public List<IMySlimBlock> QueuedBlockAdds = new List<IMySlimBlock>();
         public List<WeaponPart> QueuedConnectionChecks = new List<WeaponPart>();
-        public List<PhysicalWeapon> QueuedWeaponChecks = new List<PhysicalWeapon>();
+        public Dictionary<WeaponPart, PhysicalWeapon> QueuedWeaponChecks = new Dictionary<WeaponPart, PhysicalWeapon>();
 
         public WcApi wAPI = new WcApi();
 
@@ -60,9 +60,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             }
 
             // Queue weapon pathing to account for world load/grid pasting
-            foreach (var queuedWeapon in QueuedWeaponChecks.ToList())
+            foreach (var queuedWeapon in QueuedWeaponChecks.Keys.ToList())
             {
-                queuedWeapon.RecursiveWeaponChecker(queuedWeapon.basePart);
+                QueuedWeaponChecks[queuedWeapon].RecursiveWeaponChecker(queuedWeapon);
                 QueuedWeaponChecks.Remove(queuedWeapon);
             }
 

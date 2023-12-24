@@ -21,20 +21,39 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         private readonly static string[] AllowedBlocks =
         {
-            "MA_AC150",
-            "LargeBlockSmallGenerator"
+            "Caster_FocusLens",
+            "Caster_Accelerator_0",
+            "Caster_Accelerator_90",
         };
 
         private readonly static Dictionary<string, Vector3I[]> AllowedConnections = new Dictionary<string, Vector3I[]>
         {
             {
-                "LargeBlockSmallGenerator", new Vector3I[] {
+                "Caster_FocusLens", new Vector3I[]
+                {
+                    new Vector3I(1, 0, 2),
+                    new Vector3I(-1, 0, 2),
+                    new Vector3I(0, 1, 2),
+                    new Vector3I(0, -1, 2),
+                }
+            },
+            {
+                "Caster_Accelerator_0", new Vector3I[]
+                {
+                    Vector3I.Forward,
                     Vector3I.Backward,
-                    Vector3I.Up
-            }},
+                }
+            },
+            {
+                "Caster_Accelerator_90", new Vector3I[]
+                {
+                    Vector3I.Forward,
+                    Vector3I.Right,
+                }
+            },
         };
 
-        public readonly static string BaseBlock = "MA_AC150";
+        public readonly static string BaseBlock = "Caster_FocusLens";
 
         public static int numReactors = 0;
 
