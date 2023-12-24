@@ -28,11 +28,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
 
         private Dictionary<Vector3D, MyTuple<long, Color>> QueuedPoints = new Dictionary<Vector3D, MyTuple<long, Color>>();
         private Dictionary<Vector3I, MyTuple<long, Color, IMyCubeGrid>> QueuedGridPoints = new Dictionary<Vector3I, MyTuple<long, Color, IMyCubeGrid>>();
-        private List<Vector3D> ToRemove = new List<Vector3D>();
-        private List<Vector3I> ToGridRemove = new List<Vector3I>();
 
         private Dictionary<MyTuple<Vector3D, Vector3D>, MyTuple<long, Color>> QueuedLinePoints = new Dictionary<MyTuple<Vector3D, Vector3D>, MyTuple<long, Color>>();
-        private List<MyTuple<Vector3D, Vector3D>> ToLineRemove = new List<MyTuple<Vector3D, Vector3D>>();
 
         public override void LoadData()
         {
@@ -44,12 +41,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
             Instance = null;
         }
 
-        public void AddPoint(Vector3D globalPos, float duration, Color color)
+        public void AddPoint(Vector3D globalPos, Color color, float duration)
         {
             if (QueuedPoints.ContainsKey(globalPos))
-                QueuedPoints[globalPos] = new MyTuple<long, Color>((long)(DateTime.Now.Ticks + duration * TimeSpan.TicksPerSecond), color);
+                QueuedPoints[globalPos] = new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color);
             else
-                QueuedPoints.Add(globalPos, new MyTuple<long, Color>((long)(DateTime.Now.Ticks + duration * TimeSpan.TicksPerSecond), color));
+                QueuedPoints.Add(globalPos, new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color));
         }
 
         public void AddGPS(string name, Vector3D position, float duration)
@@ -64,74 +61,55 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
             AddGPS(name, GridToGlobal(gridPosition, grid), duration);
         }
 
-        public void AddGridPoint(Vector3I blockPos, IMyCubeGrid grid, float duration, Color color)
+        public void AddGridPoint(Vector3I blockPos, IMyCubeGrid grid, Color color, float duration)
         {
             if (QueuedGridPoints.ContainsKey(blockPos))
-                QueuedGridPoints[blockPos] = new MyTuple<long, Color, IMyCubeGrid>((long)(DateTime.Now.Ticks + duration * TimeSpan.TicksPerSecond), color, grid);
+                QueuedGridPoints[blockPos] = new MyTuple<long, Color, IMyCubeGrid>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color, grid);
             else
-                QueuedGridPoints.Add(blockPos, new MyTuple<long, Color, IMyCubeGrid>((long)(DateTime.Now.Ticks + duration * TimeSpan.TicksPerSecond), color, grid));
+                QueuedGridPoints.Add(blockPos, new MyTuple<long, Color, IMyCubeGrid>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color, grid));
         }
 
         public void AddLine(Vector3D origin, Vector3D destination, Color color, float duration)
         {
-            QueuedLinePoints.Add(new MyTuple<Vector3D, Vector3D>(origin, destination), new MyTuple<long, Color>((long)(DateTime.Now.Ticks + duration * TimeSpan.TicksPerSecond), color));
+            MyTuple<Vector3D, Vector3D> key = new MyTuple<Vector3D, Vector3D>(origin, destination);
+            if (QueuedLinePoints.ContainsKey(key))
+                QueuedLinePoints[key] = new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color);
+            else
+                QueuedLinePoints.Add(key, new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color));
         }
 
         public override void Draw()
         {
             base.Draw();
 
-
-            foreach (var kvp in QueuedPoints)
+            foreach (var key in QueuedPoints.Keys.ToList())
             {
-                DrawPoint0(kvp.Key, kvp.Value.Item2);
+                DrawPoint0(key, QueuedPoints[key].Item2);
 
-                if (DateTime.Now.Ticks > kvp.Value.Item1)
-                    ToRemove.Add(kvp.Key);
-            }
-
-            if (ToRemove.Count > 0) {
-                foreach (var key in ToRemove)
+                if (DateTime.Now.Ticks > QueuedPoints[key].Item1)
                     QueuedPoints.Remove(key);
-
-                ToRemove.Clear();
             }
 
-            foreach (var kvp in QueuedGridPoints)
+            foreach (var key in QueuedGridPoints.Keys.ToList())
             {
-                DrawGridPoint0(kvp.Key, kvp.Value.Item3, kvp.Value.Item2);
+                DrawGridPoint0(key, QueuedGridPoints[key].Item3, QueuedGridPoints[key].Item2);
 
-                if (DateTime.Now.Ticks > kvp.Value.Item1)
-                    ToGridRemove.Add(kvp.Key);
-            }
-
-            if (ToGridRemove.Count > 0)
-            {
-                foreach (var key in ToGridRemove)
+                if (DateTime.Now.Ticks > QueuedGridPoints[key].Item1)
                     QueuedGridPoints.Remove(key);
-
-                ToGridRemove.Clear();
             }
 
-            foreach (var kvp in QueuedLinePoints)
+            foreach (var key in QueuedLinePoints.Keys.ToList())
             {
-                DrawLine0(kvp.Key.Item1, kvp.Key.Item2, kvp.Value.Item2);
+                DrawLine0(key.Item1, key.Item2, QueuedLinePoints[key].Item2);
 
-                if (DateTime.Now.Ticks > kvp.Value.Item1)
-                    ToLineRemove.Add(kvp.Key);
-            }
-
-            if (ToLineRemove.Count > 0)
-            {
-                foreach (var key in ToLineRemove)
+                if (DateTime.Now.Ticks > QueuedLinePoints[key].Item1)
                     QueuedLinePoints.Remove(key);
-
-                ToLineRemove.Clear();
             }
         }
 
         private void DrawPoint0(Vector3D globalPos, Color color)
         {
+            //MyTransparentGeometry.AddPointBillboard(MaterialDot, color, globalPos, 1.25f, 0, blendType: BlendTypeEnum.PostPP);
             float depthScale = ToAlwaysOnTop(ref globalPos);
             MyTransparentGeometry.AddPointBillboard(MaterialDot, color * OnTopColorMul, globalPos, 1.25f*depthScale, 0, blendType: BlendTypeEnum.PostPP);
         }

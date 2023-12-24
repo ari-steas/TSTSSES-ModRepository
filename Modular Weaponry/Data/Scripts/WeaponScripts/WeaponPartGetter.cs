@@ -1,5 +1,6 @@
 ﻿using CoreSystems.Api;
 using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
+using Sandbox.Game;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public Dictionary<IMySlimBlock, WeaponPart> AllWeaponParts = new Dictionary<IMySlimBlock, WeaponPart>();
         public List<PhysicalWeapon> AllPhysicalWeapons = new List<PhysicalWeapon>();
 
-        private List<IMySlimBlock> queuedBlockAdds = new List<IMySlimBlock>();
+        public List<IMySlimBlock> QueuedBlockAdds = new List<IMySlimBlock>();
+        public List<WeaponPart> QueuedConnectionChecks = new List<WeaponPart>();
+        public List<PhysicalWeapon> QueuedWeaponChecks = new List<PhysicalWeapon>();
 
         public WcApi wAPI = new WcApi();
 
@@ -43,11 +46,25 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             base.UpdateAfterSimulation();
 
             // Queue gridadds to account for world load/grid pasting
-            foreach (var queuedBlock in queuedBlockAdds)
+            foreach (var queuedBlock in QueuedBlockAdds.ToList())
             {
                 OnBlockAdd(queuedBlock);
+                QueuedBlockAdds.Remove(queuedBlock);
             }
-            queuedBlockAdds.Clear();
+
+            // Queue partadds to account for world load/grid pasting
+            foreach (var queuedPart in QueuedConnectionChecks.ToList())
+            {
+                queuedPart.CheckForExistingWeapon();
+                QueuedConnectionChecks.Remove(queuedPart);
+            }
+
+            // Queue weapon pathing to account for world load/grid pasting
+            foreach (var queuedWeapon in QueuedWeaponChecks.ToList())
+            {
+                queuedWeapon.RecursiveWeaponChecker(queuedWeapon.basePart);
+                QueuedWeaponChecks.Remove(queuedWeapon);
+            }
 
             foreach (var weapon in AllPhysicalWeapons)
                 weapon.Update();
@@ -72,7 +89,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             List<IMySlimBlock> existingBlocks = new List<IMySlimBlock>();
             grid.GetBlocks(existingBlocks);
             foreach (var block in existingBlocks)
-                queuedBlockAdds.Add(block);
+                QueuedBlockAdds.Add(block);
         }
 
         private void OnBlockAdd(IMySlimBlock block)
@@ -125,7 +142,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             foreach (var deadPart in toRemove)
             {
-                deadPart.memberWeapon?.Remove(deadPart);
+                deadPart.memberWeapon?.Close();
                 AllWeaponParts.Remove(deadPart.block);
             }
         }
