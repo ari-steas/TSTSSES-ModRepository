@@ -11,7 +11,8 @@ using static Scripts.Structure.WeaponDefinition.TargetingDef.CommunicationDef.Se
 using static Scripts.Structure.WeaponDefinition.HardPointDef.HardwareDef;
 using static Scripts.Structure.WeaponDefinition.HardPointDef.HardwareDef.HardwareType;
 
-namespace Scripts {   
+namespace Scripts
+{
     partial class Parts {
         // Don't edit above this line
         WeaponDefinition SandcasterBase => new WeaponDefinition

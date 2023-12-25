@@ -32,7 +32,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             WeaponPartGetter.Instance.AllWeaponParts.Add(block, this);
 
-            if (WeaponDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
+            if (ModularDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
             {
                 memberWeapon = new PhysicalWeapon(this);
             }
@@ -43,7 +43,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public void CheckForExistingWeapon()
         {
             // You can't have two baseblocks per weapon
-            if (WeaponDefiniton.BaseBlock != block.BlockDefinition.Id.SubtypeName)
+            if (ModularDefiniton.BaseBlock != block.BlockDefinition.Id.SubtypeName)
                 memberWeapon = null;
 
             List<WeaponPart> validNeighbors = GetValidNeighborParts();
@@ -60,7 +60,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             if (memberWeapon == null)
             {
                 MyAPIGateway.Utilities.ShowNotification("Null memberWeapon " + validNeighbors.Count);
-                if (WeaponDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
+                if (ModularDefiniton.BaseBlock == block.BlockDefinition.Id.SubtypeName)
                     MyVisualScriptLogicProvider.SendChatMessage($"CRITICAL ERROR BaseBlock Null memberWeapon", "MW");
                 return;
             }
@@ -98,7 +98,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             List<IMySlimBlock> validNeighbors = new List<IMySlimBlock>();
             foreach (var nBlock in neighbors)
             {
-                if (WeaponDefiniton.DoesBlockConnect(block, nBlock, true))
+                if (ModularDefiniton.DoesBlockConnect(block, nBlock, true))
                     validNeighbors.Add(nBlock);
             }
             return validNeighbors;

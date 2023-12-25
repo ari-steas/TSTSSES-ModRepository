@@ -64,7 +64,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                         numReactors++;
                 }
             }
-            WeaponDefiniton.numReactors = numReactors;
+            ModularDefiniton.numReactors = numReactors;
             //MyAPIGateway.Utilities.ShowNotification("Reactors: " + numReactors);
         }
 
@@ -160,7 +160,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 // Another safety check
                 if (neighbor == null) continue;
 
-                if (WeaponDefiniton.IsBlockAllowed(neighbor) && WeaponDefiniton.DoesBlockConnect(currentBlock.block, neighbor))
+                if (ModularDefiniton.IsBlockAllowed(neighbor) && ModularDefiniton.DoesBlockConnect(currentBlock.block, neighbor))
                 {
                     WeaponPart neighborPart;
                     

@@ -16,7 +16,7 @@ using VRageMath;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 {
-    public static class WeaponDefiniton
+    public static class ModularDefiniton
     {
 
         private readonly static string[] AllowedBlocks =

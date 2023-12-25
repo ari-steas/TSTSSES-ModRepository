@@ -109,7 +109,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 }
             }
 
-            if (!WeaponDefiniton.IsBlockAllowed(block))
+            if (!ModularDefiniton.IsBlockAllowed(block))
                 return;
 
             WeaponPart w = new WeaponPart(block);
@@ -117,7 +117,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         private void ProjectileCallback(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
         {
             if (projectileExists)
-                wAPI.SetProjectileState(projectileId, WeaponDefiniton.ChangeProjectileData(firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition));
+                wAPI.SetProjectileState(projectileId, ModularDefiniton.ChangeProjectileData(firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition));
         }
 
         private void OnGridRemove(IMyEntity entity)
