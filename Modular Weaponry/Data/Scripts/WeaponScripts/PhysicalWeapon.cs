@@ -75,12 +75,13 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public void ProjectileCallback(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
         {
             if (projectileExists)
-                DefinitionHandler.Instance.SendOnShoot(WeaponDefinition.Name, id, firerPartId, projectileId, targetEntityId, projectilePosition);
+                DefinitionHandler.Instance.SendOnShoot(WeaponDefinition.Name, id, firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition);
         }
 
         public void UpdateProjectile(ulong projectileId, MyTuple<bool, Vector3D, Vector3D, float> projectileData)
         {
             MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(WeaponPartGetter.Instance.wAPI.GetProjectileState(projectileId).Item2.Length(), 2));
+            WeaponPartGetter.Instance.wAPI.SetProjectileState(projectileId, projectileData);
         }
 
         public void AddPart(WeaponPart part)

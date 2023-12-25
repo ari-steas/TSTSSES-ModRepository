@@ -70,22 +70,23 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
                         return;
                     }
 
-                    object[] Values = call.Values.Values();
+                    // TODO: Remove
+                    //object[] Values = call.Values.Values();
 
                     switch (call.ActionId)
                     {
                         case FunctionCall.ActionType.OnShoot:
-                            SendOnShoot(call.DefinitionName, call.PhysicalWeaponId, call.Values.ulongValues[0], defToCall.OnShoot(call.PhysicalWeaponId, call.Values.intValues[0], call.Values.ulongValues[0], call.Values.longValues[0], call.Values.vectorValues[0]));
+                            SendOnShoot(call.DefinitionName, call.PhysicalWeaponId, call.Values.ulongValues[0], defToCall.OnShoot(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.intValues[0], call.Values.ulongValues[0], call.Values.longValues[1], call.Values.vectorValues[0]));
                             break;
                         case FunctionCall.ActionType.OnPartPlace:
                             // TODO: OnPartUpdate? With ConnectedParts?
-                            defToCall.OnPartPlace(call.PhysicalWeaponId, (long)Values[0], (bool)Values[1]);
+                            defToCall.OnPartPlace(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
                             break;
                         case FunctionCall.ActionType.OnPartRemove:
-                            defToCall.OnPartPlace(call.PhysicalWeaponId, (long)Values[0], (bool)Values[1]);
+                            defToCall.OnPartPlace(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
                             break;
                         case FunctionCall.ActionType.OnPartDestroy:
-                            defToCall.OnPartDestroy(call.PhysicalWeaponId, (long)Values[0], (bool)Values[1]);
+                            defToCall.OnPartDestroy(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
                             break;
                     }
                 }

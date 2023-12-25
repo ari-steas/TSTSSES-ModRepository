@@ -23,10 +23,10 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
             /// <summary>
             /// Called when a weapon is fired. Returns a MyTuple with contents: bool CloseImmediately, Vector3D ProjectilePosition, Vector3D AdditiveVelocity, float BaseDamagePool
             /// <para>
-            /// Arg1 is PhysicalWeaponId, Arg2 is firerPartId, Arg3 is targetEntityId, Arg4 is projectilePosition
+            /// Arg1 is PhysicalWeaponId, Arg2 is BlockEntityId, Arg3 is firerPartId, Arg4 is targetEntityId, Arg5 is projectilePosition
             /// </para>
             /// </summary>
-            public Func<int, int, ulong, long, Vector3D, VRage.MyTuple<bool, Vector3D, Vector3D, float>> OnShoot { get; set; }
+            public Func<int, long, int, ulong, long, Vector3D, MyTuple<bool, Vector3D, Vector3D, float>> OnShoot { get; set; }
 
             /// <summary>
             /// Called when a valid part is placed.
@@ -110,6 +110,8 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
                         boolValuesL.Add((bool)value);
                     else if (type == typeof(double))
                         doubleValuesL.Add((double)value);
+                    else if (type == typeof(MyTuple<bool, Vector3D, Vector3D, float>))
+                        projectileValuesL.Add((MyTuple<bool, Vector3D, Vector3D, float>)value);
                 }
 
                 intValues = intValuesL.ToArray();
@@ -121,6 +123,8 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
                 boolValues = boolValuesL.ToArray();
                 doubleValues = doubleValuesL.ToArray();
                 projectileValues = projectileValuesL.ToArray();
+
+                //MyLog.Default.WriteLine($"ModularDefinitions.DefinitionDefs: {array.Length} values packaged.");
             }
 
             [ProtoMember(1)] internal int[] intValues = new int[0];
@@ -156,6 +160,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
                 foreach (var value in projectileValues)
                     values.Add(value);
 
+                //MyLog.Default.WriteLine($"ModularDefinitions.DefinitionDefs: {values.Count} values recieved.");
                 return values.ToArray();
             }
         }

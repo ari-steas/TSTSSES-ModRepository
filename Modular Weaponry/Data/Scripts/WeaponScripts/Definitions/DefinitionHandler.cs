@@ -98,6 +98,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                         return;
                     }
 
+                    // TODO: Remove
+                    //object[] Values = functionCall.Values.Values();
+
                     switch (functionCall.ActionId)
                     {
                         case FunctionCall.ActionType.OnShoot:
@@ -114,10 +117,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
         }
 
 
-        public void SendOnShoot(string DefinitionName, int PhysicalWeaponId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition)
+        public void SendOnShoot(string DefinitionName, int PhysicalWeaponId, long FirerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition)
         {
             SerializedObjectArray Values = new SerializedObjectArray
             (
+                FirerEntityId,
                 firerPartId,
                 projectileId,
                 targetEntityId,

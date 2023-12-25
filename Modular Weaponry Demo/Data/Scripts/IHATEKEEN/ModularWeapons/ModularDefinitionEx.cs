@@ -19,20 +19,23 @@ namespace IHATEKEEN.Scripts.ModularWeapons
             {
                 MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartPlace {IsBaseBlock}");
             },
+
             OnPartRemove = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
             {
                 MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartRemove {IsBaseBlock}");
             },
+
             OnPartDestroy = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
             {
                 MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
             },
-            OnShoot = (int PhysicalWeaponId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition) => {
-                MyLog.Default.WriteLine("OnShoot");
-                Vector3D velocityOffset = -WcApiConn.Instance.wAPI.GetProjectileState(projectileId).Item2 * 0.5;
-                MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(velocityOffset.Length(), 2));
-                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, velocityOffset, 0);
+
+            OnShoot = (int PhysicalWeaponId, long FirerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition) => {
+                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, OffsetProjectileVelocity(1, projectileId, FirerEntityId), 0);
             },
+
+
+
 
             AllowedBlocks = new string[]
             {

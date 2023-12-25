@@ -78,6 +78,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                         boolValuesL.Add((bool)value);
                     else if (type == typeof(double))
                         doubleValuesL.Add((double)value);
+                    else if (type == typeof(MyTuple<bool, Vector3D, Vector3D, float>))
+                        projectileValuesL.Add((MyTuple<bool, Vector3D, Vector3D, float>)value);
                 }
 
                 intValues = intValuesL.ToArray();
@@ -89,6 +91,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 boolValues = boolValuesL.ToArray();
                 doubleValues = doubleValuesL.ToArray();
                 projectileValues = projectileValuesL.ToArray();
+
+                //MyLog.Default.WriteLine($"ModularWeaponry.DefinitionDefs: {array.Length} values packaged.");
             }
 
             [ProtoMember(1)] internal int[] intValues = new int[0];
@@ -124,8 +128,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 foreach (var value in projectileValues)
                     values.Add(value);
 
+                //MyLog.Default.WriteLine($"ModularWeaponry.DefinitionDefs: {values.Count} values recieved.");
                 return values.ToArray();
             }
         }
+
     }
 }
