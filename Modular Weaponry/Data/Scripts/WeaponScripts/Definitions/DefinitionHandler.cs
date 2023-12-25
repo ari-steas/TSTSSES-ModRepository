@@ -15,7 +15,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
     {
         public static DefinitionHandler Instance;
         const int DefinitionMessageId = 8772;
-        const int ReadyMessageId = 8771;
+        const int OutboundMessageId = 8771;
+        const int InboundMessageId = 8773;
 
         public List<ModularDefinition> ModularDefinitions = new List<ModularDefinition>();
 
@@ -24,7 +25,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             MyLog.Default.WriteLine("ModularWeapons: Init DefinitionHandler.cs");
             Instance = this;
             MyAPIGateway.Utilities.RegisterMessageHandler(DefinitionMessageId, MessageHandler);
-            MyAPIGateway.Utilities.SendModMessage(ReadyMessageId, true);
+            MyAPIGateway.Utilities.RegisterMessageHandler(InboundMessageId, MessageHandler);
+            MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, true);
         }
 
         protected override void UnloadData()
