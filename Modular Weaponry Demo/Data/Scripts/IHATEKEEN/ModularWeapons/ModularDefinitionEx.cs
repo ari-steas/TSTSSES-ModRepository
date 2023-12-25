@@ -13,15 +13,19 @@ namespace IHATEKEEN.Scripts.ModularWeapons
     {
         PhysicalDefinition ModularDefinitionEx => new PhysicalDefinition
         {
-            Name = "TEST TEST TEST",
+            Name = "ModularDefinitionEx",
 
-            OnPartPlace = (int PhysicalWeaponId, long BlockEntityId) =>
+            OnPartPlace = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
             {
-                MyLog.Default.WriteLine("PartPlace");
+                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartPlace {IsBaseBlock}");
             },
-            OnPartRemove = (int PhysicalWeaponId, long BlockEntityId) =>
+            OnPartRemove = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
             {
-                MyLog.Default.WriteLine("PartRemove");
+                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartRemove {IsBaseBlock}");
+            },
+            OnPartDestroy = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
+            {
+                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
             },
             OnShoot = (int PhysicalWeaponId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition) => {
                 MyLog.Default.WriteLine("OnShoot");
