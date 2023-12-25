@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using VRageMath;
-using static Scripts.Structure;
-using static Scripts.Structure.WeaponDefinition.AmmoDef;
-using static Scripts.Structure.WeaponDefinition.AnimationDef.RelMove;
-using static Scripts.Structure.WeaponDefinition.AnimationDef.PartAnimationSetDef;
-using static Scripts.Structure.WeaponDefinition.AnimationDef;
-using static Scripts.Structure.WeaponDefinition.AnimationDef.PartAnimationSetDef.EventTriggers;
-using static Scripts.Structure.ArmorDefinition.ArmorType;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.AmmoDef;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef.RelMove;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef.PartAnimationSetDef;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef.PartAnimationSetDef.EventTriggers;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.ArmorDefinition.ArmorType;
 
-namespace Scripts
+namespace IHATEKEEN.Scripts
 {
     partial class Parts
     {

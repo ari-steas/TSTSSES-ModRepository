@@ -13,58 +13,54 @@ using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
+using static Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions.DefinitionDefs;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 {
-    public static class WeaponDefiniton
+    public class ModularDefinition
     {
 
-        private readonly static string[] AllowedBlocks =
+        public string[] AllowedBlocks = null;
+
+        public Dictionary<string, Vector3I[]> AllowedConnections = null;
+
+        public string BaseBlock = null;
+
+        public int numReactors = 0;
+
+        public static ModularDefinition Load(PhysicalDefinition definition)
         {
-            "Caster_FocusLens",
-            "Caster_Accelerator_0",
-            "Caster_Accelerator_90",
-        };
-
-        private readonly static Dictionary<string, Vector3I[]> AllowedConnections = new Dictionary<string, Vector3I[]>
-        {
+            ModularDefinition def = new ModularDefinition()
             {
-                "Caster_FocusLens", new Vector3I[]
-                {
-                    new Vector3I(1, 0, 2),
-                    new Vector3I(-1, 0, 2),
-                    new Vector3I(0, 1, 2),
-                    new Vector3I(0, -1, 2),
-                }
-            },
+                AllowedBlocks = definition.AllowedBlocks,
+                AllowedConnections = definition.AllowedConnections,
+                BaseBlock = definition.BaseBlock,
+            };
+
+            if (def.AllowedBlocks == null || def.AllowedConnections == null || def.BaseBlock == null)
             {
-                "Caster_Accelerator_0", new Vector3I[]
-                {
-                    Vector3I.Forward,
-                    Vector3I.Backward,
-                }
-            },
-            {
-                "Caster_Accelerator_90", new Vector3I[]
-                {
-                    Vector3I.Forward,
-                    Vector3I.Right,
-                }
-            },
-        };
+                MyLog.Default.WriteLine("Modular Weaponry: !!Failed!! to create new ModularDefinition for " + definition.Name);
+                return null;
+            }
 
-        public readonly static string BaseBlock = "Caster_FocusLens";
+            MyLog.Default.WriteLine("Modular Weaponry: Created new ModularDefinition for " + definition.Name);
+            return def;
+        }
 
-        public static int numReactors = 0;
 
-        public static VRage.MyTuple<bool, Vector3D, Vector3D, float> ChangeProjectileData(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition)
+
+
+
+
+
+        public VRage.MyTuple<bool, Vector3D, Vector3D, float> ChangeProjectileData(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition)
         {
             Vector3D velocityOffset = -WeaponPartGetter.Instance.wAPI.GetProjectileState(projectileId).Item2 / (numReactors > 0 ? numReactors : 1);
             MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(velocityOffset.Length(), 2));
             return new VRage.MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, velocityOffset, 0);
         }
 
-        public static bool DoesBlockConnect(IMySlimBlock block, IMySlimBlock adajent, bool lineCheck = true)
+        public bool DoesBlockConnect(IMySlimBlock block, IMySlimBlock adajent, bool lineCheck = true)
         {
             // Check if adajent block connects first, but don't make an infinite loop
             if (lineCheck)
@@ -96,7 +92,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             return true;
         }
 
-        public static bool IsTypeAllowed(string type)
+        public bool IsTypeAllowed(string type)
         {
             foreach (string id in AllowedBlocks)
                 if (type == id)
@@ -104,7 +100,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             return false;
         }
 
-        public static bool IsBlockAllowed(IMySlimBlock block)
+        public bool IsBlockAllowed(IMySlimBlock block)
         {
             return IsTypeAllowed(block.BlockDefinition.Id.SubtypeName);
         }

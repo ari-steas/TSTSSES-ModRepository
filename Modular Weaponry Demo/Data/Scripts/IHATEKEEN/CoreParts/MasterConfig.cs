@@ -1,5 +1,5 @@
 ﻿
-namespace Scripts
+namespace IHATEKEEN.Scripts
 {
     partial class Parts
     {

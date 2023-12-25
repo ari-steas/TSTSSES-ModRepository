@@ -1,17 +1,18 @@
-﻿using static Scripts.Structure;
-using static Scripts.Structure.WeaponDefinition;
-using static Scripts.Structure.WeaponDefinition.ModelAssignmentsDef;
-using static Scripts.Structure.WeaponDefinition.HardPointDef;
-using static Scripts.Structure.WeaponDefinition.HardPointDef.Prediction;
-using static Scripts.Structure.WeaponDefinition.TargetingDef.BlockTypes;
-using static Scripts.Structure.WeaponDefinition.TargetingDef.Threat;
-using static Scripts.Structure.WeaponDefinition.TargetingDef;
-using static Scripts.Structure.WeaponDefinition.TargetingDef.CommunicationDef.Comms;
-using static Scripts.Structure.WeaponDefinition.TargetingDef.CommunicationDef.SecurityMode;
-using static Scripts.Structure.WeaponDefinition.HardPointDef.HardwareDef;
-using static Scripts.Structure.WeaponDefinition.HardPointDef.HardwareDef.HardwareType;
+﻿using static Scripts.IHATEKEEN.CoreParts.script.Structure;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.ModelAssignmentsDef;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef.Prediction;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.BlockTypes;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.Threat;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.CommunicationDef.Comms;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.CommunicationDef.SecurityMode;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef.HardwareDef;
+using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef.HardwareDef.HardwareType;
 
-namespace Scripts {   
+namespace IHATEKEEN.Scripts
+{
     partial class Parts {
         // Don't edit above this line
         WeaponDefinition SandcasterBase => new WeaponDefinition

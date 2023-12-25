@@ -81,7 +81,7 @@ public class IncreaseTurretDamageScript : MySessionComponentBase
             // Increase damage using the ChangeProjectileData method
             var projectileState = _wcApi.GetProjectileState(projId);
             var newDamage = projectileState.Item4 * 2; // Example: doubling the damage
-            WeaponDefiniton.ChangeProjectileData(0, 0, projId, 0, projectileState.Item2);  // Assuming default values for entity and part IDs
+            ModularDefinition.ChangeProjectileData(0, 0, projId, 0, projectileState.Item2);  // Assuming default values for entity and part IDs
         }
         MyAPIGateway.Utilities.ShowNotification($"Turret damage increased for {projectileIds.Count} projectiles", 5000, "Green");
 
@@ -98,7 +98,7 @@ public class IncreaseTurretDamageScript : MySessionComponentBase
             // Revert damage using the ChangeProjectileData method
             var projectileState = _wcApi.GetProjectileState(projId);
             var originalDamage = projectileState.Item4 / 2; // Example: reverting the doubled damage
-            WeaponDefiniton.ChangeProjectileData(0, 0, projId, 0, projectileState.Item2);  // Assuming default values for entity and part IDs
+            ModularDefinition.ChangeProjectileData(0, 0, projId, 0, projectileState.Item2);  // Assuming default values for entity and part IDs
         }
         MyAPIGateway.Utilities.ShowNotification("Turret damage reverted", 5000);
 
