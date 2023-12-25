@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using CoreParts.Data.Scripts.IHATEKEEN.ModularWeapons;
+using Sandbox.ModAPI;
+using System;
+using System.Collections.Generic;
+using VRage;
 using VRage.Utils;
 using VRageMath;
 using static Scripts.IHATEKEEN.ModularWeapons.Communication.DefinitionDefs;
@@ -10,7 +14,21 @@ namespace IHATEKEEN.Scripts.ModularWeapons
         PhysicalDefinition ModularDefinitionEx => new PhysicalDefinition
         {
             Name = "TEST TEST TEST",
-            PrintName = () => { MyLog.Default.WriteLine("OBVIOUS TEXT"); return; },
+
+            OnPartPlace = (int PhysicalWeaponId, long BlockEntityId) =>
+            {
+                MyLog.Default.WriteLine("PartPlace");
+            },
+            OnPartRemove = (int PhysicalWeaponId, long BlockEntityId) =>
+            {
+                MyLog.Default.WriteLine("PartRemove");
+            },
+            OnShoot = (int PhysicalWeaponId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition) => {
+                MyLog.Default.WriteLine("OnShoot");
+                Vector3D velocityOffset = -WcApiConn.Instance.wAPI.GetProjectileState(projectileId).Item2 * 0.5;
+                MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(velocityOffset.Length(), 2));
+                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, velocityOffset, 0);
+            },
 
             AllowedBlocks = new string[]
             {

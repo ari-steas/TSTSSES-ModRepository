@@ -21,5 +21,21 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             [ProtoMember(3)] public Dictionary<string, Vector3I[]> AllowedConnections { get; set; }
             [ProtoMember(4)] public string BaseBlock { get; set; }
         }
+
+        [ProtoContract]
+        public class FunctionCall
+        {
+            public string DefinitionName { get; set; }
+            public int PhysicalWeaponId { get; set; }
+            public ActionType ActionId { get; set; }
+            public object[] values { get; set; }
+
+            public enum ActionType
+            {
+                OnShoot,
+                OnPartPlace,
+                OnPartRemove,
+            }
+        }
     }
 }
