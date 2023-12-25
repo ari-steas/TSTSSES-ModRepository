@@ -12,6 +12,7 @@ using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
@@ -21,7 +22,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
     {
         public static WeaponPartGetter Instance; // the only way to access session comp from other classes and the only accepted static field.
         public Dictionary<IMySlimBlock, WeaponPart> AllWeaponParts = new Dictionary<IMySlimBlock, WeaponPart>();
-        public List<PhysicalWeapon> AllPhysicalWeapons = new List<PhysicalWeapon>();
+        public Dictionary<int, PhysicalWeapon> AllPhysicalWeapons = new Dictionary<int, PhysicalWeapon>();
+        public int NumPhysicalWeapons = 0;
 
         public List<IMySlimBlock> QueuedBlockAdds = new List<IMySlimBlock>();
         public List<WeaponPart> QueuedConnectionChecks = new List<WeaponPart>();
@@ -40,6 +42,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         protected override void UnloadData()
         {
             Instance = null; // important for avoiding this object to remain allocated in memory
+            MyAPIGateway.Entities.OnEntityAdd -= OnGridAdd;
+            MyAPIGateway.Entities.OnEntityRemove -= OnGridRemove;
+            wAPI.Unload();
         }
 
         public override void UpdateAfterSimulation()
@@ -67,7 +72,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 QueuedWeaponChecks.Remove(queuedWeapon);
             }
 
-            foreach (var weapon in AllPhysicalWeapons)
+            foreach (var weapon in AllPhysicalWeapons.Values)
                 weapon.Update();
 
             MyAPIGateway.Utilities.ShowNotification("Weapons: " + AllPhysicalWeapons.Count + " | Parts: " + AllWeaponParts.Count, 1000 / 60);
@@ -95,21 +100,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         private void OnBlockAdd(IMySlimBlock block)
         {
-            if (wAPI.IsReady && block.FatBlock != null)
-            {
-                try
-                {
-                    if (wAPI.HasCoreWeapon((MyEntity)block.FatBlock))
-                    {
-                        wAPI.AddProjectileCallback((MyEntity)block.FatBlock, 0, ProjectileCallback);
-                    }
-                }
-                catch
-                {
-                    MyAPIGateway.Utilities.ShowNotification("it threw an error dumbass");
-                }
-            }
-
             foreach (var modularDefinition in DefinitionHandler.Instance.ModularDefinitions)
             {
                 if (!modularDefinition.IsBlockAllowed(block))
@@ -118,12 +108,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 WeaponPart w = new WeaponPart(block, modularDefinition);
             }
         }
-        private void ProjectileCallback(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
-        {
-            // TODO replace
-            //if (projectileExists)
-            //    wAPI.SetProjectileState(projectileId, ModularDefinition.ChangeProjectileData(firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition));
-        }
 
         private void OnGridRemove(IMyEntity entity)
         {
@@ -131,6 +115,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 return;
 
             IMyCubeGrid grid = (IMyCubeGrid)entity;
+            grid.OnBlockAdded -= OnBlockAdd;
+            grid.OnBlockRemoved -= OnBlockRemove;
 
             // Exclude projected and held grids
             if (grid.Physics == null)

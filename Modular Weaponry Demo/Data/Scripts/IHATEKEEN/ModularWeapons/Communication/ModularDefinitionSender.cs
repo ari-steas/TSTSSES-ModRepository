@@ -12,7 +12,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
     internal class ModularDefinitionSender : MySessionComponentBase
     {
         const int DefinitionMessageId = 8772;
-        const int ReadyMessageId = 8771;
+        const int InboundMessageId = 8771;
         const int OutboundMessageId = 8773;
 
         internal DefinitionContainer storedDef;
@@ -21,7 +21,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
         public override void LoadData()
         {
             MyLog.Default.WriteLine("ModularWeaponsDefinition: Init new ModularWeaponsDefinition");
-            MyAPIGateway.Utilities.RegisterMessageHandler(ReadyMessageId, InputHandler);
+            MyAPIGateway.Utilities.RegisterMessageHandler(InboundMessageId, InputHandler);
 
             // Init
             storedDef = ModularDefinition.GetBaseDefinitions();
@@ -32,7 +32,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
 
         protected override void UnloadData()
         {
-            MyAPIGateway.Utilities.UnregisterMessageHandler(ReadyMessageId, InputHandler);
+            MyAPIGateway.Utilities.UnregisterMessageHandler(InboundMessageId, InputHandler);
             Array.Clear(Storage, 0, Storage.Length);
             Storage = null;
         }
@@ -53,46 +53,59 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
                     FunctionCall call;
                     call = MyAPIGateway.Utilities.SerializeFromBinary<FunctionCall>(message);
 
+                    if (call == null)
+                    {
+                        MyLog.Default.WriteLine($"ModularWeaponsDefinition: Invalid FunctionCall!");
+                        return;
+                    }
+
                     PhysicalDefinition defToCall = null;
                     foreach (var definition in storedDef.PhysicalDefs)
                         if (call.DefinitionName == definition.Name)
                             defToCall = definition;
+
                     if (defToCall == null)
                     {
-                        MyLog.Default.WriteLine($"ModularWeaponsDefinition: Function call not addressed to this.");
+                        MyLog.Default.WriteLine($"ModularWeaponsDefinition: Function call [{call.DefinitionName}] not addressed to this.");
                         return;
                     }
+
+                    // TODO: Remove
+                    //object[] Values = call.Values.Values();
 
                     switch (call.ActionId)
                     {
                         case FunctionCall.ActionType.OnShoot:
-                            SendOnShoot(call.DefinitionName, call.PhysicalWeaponId, defToCall.OnShoot(call.PhysicalWeaponId, (int)call.values[1], (ulong)call.values[2], (long)call.values[3], (Vector3D)call.values[4]));
+                            SendOnShoot(call.DefinitionName, call.PhysicalWeaponId, call.Values.ulongValues[0], defToCall.OnShoot(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.intValues[0], call.Values.ulongValues[0], call.Values.longValues[1], call.Values.vectorValues[0]));
                             break;
                         case FunctionCall.ActionType.OnPartPlace:
-                            defToCall.OnPartPlace(call.PhysicalWeaponId, (long)call.values[0]);
+                            // TODO: OnPartUpdate? With ConnectedParts?
+                            defToCall.OnPartPlace(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
                             break;
                         case FunctionCall.ActionType.OnPartRemove:
-                            defToCall.OnPartPlace(call.PhysicalWeaponId, (long)call.values[0]);
+                            defToCall.OnPartPlace(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
+                            break;
+                        case FunctionCall.ActionType.OnPartDestroy:
+                            defToCall.OnPartDestroy(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
                             break;
                     }
                 }
                 catch (Exception ex)
                 {
-                    MyLog.Default.WriteLine($"ModularWeaponsDefinition: Exception in Handler: {ex}");
+                    MyLog.Default.WriteLine($"ModularWeaponsDefinition: Exception in InputHandler: {ex}");
                 }
             }
         }
 
 
-        // TODO: Invoke SendOnShoot whenever original function is called
-        private void SendOnShoot(string definitionName, int physicalWeaponId, VRage.MyTuple<bool, Vector3D, Vector3D, float> returnData)
+        private void SendOnShoot(string definitionName, int physicalWeaponId, ulong projectileId, VRage.MyTuple<bool, Vector3D, Vector3D, float> returnData)
         {
             SendFunc(new FunctionCall()
             {
                 DefinitionName = definitionName,
                 PhysicalWeaponId = physicalWeaponId,
                 ActionId = FunctionCall.ActionType.OnShoot,
-                values = new object[] { returnData },
+                Values = new SerializedObjectArray(projectileId, returnData),
             });
         }
 

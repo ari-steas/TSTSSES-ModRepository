@@ -1,4 +1,6 @@
-﻿using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
+﻿using CoreSystems.Api;
+using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
+using Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
 using System;
@@ -6,7 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VRage;
 using VRage.Game.Components;
+using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
@@ -18,6 +22,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public WeaponPart basePart;
         public List<WeaponPart> componentParts = new List<WeaponPart>();
         public ModularDefinition WeaponDefinition;
+        public int id = -1;
 
         public int numReactors = 0;
         private Color color;
@@ -30,19 +35,53 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 foreach (var conPart in part.connectedParts)
                     DebugDrawManager.Instance.AddLine(DebugDrawManager.GridToGlobal(part.block.Position, part.block.CubeGrid), DebugDrawManager.GridToGlobal(conPart.block.Position, part.block.CubeGrid), color, 0f);
             }
-            MyAPIGateway.Utilities.ShowNotification("PW Parts: " + componentParts.Count, 1000 / 60);
+            MyAPIGateway.Utilities.ShowNotification(id + " PW Parts: " + componentParts.Count, 1000 / 60);
         }
 
-        public PhysicalWeapon(WeaponPart basePart, ModularDefinition weaponDefinition)
+        public PhysicalWeapon(int id, WeaponPart basePart, ModularDefinition weaponDefinition)
         {
             this.basePart = basePart;
             this.WeaponDefinition = weaponDefinition;
+            this.id = id;
+            WeaponPartGetter.Instance.NumPhysicalWeapons++;
             componentParts.Add(basePart);
-            WeaponPartGetter.Instance.AllPhysicalWeapons.Add(this);
+
+            if (WeaponPartGetter.Instance.AllPhysicalWeapons.ContainsKey(id))
+                throw new Exception("Duplicate weapon ID!");
+            WeaponPartGetter.Instance.AllPhysicalWeapons.Add(id, this);
+
             Random r = new Random();
             color = new Color(r.Next(255), r.Next(255), r.Next(255));
 
+            // Register projectile callback
+            if (WeaponPartGetter.Instance.wAPI.IsReady && basePart.block.FatBlock != null)
+            {
+                try
+                {
+                    if (WeaponPartGetter.Instance.wAPI.HasCoreWeapon((MyEntity)basePart.block.FatBlock))
+                    {
+                        WeaponPartGetter.Instance.wAPI.AddProjectileCallback((MyEntity)basePart.block.FatBlock, 0, ProjectileCallback);
+                    }
+                }
+                catch
+                {
+                    MyAPIGateway.Utilities.ShowNotification("it threw an error dumbass");
+                }
+            }            
+
             WeaponPartGetter.Instance.QueuedWeaponChecks.Add(basePart, this);
+        }
+
+        public void ProjectileCallback(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
+        {
+            if (projectileExists)
+                DefinitionHandler.Instance.SendOnShoot(WeaponDefinition.Name, id, firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition);
+        }
+
+        public void UpdateProjectile(ulong projectileId, MyTuple<bool, Vector3D, Vector3D, float> projectileData)
+        {
+            MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(WeaponPartGetter.Instance.wAPI.GetProjectileState(projectileId).Item2.Length(), 2));
+            WeaponPartGetter.Instance.wAPI.SetProjectileState(projectileId, projectileData);
         }
 
         public void AddPart(WeaponPart part)
@@ -53,20 +92,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             componentParts.Add(part);
             part.memberWeapon = this;
 
-            // TODO remove. Test for counting number of reactors; i.e. PAC cannon
-            numReactors = 0;
-            foreach (var cPart in componentParts)
-            {
-                if (cPart.block.BlockDefinition.Id.SubtypeName == "LargeBlockSmallGenerator")
-                {
-                    List<IMySlimBlock> blocks2 = new List<IMySlimBlock>();
-                    cPart.block.GetNeighbours(blocks2);
-
-                    if (blocks2.Count >= 2)
-                        numReactors++;
-                }
-            }
-            WeaponDefinition.numReactors = numReactors;
             //MyAPIGateway.Utilities.ShowNotification("Reactors: " + numReactors);
         }
 
@@ -138,12 +163,15 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void Close()
         {
+            if (basePart != null && basePart.block != null)
+                WeaponPartGetter.Instance.wAPI.RemoveProjectileCallback((MyEntity)basePart.block.FatBlock, 0, ProjectileCallback);
+
             if (componentParts == null)
                 return;
 
             componentParts = null;
             basePart = null;
-            WeaponPartGetter.Instance.AllPhysicalWeapons.Remove(this);
+            WeaponPartGetter.Instance.AllPhysicalWeapons.Remove(id);
         }
 
         public void RecursiveWeaponChecker(WeaponPart currentBlock)

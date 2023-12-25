@@ -24,7 +24,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public Dictionary<string, Vector3I[]> AllowedConnections = null;
 
-        public string BaseBlock = null;
+        public string BaseBlockSubtype = null;
+        public string Name = null;
 
 
         public static ModularDefinition Load(PhysicalDefinition definition)
@@ -33,10 +34,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             {
                 AllowedBlocks = definition.AllowedBlocks,
                 AllowedConnections = definition.AllowedConnections,
-                BaseBlock = definition.BaseBlock,
+                BaseBlockSubtype = definition.BaseBlock,
+                Name = definition.Name,
             };
 
-            if (def.AllowedBlocks == null || def.AllowedConnections == null || def.BaseBlock == null)
+            if (def.AllowedBlocks == null || def.AllowedConnections == null || def.BaseBlockSubtype == null || def.Name == null)
             {
                 MyLog.Default.WriteLine("Modular Weaponry: !!Failed!! to create new ModularDefinition for " + definition.Name);
                 return null;
@@ -46,18 +48,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             return def;
         }
 
-
-
-
-
-
-
-        public VRage.MyTuple<bool, Vector3D, Vector3D, float> ChangeProjectileData(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition)
-        {
-            Vector3D velocityOffset = -WeaponPartGetter.Instance.wAPI.GetProjectileState(projectileId).Item2 * 0.5;
-            MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(velocityOffset.Length(), 2));
-            return new VRage.MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, velocityOffset, 0);
-        }
+        //public VRage.MyTuple<bool, Vector3D, Vector3D, float> ChangeProjectileData(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition)
+        //{
+        //    Vector3D velocityOffset = -WeaponPartGetter.Instance.wAPI.GetProjectileState(projectileId).Item2 * 0.5;
+        //    MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(velocityOffset.Length(), 2));
+        //    return new VRage.MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, velocityOffset, 0);
+        //}
 
         public bool DoesBlockConnect(IMySlimBlock block, IMySlimBlock adajent, bool lineCheck = true)
         {
