@@ -1,5 +1,4 @@
-﻿using CoreParts.Data.Scripts.IHATEKEEN.ModularWeapons;
-using Sandbox.ModAPI;
+﻿using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;

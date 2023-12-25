@@ -1,7 +1,4 @@
-﻿using CoreParts.Data.Scripts.IHATEKEEN.ModularWeapons;
-using Sandbox.ModAPI;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using VRage;
 using VRage.Utils;
 using VRageMath;
@@ -33,8 +30,6 @@ namespace IHATEKEEN.Scripts.ModularWeapons
             OnShoot = (int PhysicalWeaponId, long FirerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition) => {
                 return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, OffsetProjectileVelocity(1, projectileId, FirerEntityId), 0);
             },
-
-
 
 
             AllowedBlocks = new string[]
