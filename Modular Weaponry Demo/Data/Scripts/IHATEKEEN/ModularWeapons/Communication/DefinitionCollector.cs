@@ -1,13 +1,13 @@
-﻿using static Scripts.ModularWeapons.DefinitionDefs;
+﻿using static Scripts.IHATEKEEN.ModularWeapons.Communication.DefinitionDefs;
 
-namespace Scripts.ModularWeapons
+namespace IHATEKEEN.Scripts.ModularWeapons
 {
     partial class ModularDefinition
     {
         internal DefinitionContainer Container = new DefinitionContainer();
         internal void LoadDefinitions(params PhysicalDefinition[] defs)
         {
-            Container.physicalDefs = defs;
+            Container.PhysicalDefs = defs;
         }
 
         /// <summary>
@@ -17,11 +17,6 @@ namespace Scripts.ModularWeapons
         internal static DefinitionContainer GetBaseDefinitions()
         {
             return new ModularDefinition().Container;
-        }
-
-        internal class DefinitionContainer
-        {
-            public PhysicalDefinition[] physicalDefs;
         }
     }
 }

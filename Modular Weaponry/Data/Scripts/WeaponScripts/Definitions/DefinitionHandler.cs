@@ -17,9 +17,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
         const int DefinitionMessageId = 8772;
         const int ReadyMessageId = 8771;
 
+        public List<ModularDefinition> ModularDefinitions = new List<ModularDefinition>();
+
         public override void LoadData()
         {
-            MyLog.Default.WriteLine("Init DefinitionHandler.cs");
+            MyLog.Default.WriteLine("ModularWeapons: Init DefinitionHandler.cs");
             Instance = this;
             MyAPIGateway.Utilities.RegisterMessageHandler(DefinitionMessageId, MessageHandler);
             MyAPIGateway.Utilities.SendModMessage(ReadyMessageId, true);
@@ -28,6 +30,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
         protected override void UnloadData()
         {
             base.UnloadData();
+            MyAPIGateway.Utilities.UnregisterMessageHandler(DefinitionMessageId, MessageHandler);
             Instance = null;
         }
 
@@ -38,10 +41,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 var message = o as byte[];
                 if (message == null) return;
 
-                PhysicalDefinition baseDefArray = null;
+                DefinitionContainer baseDefArray = null;
                 try
                 {
-                    baseDefArray = MyAPIGateway.Utilities.SerializeFromBinary<PhysicalDefinition>(message);
+                    baseDefArray = MyAPIGateway.Utilities.SerializeFromBinary<DefinitionContainer>(message);
                 }
                 catch (Exception e)
                 {
@@ -49,14 +52,20 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
                 if (baseDefArray != null)
                 {
-                    MyLog.Default.WriteLine($"Recieved {baseDefArray.Name}");
+                    MyLog.Default.WriteLine($"ModularWeapons: Recieved {baseDefArray.PhysicalDefs.Length} definitions.");
+                    foreach (var def in baseDefArray.PhysicalDefs)
+                    {
+                        ModularDefinition modDef = ModularDefinition.Load(def);
+                        if (modDef != null)
+                            ModularDefinitions.Add(modDef);
+                    }
                 }
                 else
                 {
-                    MyLog.Default.WriteLine($"baseDefArray null!");
+                    MyLog.Default.WriteLine($"ModularWeapons: baseDefArray null!");
                 }
             }
-            catch (Exception ex) { MyLog.Default.WriteLine($"Exception in Handler: {ex}"); }
+            catch (Exception ex) { MyLog.Default.WriteLine($"ModularWeapons: Exception in Handler: {ex}"); }
         }
     }
 }

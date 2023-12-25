@@ -1,5 +1,6 @@
 ﻿using CoreSystems.Api;
 using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
+using Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions;
 using Sandbox.Game;
 using Sandbox.ModAPI;
 using System;
@@ -109,15 +110,19 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 }
             }
 
-            if (!ModularDefiniton.IsBlockAllowed(block))
-                return;
+            foreach (var modularDefinition in DefinitionHandler.Instance.ModularDefinitions)
+            {
+                if (!modularDefinition.IsBlockAllowed(block))
+                    return;
 
-            WeaponPart w = new WeaponPart(block);
+                WeaponPart w = new WeaponPart(block, modularDefinition);
+            }
         }
         private void ProjectileCallback(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
         {
-            if (projectileExists)
-                wAPI.SetProjectileState(projectileId, ModularDefiniton.ChangeProjectileData(firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition));
+            // TODO replace
+            //if (projectileExists)
+            //    wAPI.SetProjectileState(projectileId, ModularDefinition.ChangeProjectileData(firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition));
         }
 
         private void OnGridRemove(IMyEntity entity)

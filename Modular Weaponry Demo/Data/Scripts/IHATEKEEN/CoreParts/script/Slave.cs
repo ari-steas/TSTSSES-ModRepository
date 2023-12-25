@@ -3,9 +3,10 @@ using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Sandbox.ModAPI;
+using IHATEKEEN.Scripts;
 using VRage.Game.Components;
-using static Scripts.Structure;
-namespace Scripts
+using static Scripts.IHATEKEEN.CoreParts.script.Structure;
+namespace Scripts.IHATEKEEN.CoreParts.script
 {
     [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate, int.MaxValue)]
     public class Session : MySessionComponentBase
@@ -57,7 +58,7 @@ namespace Scripts
             {
                 var sb = new StringBuilder(name);
                 ReplaceAll(sb, Path.GetInvalidFileNameChars(), '_');
-                _instance = new Log {File = MyAPIGateway.Utilities.WriteFileInLocalStorage(sb.ToString(), typeof(Log))};
+                _instance = new Log { File = MyAPIGateway.Utilities.WriteFileInLocalStorage(sb.ToString(), typeof(Log)) };
             }
 
             public static void ReplaceAll(StringBuilder sb, char[] charlist, char replacewith)

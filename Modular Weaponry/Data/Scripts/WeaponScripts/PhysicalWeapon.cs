@@ -17,6 +17,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
     {
         public WeaponPart basePart;
         public List<WeaponPart> componentParts = new List<WeaponPart>();
+        public ModularDefinition WeaponDefinition;
 
         public int numReactors = 0;
         private Color color;
@@ -32,9 +33,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             MyAPIGateway.Utilities.ShowNotification("PW Parts: " + componentParts.Count, 1000 / 60);
         }
 
-        public PhysicalWeapon(WeaponPart basePart)
+        public PhysicalWeapon(WeaponPart basePart, ModularDefinition weaponDefinition)
         {
             this.basePart = basePart;
+            this.WeaponDefinition = weaponDefinition;
             componentParts.Add(basePart);
             WeaponPartGetter.Instance.AllPhysicalWeapons.Add(this);
             Random r = new Random();
@@ -64,7 +66,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                         numReactors++;
                 }
             }
-            ModularDefiniton.numReactors = numReactors;
+            WeaponDefinition.numReactors = numReactors;
             //MyAPIGateway.Utilities.ShowNotification("Reactors: " + numReactors);
         }
 
@@ -160,7 +162,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 // Another safety check
                 if (neighbor == null) continue;
 
-                if (ModularDefiniton.IsBlockAllowed(neighbor) && ModularDefiniton.DoesBlockConnect(currentBlock.block, neighbor))
+                if (WeaponDefinition.IsBlockAllowed(neighbor) && WeaponDefinition.DoesBlockConnect(currentBlock.block, neighbor))
                 {
                     WeaponPart neighborPart;
                     
@@ -169,12 +171,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                         // Avoid double-including blocks
                         if (componentParts.Contains(neighborPart))
                         {
-                            //MyLog.Default.WriteLineAndConsole("Skip part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
+                            //MyLog.Default.WriteLine("ModularWeapons: Skip part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
                             continue;
                         }
-        
-                        //MyLog.Default.WriteLineAndConsole("Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
-        
+
+                        //MyLog.Default.WriteLine("ModularWeapons: Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
+
                         componentParts.Add(neighborPart);
                         WeaponPartGetter.Instance.QueuedConnectionChecks.Add(neighborPart);
                         WeaponPartGetter.Instance.QueuedWeaponChecks.Add(neighborPart, this);

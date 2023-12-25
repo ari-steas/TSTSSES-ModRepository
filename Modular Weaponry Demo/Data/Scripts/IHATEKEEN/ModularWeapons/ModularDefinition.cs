@@ -1,5 +1,5 @@
 ﻿
-namespace Scripts.ModularWeapons
+namespace IHATEKEEN.Scripts.ModularWeapons
 {
     // turns out whoever wrote the CoreSystems definition handler is REALLY SMART. hats off to you
     partial class ModularDefinition
