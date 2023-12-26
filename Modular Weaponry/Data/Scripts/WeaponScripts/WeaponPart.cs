@@ -55,7 +55,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             {
                 if (nBlockPart.memberWeapon == null)
                     continue;
-                nBlockPart.memberWeapon.AddPart(this);
+                nBlockPart.memberWeapon.AddPart(this, memberWeapon != nBlockPart.memberWeapon);
                 break;
             }
 

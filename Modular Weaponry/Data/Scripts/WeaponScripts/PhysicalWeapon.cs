@@ -38,13 +38,13 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             MyAPIGateway.Utilities.ShowNotification(id + " PW Parts: " + componentParts.Count, 1000 / 60);
         }
 
-        public PhysicalWeapon(int id, WeaponPart basePart, ModularDefinition weaponDefinition)
+        public PhysicalWeapon(int id, WeaponPart basePart, ModularDefinition WeaponDefinition)
         {
             this.basePart = basePart;
-            this.WeaponDefinition = weaponDefinition;
+            this.WeaponDefinition = WeaponDefinition;
             this.id = id;
             WeaponPartGetter.Instance.NumPhysicalWeapons++;
-            componentParts.Add(basePart);
+            AddPart(basePart);
 
             if (WeaponPartGetter.Instance.AllPhysicalWeapons.ContainsKey(id))
                 throw new Exception("Duplicate weapon ID!");
@@ -84,30 +84,51 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             WeaponPartGetter.Instance.wAPI.SetProjectileState(projectileId, projectileData);
         }
 
-        public void AddPart(WeaponPart part)
+        public void AddPart(WeaponPart part, bool triggerDefinition = true)
         {
             if (componentParts.Contains(part))
                 componentParts.Remove(part);
 
             componentParts.Add(part);
             part.memberWeapon = this;
-
-            //MyAPIGateway.Utilities.ShowNotification("Reactors: " + numReactors);
+            if (triggerDefinition)
+                DefinitionHandler.Instance.SendOnPartPlace(WeaponDefinition.Name, id, part.block.FatBlock.EntityId, part == basePart);
         }
 
-        public void Remove(WeaponPart part, bool removeFromList = true)
+        /// <summary>
+        /// Removes a part without running connection checks. Only use when the PhysicalWeapon will be removed.
+        /// </summary>
+        /// <param name="part"></param>
+        public void RemoveFast(WeaponPart part)
         {
             if (componentParts == null || part == null)
                 return;
 
-            if (removeFromList)
-            {
-                if (!componentParts.Contains(part))
-                    return;
-                componentParts.Remove(part);
-            }
+            if (!componentParts.Contains(part))
+                return;
+            componentParts.Remove(part);
 
-            MyAPIGateway.Utilities.ShowNotification("Subpart parts: " + part.connectedParts.Count);
+            part.connectedParts.Clear();
+            part.memberWeapon = null;
+
+            DefinitionHandler.Instance.SendOnPartRemove(WeaponDefinition.Name, id, part.block.FatBlock.EntityId, part == basePart);
+
+            if (componentParts.Count == 0)
+                Close();
+        }
+
+        public void Remove(WeaponPart part)
+        {
+            if (componentParts == null || part == null)
+                return;
+
+            if (!componentParts.Contains(part))
+                return;
+            componentParts.Remove(part);
+
+            DefinitionHandler.Instance.SendOnPartRemove(WeaponDefinition.Name, id, part.block.FatBlock.EntityId, part == basePart);
+
+            //MyAPIGateway.Utilities.ShowNotification("Subpart parts: " + part.connectedParts.Count);
 
             // Clear self if basepart was removed
             if (part == basePart)
@@ -148,7 +169,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             part.connectedParts.Clear();
             part.memberWeapon = null;
 
-            if (removeFromList && componentParts.Count == 0)
+            if (componentParts.Count == 0)
                 Close();
         }
 

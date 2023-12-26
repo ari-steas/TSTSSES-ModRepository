@@ -83,7 +83,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
                             defToCall.OnPartPlace(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
                             break;
                         case FunctionCall.ActionType.OnPartRemove:
-                            defToCall.OnPartPlace(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
+                            defToCall.OnPartRemove(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
                             break;
                         case FunctionCall.ActionType.OnPartDestroy:
                             defToCall.OnPartDestroy(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
