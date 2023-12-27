@@ -1,12 +1,14 @@
 ﻿using Sandbox.ModAPI;
-using IHATEKEEN.Scripts.ModularWeapons;
+using ILOVEKEEN.Scripts.ModularWeaponry;
 using VRage.Game.Components;
 using VRage.Utils;
-using static Scripts.IHATEKEEN.ModularWeapons.Communication.DefinitionDefs;
+using static Scripts.ILOVEKEEN.ModularWeaponry.Communication.DefinitionDefs;
 using System;
 using VRageMath;
+using CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication;
+using CoreSystems.Api;
 
-namespace Scripts.IHATEKEEN.ModularWeapons.Communication
+namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
 {
     [MySessionComponentDescriptor(MyUpdateOrder.Simulation)]
     internal class ModularDefinitionSender : MySessionComponentBase
@@ -20,14 +22,20 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
 
         public override void LoadData()
         {
-            MyLog.Default.WriteLine("ModularWeaponsDefinition: Init new ModularWeaponsDefinition");
+            MyLog.Default.WriteLine("ModularWeaponryDefinition: Init new ModularWeaponryDefinition");
             MyAPIGateway.Utilities.RegisterMessageHandler(InboundMessageId, InputHandler);
 
             // Init
             storedDef = ModularDefinition.GetBaseDefinitions();
             Storage = MyAPIGateway.Utilities.SerializeToBinary(storedDef);
 
-            MyLog.Default.WriteLine($"ModularWeaponsDefinition: Packaged definitions & going to sleep.");
+            ModularDefinition.ModularAPI = new ModularDefinitionAPI();
+            ModularDefinition.ModularAPI.LoadData();
+
+            ModularDefinition.WcAPI = new WcApi();
+            ModularDefinition.WcAPI.Load();
+
+            MyLog.Default.WriteLine($"ModularWeaponryDefinition: Packaged definitions & going to sleep.");
         }
 
         protected override void UnloadData()
@@ -35,6 +43,8 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
             MyAPIGateway.Utilities.UnregisterMessageHandler(InboundMessageId, InputHandler);
             Array.Clear(Storage, 0, Storage.Length);
             Storage = null;
+            ModularDefinition.ModularAPI.UnloadData();
+            ModularDefinition.WcAPI.Unload();
         }
 
         private void InputHandler(object o)
@@ -44,7 +54,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
             if (o is bool && (bool)o)
             {
                 MyAPIGateway.Utilities.SendModMessage(DefinitionMessageId, Storage);
-                MyLog.Default.WriteLine("ModularWeaponsDefinition: Sent definitions & returning to sleep.");
+                MyLog.Default.WriteLine("ModularWeaponryDefinition: Sent definitions & returning to sleep.");
             }
             else
             {
@@ -55,7 +65,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
 
                     if (call == null)
                     {
-                        MyLog.Default.WriteLine($"ModularWeaponsDefinition: Invalid FunctionCall!");
+                        MyLog.Default.WriteLine($"ModularWeaponryDefinition: Invalid FunctionCall!");
                         return;
                     }
 
@@ -66,7 +76,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
 
                     if (defToCall == null)
                     {
-                        MyLog.Default.WriteLine($"ModularWeaponsDefinition: Function call [{call.DefinitionName}] not addressed to this.");
+                        //MyLog.Default.WriteLine($"ModularWeaponryDefinition: Function call [{call.DefinitionName}] not addressed to this.");
                         return;
                     }
 
@@ -78,12 +88,12 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
                         case FunctionCall.ActionType.OnShoot:
                             SendOnShoot(call.DefinitionName, call.PhysicalWeaponId, call.Values.ulongValues[0], defToCall.OnShoot(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.intValues[0], call.Values.ulongValues[0], call.Values.longValues[1], call.Values.vectorValues[0]));
                             break;
-                        case FunctionCall.ActionType.OnPartPlace:
+                        case FunctionCall.ActionType.OnPartAdd:
                             // TODO: OnPartUpdate? With ConnectedParts?
-                            defToCall.OnPartPlace(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
+                            defToCall.OnPartAdd(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
                             break;
                         case FunctionCall.ActionType.OnPartRemove:
-                            defToCall.OnPartPlace(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
+                            defToCall.OnPartRemove(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
                             break;
                         case FunctionCall.ActionType.OnPartDestroy:
                             defToCall.OnPartDestroy(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
@@ -92,7 +102,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
                 }
                 catch (Exception ex)
                 {
-                    MyLog.Default.WriteLine($"ModularWeaponsDefinition: Exception in InputHandler: {ex}");
+                    MyLog.Default.WriteLine($"ModularWeaponryDefinition: Exception in InputHandler: {ex}");
                 }
             }
         }
@@ -112,7 +122,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
         private void SendFunc(FunctionCall call)
         {
             MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, MyAPIGateway.Utilities.SerializeToBinary(call));
-            MyLog.Default.WriteLine($"ModularWeaponsDefinition: Sending function call [id {call.ActionId}].");
+            //MyLog.Default.WriteLine($"ModularWeaponryDefinition: Sending function call [id {call.ActionId}].");
         }
     }
 }

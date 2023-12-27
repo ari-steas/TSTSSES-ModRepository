@@ -15,6 +15,9 @@ using VRage.ObjectBuilders;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 {
+    /// <summary>
+    /// Attached to every part in a WeaponDefinition.
+    /// </summary>
     public class WeaponPart
     {
         public IMySlimBlock block;
@@ -29,24 +32,24 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             //MyAPIGateway.Utilities.ShowNotification("Placed valid WeaponPart");
 
-            if (WeaponPartGetter.Instance.AllWeaponParts.ContainsKey(block))
+            if (WeaponPartManager.Instance.AllWeaponParts.ContainsKey(block))
                 return;
 
-            WeaponPartGetter.Instance.AllWeaponParts.Add(block, this);
+            WeaponPartManager.Instance.AllWeaponParts.Add(block, this);
 
             if (WeaponDefinition.BaseBlockSubtype == block.BlockDefinition.Id.SubtypeName)
             {
-                memberWeapon = new PhysicalWeapon(WeaponPartGetter.Instance.NumPhysicalWeapons, this, WeaponDefinition);
+                memberWeapon = new PhysicalWeapon(WeaponPartManager.Instance.CreatedPhysicalWeapons, this, WeaponDefinition);
             }
             else
-                WeaponPartGetter.Instance.QueuedConnectionChecks.Add(this);
+                WeaponPartManager.Instance.QueuedConnectionChecks.Add(this);
         }
 
         public void CheckForExistingWeapon()
         {
             // You can't have two baseblocks per weapon
-            if (WeaponDefinition.BaseBlockSubtype != block.BlockDefinition.Id.SubtypeName)
-                memberWeapon = null;
+            //if (WeaponDefinition.BaseBlockSubtype != block.BlockDefinition.Id.SubtypeName)
+            //    memberWeapon = null;
 
             List<WeaponPart> validNeighbors = GetValidNeighborParts();
 
@@ -55,13 +58,13 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             {
                 if (nBlockPart.memberWeapon == null)
                     continue;
-                nBlockPart.memberWeapon.AddPart(this);
+                nBlockPart.memberWeapon.AddPart(this, memberWeapon != nBlockPart.memberWeapon);
                 break;
             }
 
             if (memberWeapon == null)
             {
-                MyAPIGateway.Utilities.ShowNotification("Null memberWeapon " + validNeighbors.Count);
+                //MyAPIGateway.Utilities.ShowNotification("Null memberWeapon " + validNeighbors.Count);
                 if (WeaponDefinition.BaseBlockSubtype == block.BlockDefinition.Id.SubtypeName)
                     MyVisualScriptLogicProvider.SendChatMessage($"CRITICAL ERROR BaseBlock Null memberWeapon", "MW");
                 return;
@@ -74,35 +77,44 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
                 if (nBlockPart.memberWeapon == null)
                 {
-                    WeaponPartGetter.Instance.QueuedConnectionChecks.Add(nBlockPart);
-                    MyAPIGateway.Utilities.ShowNotification("Forced a weapon join");
+                    WeaponPartManager.Instance.QueuedConnectionChecks.Add(nBlockPart);
+                    //MyAPIGateway.Utilities.ShowNotification("Forced a weapon join");
                 }
-                else if (nBlockPart.memberWeapon != memberWeapon)
-                    MyAPIGateway.Utilities.ShowNotification("Invalid memberWeapon");
+                //else if (nBlockPart.memberWeapon != memberWeapon)
+                //    MyAPIGateway.Utilities.ShowNotification("Invalid memberWeapon");
                 else if (!nBlockPart.connectedParts.Contains(this))
                     nBlockPart.connectedParts.Add(this);
             }
 
-            if (connectedParts.Count == 0)
-                MyAPIGateway.Utilities.ShowNotification("ERR 0 | " + validNeighbors.Count);
-
-            MyAPIGateway.Utilities.ShowNotification("Connected: " + connectedParts.Count + " | Failed: " + (GetValidNeighbors().Count - connectedParts.Count));
+            if (WeaponPartManager.Instance.DebugMode)
+                MyAPIGateway.Utilities.ShowNotification("Connected: " + connectedParts.Count + " | Failed: " + (GetValidNeighbors().Count - connectedParts.Count));
         }
 
         /// <summary>
         /// Returns attached (as per WeaponPart) neighbor blocks.
         /// </summary>
         /// <returns></returns>
-        public List<IMySlimBlock> GetValidNeighbors()
+        public List<IMySlimBlock> GetValidNeighbors(bool MustShareWeapon = false)
         {
             List<IMySlimBlock> neighbors = new List<IMySlimBlock>();
             block.GetNeighbours(neighbors);
+
             List<IMySlimBlock> validNeighbors = new List<IMySlimBlock>();
             foreach (var nBlock in neighbors)
             {
                 if (WeaponDefinition.DoesBlockConnect(block, nBlock, true))
                     validNeighbors.Add(nBlock);
             }
+
+            if (MustShareWeapon)
+                validNeighbors.RemoveAll(nBlock =>
+                {
+                    WeaponPart part;
+                    if (!WeaponPartManager.Instance.AllWeaponParts.TryGetValue(nBlock, out part))
+                        return true;
+                    return part.memberWeapon != this.memberWeapon;
+                });
+
             return validNeighbors;
         }
 
@@ -116,7 +128,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             foreach (var nBlock in GetValidNeighbors())
             {
                 WeaponPart nBlockPart;
-                if (WeaponPartGetter.Instance.AllWeaponParts.TryGetValue(nBlock, out nBlockPart))
+                if (WeaponPartManager.Instance.AllWeaponParts.TryGetValue(nBlock, out nBlockPart))
                 {
                     validNeighbors.Add(nBlockPart);
                 }

@@ -14,16 +14,29 @@ using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
+using VRageRender.Messages;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 {
+    /// <summary>
+    /// Creates and manages all WeaponParts and PhysicalWeapons.
+    /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
-    public class WeaponPartGetter : MySessionComponentBase
+    public class WeaponPartManager : MySessionComponentBase
     {
-        public static WeaponPartGetter Instance; // the only way to access session comp from other classes and the only accepted static field.
+        public static WeaponPartManager Instance;
+        public bool DebugMode = false;
+
+        /// <summary>
+        /// Every single WeaponPart in the world.
+        /// </summary>
         public Dictionary<IMySlimBlock, WeaponPart> AllWeaponParts = new Dictionary<IMySlimBlock, WeaponPart>();
+
+        /// <summary>
+        /// Every single PhysicalWeapon in the world.
+        /// </summary>
         public Dictionary<int, PhysicalWeapon> AllPhysicalWeapons = new Dictionary<int, PhysicalWeapon>();
-        public int NumPhysicalWeapons = 0;
+        public int CreatedPhysicalWeapons = 0;
 
         public List<IMySlimBlock> QueuedBlockAdds = new List<IMySlimBlock>();
         public List<WeaponPart> QueuedConnectionChecks = new List<WeaponPart>();
@@ -34,9 +47,37 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public override void LoadData()
         {
             Instance = this;
+
+            if (MyAPIGateway.Session.IsServer)
+            {
+                MyAPIGateway.Utilities.MessageEnteredSender += ChatCommandHandler;
+            }
+            else
+                MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Run !mwhelp for commands");
+
             MyAPIGateway.Entities.OnEntityAdd += OnGridAdd;
             MyAPIGateway.Entities.OnEntityRemove += OnGridRemove;
+
             wAPI.Load();
+        }
+
+        private void ChatCommandHandler(ulong sender, string messageText, ref bool sendToOthers)
+        {
+            if (!messageText.StartsWith("!"))
+                return;
+
+            string[] split = messageText.Split(' ');
+            switch (split[0])
+            {
+                case "!mwhelp":
+                    MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Commands:\n!mwhelp - Prints all commands\n!debug - Toggles debug draw");
+                    sendToOthers = false;
+                    break;
+                case "!debug":
+                    DebugMode = !DebugMode;
+                    sendToOthers = false;
+                    break;
+            }
         }
 
         protected override void UnloadData()
@@ -44,6 +85,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             Instance = null; // important for avoiding this object to remain allocated in memory
             MyAPIGateway.Entities.OnEntityAdd -= OnGridAdd;
             MyAPIGateway.Entities.OnEntityRemove -= OnGridRemove;
+
+            if (MyAPIGateway.Utilities.IsDedicated)
+            {
+                MyAPIGateway.Utilities.MessageEnteredSender -= ChatCommandHandler;
+            }
+
             wAPI.Unload();
         }
 
@@ -75,7 +122,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             foreach (var weapon in AllPhysicalWeapons.Values)
                 weapon.Update();
 
-            MyAPIGateway.Utilities.ShowNotification("Weapons: " + AllPhysicalWeapons.Count + " | Parts: " + AllWeaponParts.Count, 1000 / 60);
+            if (DebugMode)
+                MyAPIGateway.Utilities.ShowNotification("Weapons: " + AllPhysicalWeapons.Count + " | Parts: " + AllWeaponParts.Count, 1000 / 60);
         }
 
         private void OnGridAdd(IMyEntity entity)
@@ -143,7 +191,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             WeaponPart part;
             if (AllWeaponParts.TryGetValue(block, out part))
             {
-                //MyAPIGateway.Utilities.ShowNotification("Removing");
                 part.memberWeapon?.Remove(part);
                 AllWeaponParts.Remove(block);
             }

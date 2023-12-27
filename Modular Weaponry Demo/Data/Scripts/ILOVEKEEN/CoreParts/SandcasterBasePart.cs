@@ -1,17 +1,17 @@
-﻿using static Scripts.IHATEKEEN.CoreParts.script.Structure;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.ModelAssignmentsDef;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef.Prediction;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.BlockTypes;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.Threat;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.CommunicationDef.Comms;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.CommunicationDef.SecurityMode;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef.HardwareDef;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef.HardwareDef.HardwareType;
+﻿using static Scripts.ILOVEKEEN.CoreParts.script.Structure;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.ModelAssignmentsDef;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef.Prediction;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.BlockTypes;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.Threat;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.CommunicationDef.Comms;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.TargetingDef.CommunicationDef.SecurityMode;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef.HardwareDef;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.HardPointDef.HardwareDef.HardwareType;
 
-namespace IHATEKEEN.Scripts
+namespace ILOVEKEEN.Scripts
 {
     partial class Parts {
         // Don't edit above this line

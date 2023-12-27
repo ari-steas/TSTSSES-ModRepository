@@ -3,10 +3,10 @@ using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Sandbox.ModAPI;
-using IHATEKEEN.Scripts;
+using ILOVEKEEN.Scripts;
 using VRage.Game.Components;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure;
-namespace Scripts.IHATEKEEN.CoreParts.script
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure;
+namespace Scripts.ILOVEKEEN.CoreParts.script
 {
     [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate, int.MaxValue)]
     public class Session : MySessionComponentBase

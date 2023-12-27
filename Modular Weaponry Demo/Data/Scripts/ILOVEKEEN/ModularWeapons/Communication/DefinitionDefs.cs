@@ -5,7 +5,7 @@ using VRage;
 using VRage.Utils;
 using VRageMath;
 
-namespace Scripts.IHATEKEEN.ModularWeapons.Communication
+namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
 {
     public class DefinitionDefs
     {
@@ -18,6 +18,9 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
         [ProtoContract]
         public class PhysicalDefinition
         {
+            /// <summary>
+            /// The name of this definition. Must be unique!
+            /// </summary>
             [ProtoMember(1)] public string Name { get; set; }
 
             /// <summary>
@@ -34,7 +37,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
             /// Arg1 is PhysicalWeaponId, Arg2 is EntityId, Arg3 is IsBaseBlock
             /// </para>
             /// </summary>
-            public Action<int, long, bool> OnPartPlace { get; set; }
+            public Action<int, long, bool> OnPartAdd { get; set; }
 
             /// <summary>
             /// Called when a valid part is removed.
@@ -52,8 +55,19 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
             /// </summary>
             public Action<int, long, bool> OnPartDestroy { get; set; }
 
+            /// <summary>
+            /// All allowed SubtypeIds. The mod will likely misbehave if two mods allow the same blocks, so please be cautious.
+            /// </summary>
             [ProtoMember(2)] public string[] AllowedBlocks { get; set; }
+
+            /// <summary>
+            /// Allowed connection directions. Measured in blocks.
+            /// </summary>
             [ProtoMember(3)] public Dictionary<string, Vector3I[]> AllowedConnections { get; set; }
+
+            /// <summary>
+            /// The primary block of a PhysicalWeapon. Make sure this is a Weaponcore block.
+            /// </summary>
             [ProtoMember(4)] public string BaseBlock { get; set; }
         }
 
@@ -68,9 +82,13 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
             public enum ActionType
             {
                 OnShoot,
-                OnPartPlace,
+                OnPartAdd,
                 OnPartRemove,
                 OnPartDestroy,
+                GetAllParts,
+                GetAllWeapons,
+                GetMemberParts,
+                GetConnectedBlocks,
             }
         }
 

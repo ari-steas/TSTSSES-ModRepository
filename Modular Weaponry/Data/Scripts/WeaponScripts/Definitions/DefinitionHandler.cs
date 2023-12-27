@@ -89,9 +89,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
                 if (functionCall != null)
                 {
-                    MyLog.Default.WriteLine($"ModularWeapons: Recieved action of type {functionCall.ActionId}.");
+                    //MyLog.Default.WriteLine($"ModularWeapons: Recieved action of type {functionCall.ActionId}.");
 
-                    PhysicalWeapon wep = WeaponPartGetter.Instance.AllPhysicalWeapons[functionCall.PhysicalWeaponId];
+                    PhysicalWeapon wep = WeaponPartManager.Instance.AllPhysicalWeapons[functionCall.PhysicalWeaponId];
                     if (wep == null)
                     {
                         MyLog.Default.WriteLine($"ModularWeapons: Invalid PhysicalWeapon!");
@@ -137,7 +137,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             });
         }
 
-        public void SendOnPartPlace(string DefinitionName, int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock)
+        public void SendOnPartAdd(string DefinitionName, int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock)
         {
             SerializedObjectArray Values = new SerializedObjectArray
             (
@@ -147,7 +147,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
             SendFunc(new FunctionCall()
             {
-                ActionId = FunctionCall.ActionType.OnPartPlace,
+                ActionId = FunctionCall.ActionType.OnPartAdd,
                 DefinitionName = DefinitionName,
                 PhysicalWeaponId = PhysicalWeaponId,
                 Values = Values,
@@ -191,7 +191,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
         private void SendFunc(FunctionCall call)
         {
             MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, MyAPIGateway.Utilities.SerializeToBinary(call));
-            MyLog.Default.WriteLine($"ModularWeapons: Sending function call [id {call.ActionId}] to [{call.DefinitionName}].");
+            //MyLog.Default.WriteLine($"ModularWeapons: Sending function call [id {call.ActionId}] to [{call.DefinitionName}].");
         }
     }
 }

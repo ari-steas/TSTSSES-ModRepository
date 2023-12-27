@@ -2,7 +2,7 @@
 using ProtoBuf;
 using VRageMath;
 
-namespace Scripts.IHATEKEEN.CoreParts.script
+namespace Scripts.ILOVEKEEN.CoreParts.script
 {
     public class Structure
     {
