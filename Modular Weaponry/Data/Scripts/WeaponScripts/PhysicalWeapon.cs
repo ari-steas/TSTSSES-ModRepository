@@ -32,13 +32,16 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void Update()
         {
-            foreach (var part in componentParts)
+            if (WeaponPartManager.Instance.DebugMode)
             {
-                DebugDrawManager.Instance.AddGridPoint(part.block.Position, part.block.CubeGrid, color, 0f);
-                foreach (var conPart in part.connectedParts)
-                    DebugDrawManager.Instance.AddLine(DebugDrawManager.GridToGlobal(part.block.Position, part.block.CubeGrid), DebugDrawManager.GridToGlobal(conPart.block.Position, part.block.CubeGrid), color, 0f);
+                foreach (var part in componentParts)
+                {
+                    DebugDrawManager.Instance.AddGridPoint(part.block.Position, part.block.CubeGrid, color, 0f);
+                    foreach (var conPart in part.connectedParts)
+                        DebugDrawManager.Instance.AddLine(DebugDrawManager.GridToGlobal(part.block.Position, part.block.CubeGrid), DebugDrawManager.GridToGlobal(conPart.block.Position, part.block.CubeGrid), color, 0f);
+                }
+                MyAPIGateway.Utilities.ShowNotification(id + " PW Parts: " + componentParts.Count, 1000 / 60);
             }
-            MyAPIGateway.Utilities.ShowNotification(id + " PW Parts: " + componentParts.Count, 1000 / 60);
         }
 
         public PhysicalWeapon(int id, WeaponPart basePart, ModularDefinition WeaponDefinition)
@@ -47,7 +50,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             this.WeaponDefinition = WeaponDefinition;
             this.id = id;
             WeaponPartManager.Instance.CreatedPhysicalWeapons++;
-            AddPart(basePart);
 
             if (WeaponPartManager.Instance.AllPhysicalWeapons.ContainsKey(id))
                 throw new Exception("Duplicate weapon ID!");
@@ -68,10 +70,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 }
                 catch
                 {
-                    MyAPIGateway.Utilities.ShowNotification("it threw an error dumbass");
+                    MyAPIGateway.Utilities.SendMessage($"Error in registering projectile callback!\nDefinition: {WeaponDefinition.Name}\nBasePart: {basePart.block.BlockDefinition.Id.SubtypeName}");
                 }
-            }            
+            }
 
+            AddPart(basePart);
             WeaponPartManager.Instance.QueuedWeaponChecks.Add(basePart, this);
         }
 
@@ -83,7 +86,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void UpdateProjectile(ulong projectileId, MyTuple<bool, Vector3D, Vector3D, float> projectileData)
         {
-            MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length(), 2));
             WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
         }
 
@@ -157,7 +159,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 basePart.memberWeapon = this;
                 componentParts.Add(basePart);
 
-                MyAPIGateway.Utilities.ShowNotification("Recreating connections...");
+                if (WeaponPartManager.Instance.DebugMode)
+                    MyAPIGateway.Utilities.ShowNotification("Recreating connections...");
                 WeaponPartManager.Instance.QueuedConnectionChecks.Add(basePart);
                 WeaponPartManager.Instance.QueuedWeaponChecks.Add(basePart, this);
 

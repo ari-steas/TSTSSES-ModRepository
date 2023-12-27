@@ -20,7 +20,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 ["GetAllParts"] = new Func<MyEntity[]>(GetAllParts),
                 ["GetAllWeapons"] = new Func<int[]>(GetAllWeapons),
                 ["GetMemberParts"] = new Func<int, MyEntity[]>(GetMemberParts),
-                ["GetConnectedBlocks"] = new Func<MyEntity, MyEntity[]>(GetConnectedBlocks),
+                ["GetConnectedBlocks"] = new Func<MyEntity, bool, MyEntity[]>(GetConnectedBlocks),
                 ["GetBasePart"] = new Func<int, MyEntity>(GetBasePart),
             };
         }
@@ -50,11 +50,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 if (part.block.FatBlock != null)
                     parts.Add((MyEntity)part.block.FatBlock);
 
-            MyLog.Default.WriteLine("ModularWeaponry: PASS MEMPARTS");
             return parts.ToArray();
         }
 
-        private MyEntity[] GetConnectedBlocks(MyEntity blockEntity)
+        private MyEntity[] GetConnectedBlocks(MyEntity blockEntity, bool useCached)
         {
             if (!(blockEntity is IMyCubeBlock))
                 return new MyEntity[0];
@@ -64,11 +63,19 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 return new MyEntity[0];
 
             List<MyEntity> parts = new List<MyEntity>();
-            foreach (var part in wep.connectedParts)
-                if (part.block.FatBlock != null)
-                    parts.Add((MyEntity)part.block.FatBlock);
+            if (useCached)
+            {
+                foreach (var part in wep.connectedParts)
+                    if (part.block.FatBlock != null)
+                        parts.Add((MyEntity)part.block.FatBlock);
+            }
+            else
+            {
+                foreach (var part in wep.GetValidNeighbors(true))
+                    if (part.FatBlock != null)
+                        parts.Add((MyEntity)part.FatBlock);
+            }
 
-            MyLog.Default.WriteLine("ModularWeaponry: PASS CONPARTS");
             return parts.ToArray();
         }
 
@@ -78,7 +85,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             if (!WeaponPartManager.Instance.AllPhysicalWeapons.TryGetValue(weaponId, out wep))
                 return null;
 
-            MyLog.Default.WriteLine("ModularWeaponry: PASS BASEPART");
             return (MyEntity) wep.basePart.block.FatBlock;
         }
     }

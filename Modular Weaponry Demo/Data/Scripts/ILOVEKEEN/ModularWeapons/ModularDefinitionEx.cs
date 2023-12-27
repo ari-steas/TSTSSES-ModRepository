@@ -34,7 +34,7 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
             OnPartAdd = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
             {
                 MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartAdd {IsBaseBlock}.");
-                MyLog.Default.WriteLine($"\nPartCount: {ModularAPI.GetAllParts().Length}\nWeaponCount: {ModularAPI.GetAllWeapons().Length}\nThisPartCount: {ModularAPI.GetMemberParts(PhysicalWeaponId).Length}\nConnectedBlocks: {ModularAPI.GetConnectedBlocks(ModularAPI.GetBasePart(PhysicalWeaponId)).Length}");
+                MyLog.Default.WriteLine($"\nPartCount: {ModularAPI.GetAllParts().Length}\nWeaponCount: {ModularAPI.GetAllWeapons().Length}\nThisPartCount: {ModularAPI.GetMemberParts(PhysicalWeaponId).Length}\nConnectedBlocks: {ModularAPI.GetConnectedBlocks(ModularAPI.GetBasePart(PhysicalWeaponId), true).Length}");
             },
 
             OnPartRemove = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>

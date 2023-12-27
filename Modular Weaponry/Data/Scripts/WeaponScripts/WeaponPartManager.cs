@@ -14,6 +14,7 @@ using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
+using VRageRender.Messages;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 {
@@ -24,6 +25,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
     public class WeaponPartManager : MySessionComponentBase
     {
         public static WeaponPartManager Instance;
+        public bool DebugMode = false;
 
         /// <summary>
         /// Every single WeaponPart in the world.
@@ -45,9 +47,37 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public override void LoadData()
         {
             Instance = this;
+
+            if (MyAPIGateway.Session.IsServer)
+            {
+                MyAPIGateway.Utilities.MessageEnteredSender += ChatCommandHandler;
+            }
+            else
+                MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Run !mwhelp for commands");
+
             MyAPIGateway.Entities.OnEntityAdd += OnGridAdd;
             MyAPIGateway.Entities.OnEntityRemove += OnGridRemove;
+
             wAPI.Load();
+        }
+
+        private void ChatCommandHandler(ulong sender, string messageText, ref bool sendToOthers)
+        {
+            if (!messageText.StartsWith("!"))
+                return;
+
+            string[] split = messageText.Split(' ');
+            switch (split[0])
+            {
+                case "!mwhelp":
+                    MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Commands:\n!mwhelp - Prints all commands\n!debug - Toggles debug draw");
+                    sendToOthers = false;
+                    break;
+                case "!debug":
+                    DebugMode = !DebugMode;
+                    sendToOthers = false;
+                    break;
+            }
         }
 
         protected override void UnloadData()
@@ -55,6 +85,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             Instance = null; // important for avoiding this object to remain allocated in memory
             MyAPIGateway.Entities.OnEntityAdd -= OnGridAdd;
             MyAPIGateway.Entities.OnEntityRemove -= OnGridRemove;
+
+            if (MyAPIGateway.Utilities.IsDedicated)
+            {
+                MyAPIGateway.Utilities.MessageEnteredSender -= ChatCommandHandler;
+            }
+
             wAPI.Unload();
         }
 
@@ -86,7 +122,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             foreach (var weapon in AllPhysicalWeapons.Values)
                 weapon.Update();
 
-            MyAPIGateway.Utilities.ShowNotification("Weapons: " + AllPhysicalWeapons.Count + " | Parts: " + AllWeaponParts.Count, 1000 / 60);
+            if (DebugMode)
+                MyAPIGateway.Utilities.ShowNotification("Weapons: " + AllPhysicalWeapons.Count + " | Parts: " + AllWeaponParts.Count, 1000 / 60);
         }
 
         private void OnGridAdd(IMyEntity entity)

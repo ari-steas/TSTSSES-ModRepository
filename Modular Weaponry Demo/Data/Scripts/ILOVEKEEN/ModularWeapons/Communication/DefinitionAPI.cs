@@ -99,7 +99,7 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
         private Func<MyEntity[]> _getAllParts;
         private Func<int[]> _getAllWeapons;
         private Func<int, MyEntity[]> _getMemberParts;
-        private Func<MyEntity, MyEntity[]> _getConnectedBlocks;
+        private Func<MyEntity, bool, MyEntity[]> _getConnectedBlocks;
         private Func<int, MyEntity> _getBasePart;
 
         /// <summary>
@@ -134,10 +134,13 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
 
         /// <summary>
         /// Gets all connected parts to a block. Returns an empty list on fail.
+        /// <para>
+        /// <paramref name="useCached"/>: Set this to 'false' if used in OnPartAdd.
+        /// </para>
         /// </summary>
-        public MyEntity[] GetConnectedBlocks(MyEntity partBlockId)
+        public MyEntity[] GetConnectedBlocks(MyEntity partBlockId, bool useCached = true)
         {
-            return _getConnectedBlocks?.Invoke(partBlockId);
+            return _getConnectedBlocks?.Invoke(partBlockId, useCached);
         }
 
         /// <summary>
