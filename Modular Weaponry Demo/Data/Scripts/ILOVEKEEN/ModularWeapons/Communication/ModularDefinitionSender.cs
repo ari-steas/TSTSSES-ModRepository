@@ -1,14 +1,14 @@
 ﻿using Sandbox.ModAPI;
-using IHATEKEEN.Scripts.ModularWeaponry;
+using ILOVEKEEN.Scripts.ModularWeaponry;
 using VRage.Game.Components;
 using VRage.Utils;
-using static Scripts.IHATEKEEN.ModularWeaponry.Communication.DefinitionDefs;
+using static Scripts.ILOVEKEEN.ModularWeaponry.Communication.DefinitionDefs;
 using System;
 using VRageMath;
-using CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.Communication;
+using CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication;
 using CoreSystems.Api;
 
-namespace Scripts.IHATEKEEN.ModularWeaponry.Communication
+namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
 {
     [MySessionComponentDescriptor(MyUpdateOrder.Simulation)]
     internal class ModularDefinitionSender : MySessionComponentBase

@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using VRageMath;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.AmmoDef;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef.RelMove;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef.PartAnimationSetDef;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef.PartAnimationSetDef.EventTriggers;
-using static Scripts.IHATEKEEN.CoreParts.script.Structure.ArmorDefinition.ArmorType;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.AmmoDef;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef.RelMove;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef.PartAnimationSetDef;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.WeaponDefinition.AnimationDef.PartAnimationSetDef.EventTriggers;
+using static Scripts.ILOVEKEEN.CoreParts.script.Structure.ArmorDefinition.ArmorType;
 
-namespace IHATEKEEN.Scripts
+namespace ILOVEKEEN.Scripts
 {
     partial class Parts
     {

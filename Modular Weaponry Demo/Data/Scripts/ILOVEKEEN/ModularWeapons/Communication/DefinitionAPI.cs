@@ -1,5 +1,5 @@
 ﻿using CoreSystems.Api;
-using IHATEKEEN.Scripts.ModularWeaponry;
+using ILOVEKEEN.Scripts.ModularWeaponry;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
-namespace CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.Communication
+namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
 {
     public class ModularDefinitionAPI
     {

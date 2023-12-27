@@ -1,11 +1,11 @@
-﻿using CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.Communication;
+﻿using CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication;
 using System.Collections.Generic;
 using VRage;
 using VRage.Utils;
 using VRageMath;
-using static Scripts.IHATEKEEN.ModularWeaponry.Communication.DefinitionDefs;
+using static Scripts.ILOVEKEEN.ModularWeaponry.Communication.DefinitionDefs;
 
-namespace IHATEKEEN.Scripts.ModularWeaponry
+namespace ILOVEKEEN.Scripts.ModularWeaponry
 {
     /* Hey modders!
      * 
@@ -20,7 +20,7 @@ namespace IHATEKEEN.Scripts.ModularWeaponry
      * You have access to ModularAPI and WcAPI; ModularAPI handles stuff like GetMemberParts for modular weapons, whereas WcAPI is your bog-standard Weaponcore ModAPI.
      * If you need logic to run in a MySessionComponent, you can init the ModularAPI via LoadData() and UnloadData().
      * 
-     * As for file structure, DON'T TOUCH ANYTHING IN Scripts.IHATEKEEN.ModularWeapons OTHER THAN DEFINITIONS. It is all important.
+     * As for file structure, DON'T TOUCH ANYTHING IN Scripts.ILOVEKEEN.ModularWeapons OTHER THAN DEFINITIONS. It is all important.
      * 
      * Good luck, and happy modularizing!
      */

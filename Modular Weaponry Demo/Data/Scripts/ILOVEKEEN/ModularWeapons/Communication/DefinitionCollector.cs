@@ -2,11 +2,11 @@
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
-using static Scripts.IHATEKEEN.ModularWeaponry.Communication.DefinitionDefs;
-using CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.Communication;
+using static Scripts.ILOVEKEEN.ModularWeaponry.Communication.DefinitionDefs;
+using CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication;
 using CoreSystems.Api;
 
-namespace IHATEKEEN.Scripts.ModularWeaponry
+namespace ILOVEKEEN.Scripts.ModularWeaponry
 {
     partial class ModularDefinition
     {

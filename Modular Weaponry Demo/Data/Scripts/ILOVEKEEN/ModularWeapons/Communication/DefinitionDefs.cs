@@ -5,7 +5,7 @@ using VRage;
 using VRage.Utils;
 using VRageMath;
 
-namespace Scripts.IHATEKEEN.ModularWeaponry.Communication
+namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
 {
     public class DefinitionDefs
     {
