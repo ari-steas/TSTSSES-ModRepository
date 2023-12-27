@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using VRage.Utils;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 {
@@ -15,65 +17,69 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
         {
             ModApiMethods = new Dictionary<string, Delegate>()
             {
-                ["GetAllParts"] = new Func<long[]>(GetAllParts),
+                ["GetAllParts"] = new Func<MyEntity[]>(GetAllParts),
                 ["GetAllWeapons"] = new Func<int[]>(GetAllWeapons),
-                ["GetMemberParts"] = new Func<int, long[]>(GetMemberParts),
-                ["GetConnectedBlocks"] = new Func<long, long[]>(GetConnectedBlocks),
-                ["GetBasePart"] = new Func<int, long>(GetBasePart),
+                ["GetMemberParts"] = new Func<int, MyEntity[]>(GetMemberParts),
+                ["GetConnectedBlocks"] = new Func<MyEntity, MyEntity[]>(GetConnectedBlocks),
+                ["GetBasePart"] = new Func<int, MyEntity>(GetBasePart),
             };
         }
 
-        private long[] GetAllParts()
+        private MyEntity[] GetAllParts()
         {
-            List<long> parts = new List<long>();
-            foreach (var block in WeaponPartGetter.Instance.AllWeaponParts.Keys)
+            List<MyEntity> parts = new List<MyEntity>();
+            foreach (var block in WeaponPartManager.Instance.AllWeaponParts.Keys)
                 if (block.FatBlock != null)
-                    parts.Add(block.FatBlock.EntityId);
+                    parts.Add((MyEntity)block.FatBlock);
             return parts.ToArray();
         }
 
         private int[] GetAllWeapons()
         {
-            return WeaponPartGetter.Instance.AllPhysicalWeapons.Keys.ToArray();
+            return WeaponPartManager.Instance.AllPhysicalWeapons.Keys.ToArray();
         }
 
-        private long[] GetMemberParts(int weaponId)
+        private MyEntity[] GetMemberParts(int weaponId)
         {
             PhysicalWeapon wep;
-            if (!WeaponPartGetter.Instance.AllPhysicalWeapons.TryGetValue(weaponId, out wep))
-                return new long[0];
+            if (!WeaponPartManager.Instance.AllPhysicalWeapons.TryGetValue(weaponId, out wep))
+                return new MyEntity[0];
 
-            List<long> parts = new List<long>();
+            List<MyEntity> parts = new List<MyEntity>();
             foreach (var part in wep.componentParts)
                 if (part.block.FatBlock != null)
-                    parts.Add(part.block.FatBlock.EntityId);
+                    parts.Add((MyEntity)part.block.FatBlock);
+
+            MyLog.Default.WriteLine("ModularWeaponry: PASS MEMPARTS");
             return parts.ToArray();
         }
 
-        private long[] GetConnectedBlocks(long blockId)
+        private MyEntity[] GetConnectedBlocks(MyEntity blockEntity)
         {
-            IMyEntity entity;
-            if (!MyAPIGateway.Entities.TryGetEntityById(blockId, out entity) || !(entity is IMyCubeBlock))
-                return new long[0];
+            if (!(blockEntity is IMyCubeBlock))
+                return new MyEntity[0];
 
             WeaponPart wep;
-            if (!WeaponPartGetter.Instance.AllWeaponParts.TryGetValue(((IMyCubeBlock)entity).SlimBlock, out wep) || wep.connectedParts == null)
-                return new long[0];
+            if (!WeaponPartManager.Instance.AllWeaponParts.TryGetValue(((IMyCubeBlock)blockEntity).SlimBlock, out wep) || wep.connectedParts == null)
+                return new MyEntity[0];
 
-            List<long> parts = new List<long>();
+            List<MyEntity> parts = new List<MyEntity>();
             foreach (var part in wep.connectedParts)
                 if (part.block.FatBlock != null)
-                    parts.Add(part.block.FatBlock.EntityId);
+                    parts.Add((MyEntity)part.block.FatBlock);
+
+            MyLog.Default.WriteLine("ModularWeaponry: PASS CONPARTS");
             return parts.ToArray();
         }
 
-        private long GetBasePart(int weaponId)
+        private MyEntity GetBasePart(int weaponId)
         {
             PhysicalWeapon wep;
-            if (!WeaponPartGetter.Instance.AllPhysicalWeapons.TryGetValue(weaponId, out wep))
-                return -1;
+            if (!WeaponPartManager.Instance.AllPhysicalWeapons.TryGetValue(weaponId, out wep))
+                return null;
 
-            return wep.basePart.block.FatBlock.EntityId;
+            MyLog.Default.WriteLine("ModularWeaponry: PASS BASEPART");
+            return (MyEntity) wep.basePart.block.FatBlock;
         }
     }
 }

@@ -1,33 +1,117 @@
 ﻿using CoreSystems.Api;
+using IHATEKEEN.Scripts.ModularWeaponry;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using VRage.Game.Components;
+using VRage.Game.Entity;
+using VRage.Game.ModAPI;
+using VRage.ModAPI;
 using VRage.Utils;
+using VRageMath;
 
 namespace CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.Communication
 {
     public class ModularDefinitionAPI
     {
-        private Func<long[]> _getAllParts;
-        private Func<int[]> _getAllWeapons;
-        private Func<int, long[]> _getMemberParts;
-        private Func<long, long[]> _getConnectedBlocks;
+        /// <summary>
+        /// Plug this into a WcAPI.SetProjectileState call. Returns the acceleration offset needed to set a projectile to a given relative speed.
+        /// </summary>
+        /// <param name="desiredSpeed"></param>
+        /// <param name="projectileId"></param>
+        /// <param name="blockId"></param>
+        /// <returns></returns>
+        public Vector3D OffsetProjectileVelocity(float desiredSpeed, ulong projectileId, long blockId)
+        {
+            IMyEntity entity = MyAPIGateway.Entities.GetEntityById(blockId);
+            if (entity is IMyCubeBlock)
+                return OffsetProjectileVelocity(desiredSpeed, projectileId, ((IMyCubeBlock)entity).CubeGrid);
+            return Vector3D.Zero;
+        }
 
         /// <summary>
-        /// Gets all parts in the world.
-        /// <para>
-        /// Arg1 is CubeBlock EntityId
-        /// </para>
+        /// Plug this into a WcAPI.SetProjectileState call. Returns the acceleration offset needed to set a projectile to a given relative speed.
         /// </summary>
-        public long[] GetAllParts()
+        /// <param name="desiredSpeed"></param>
+        /// <param name="projectileId"></param>
+        /// <param name="blockId"></param>
+        /// <returns></returns>
+        public Vector3D OffsetProjectileVelocity(float desiredSpeed, ulong projectileId, IMyCubeGrid grid)
+        {
+            Vector3D currentProjectileVelocity = ModularDefinition.WcAPI.GetProjectileState(projectileId).Item2;
+            Vector3D baseProjectileVelocity = currentProjectileVelocity - grid.LinearVelocity;
+
+            baseProjectileVelocity = baseProjectileVelocity.Normalized() * desiredSpeed;
+
+            return baseProjectileVelocity + grid.LinearVelocity - currentProjectileVelocity;
+        }
+
+        /// <summary>
+        /// Plug this into a WcAPI.SetProjectileState call. Returns the acceleration offset needed to multiply a projectile's relative speed.
+        /// </summary>
+        /// <param name="desiredSpeed"></param>
+        /// <param name="projectileId"></param>
+        /// <param name="blockId"></param>
+        /// <returns></returns>
+        public Vector3D MultiplyProjectileVelocity(float multiplier, ulong projectileId, long blockId)
+        {
+            IMyEntity entity = MyAPIGateway.Entities.GetEntityById(blockId);
+            if (entity is IMyCubeBlock)
+                return OffsetProjectileVelocity(multiplier, projectileId, ((IMyCubeBlock)entity).CubeGrid);
+            return Vector3D.Zero;
+        }
+
+        /// <summary>
+        /// Plug this into a WcAPI.SetProjectileState call. Returns the acceleration offset needed to multiply a projectile's relative speed.
+        /// </summary>
+        /// <param name="desiredSpeed"></param>
+        /// <param name="projectileId"></param>
+        /// <param name="blockId"></param>
+        /// <returns></returns>
+        public Vector3D MultiplyProjectileVelocity(float multiplier, ulong projectileId, IMyCubeGrid grid)
+        {
+            Vector3D currentProjectileVelocity = ModularDefinition.WcAPI.GetProjectileState(projectileId).Item2;
+            Vector3D baseProjectileVelocity = currentProjectileVelocity - grid.LinearVelocity;
+
+            baseProjectileVelocity *= multiplier;
+
+            return baseProjectileVelocity + grid.LinearVelocity - currentProjectileVelocity;
+        }
+
+        /// <summary>
+        /// Returns the IMyCubeGrid of a given IMyCubeBlock's EntityId.
+        /// </summary>
+        /// <param name="blockId"></param>
+        /// <returns></returns>
+        public IMyCubeGrid GetGridFromBlockId(long blockId)
+        {
+            IMyEntity entity = MyAPIGateway.Entities.GetEntityById(blockId);
+            if (entity is IMyCubeBlock)
+                return ((IMyCubeBlock)entity).CubeGrid;
+            return null;
+        }
+
+
+        #region API calls
+
+        private Func<MyEntity[]> _getAllParts;
+        private Func<int[]> _getAllWeapons;
+        private Func<int, MyEntity[]> _getMemberParts;
+        private Func<MyEntity, MyEntity[]> _getConnectedBlocks;
+        private Func<int, MyEntity> _getBasePart;
+
+        /// <summary>
+        /// Gets all WeaponParts in the world. Returns an array of all WeaponParts.
+        /// </summary>
+        public MyEntity[] GetAllParts()
         {
             return _getAllParts?.Invoke();
         }
 
         /// <summary>
-        /// Gets all weapons in the world.
+        /// Gets all PhysicalWeapon ids in the world. Returns an empty list on fail.
         /// <para>
         /// Arg1 is weapon id
         /// </para>
@@ -38,28 +122,56 @@ namespace CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.Communication
         }
 
         /// <summary>
-        /// Gets all member parts of a weapon.
+        /// Gets all member parts of a weapon. Returns an empty list on fail.
         /// <para>
         /// Arg1 is EntityId
         /// </para>
         /// </summary>
-        public long[] GetMemberParts(int weaponId)
+        public MyEntity[] GetMemberParts(int weaponId)
         {
             return _getMemberParts?.Invoke(weaponId);
         }
 
         /// <summary>
-        /// Gets all connected parts to a block.
+        /// Gets all connected parts to a block. Returns an empty list on fail.
         /// </summary>
-        public long[] GetConnectedBlocks(long partBlockId)
+        public MyEntity[] GetConnectedBlocks(MyEntity partBlockId)
         {
             return _getConnectedBlocks?.Invoke(partBlockId);
         }
+
+        /// <summary>
+        /// Gets the base part of a PhysicalWeapon. Returns null if weapon does not exist.
+        /// </summary>
+        public MyEntity GetBasePart(int weaponId)
+        {
+            return _getBasePart?.Invoke(weaponId);
+        }
+
+
+
+
+
 
         public bool IsReady = false;
         private bool _isRegistered = false;
         private bool _apiInit = false;
         private long ApiChannel = 8774;
+
+        public void ApiAssign(IReadOnlyDictionary<string, Delegate> delegates)
+        {
+            _apiInit = (delegates != null);
+            AssignMethod(delegates, "GetAllParts", ref _getAllParts);
+            AssignMethod(delegates, "GetAllWeapons", ref _getAllWeapons);
+            AssignMethod(delegates, "GetMemberParts", ref _getMemberParts);
+            AssignMethod(delegates, "GetConnectedBlocks", ref _getConnectedBlocks);
+            AssignMethod(delegates, "GetBasePart", ref _getBasePart);
+
+            if (_apiInit)
+                MyLog.Default.WriteLine("ModularDefinitions: ModularDefinitionsAPI loaded!");
+            else
+                MyLog.Default.WriteLine("ModularDefinitions: ModularDefinitionsAPI cleared.");
+        }
 
         public void LoadData()
         {
@@ -104,20 +216,6 @@ namespace CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.Communication
             IsReady = true;
         }
 
-        public void ApiAssign(IReadOnlyDictionary<string, Delegate> delegates)
-        {
-            _apiInit = (delegates != null);
-            AssignMethod(delegates, "GetAllParts", ref _getAllParts);
-            AssignMethod(delegates, "GetAllWeapons", ref _getAllWeapons);
-            AssignMethod(delegates, "GetMemberParts", ref _getMemberParts);
-            AssignMethod(delegates, "GetConnectedBlocks", ref _getConnectedBlocks);
-
-            if (_apiInit)
-                MyLog.Default.WriteLine("ModularDefinitions: ModularDefinitionsAPI loaded!");
-            else
-                MyLog.Default.WriteLine("ModularDefinitions: ModularDefinitionsAPI cleared.");
-        }
-
         private void AssignMethod<T>(IReadOnlyDictionary<string, Delegate> delegates, string name, ref T field)
             where T : class
         {
@@ -137,5 +235,7 @@ namespace CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.Communication
                 throw new Exception(
                     $"{GetType().Name} :: Delegate {name} is not type {typeof(T)}, instead it's: {del.GetType()}");
         }
+
+        #endregion
     }
 }

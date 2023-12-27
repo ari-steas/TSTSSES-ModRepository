@@ -15,6 +15,9 @@ using VRage.ObjectBuilders;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 {
+    /// <summary>
+    /// Attached to every part in a WeaponDefinition.
+    /// </summary>
     public class WeaponPart
     {
         public IMySlimBlock block;
@@ -29,17 +32,17 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             //MyAPIGateway.Utilities.ShowNotification("Placed valid WeaponPart");
 
-            if (WeaponPartGetter.Instance.AllWeaponParts.ContainsKey(block))
+            if (WeaponPartManager.Instance.AllWeaponParts.ContainsKey(block))
                 return;
 
-            WeaponPartGetter.Instance.AllWeaponParts.Add(block, this);
+            WeaponPartManager.Instance.AllWeaponParts.Add(block, this);
 
             if (WeaponDefinition.BaseBlockSubtype == block.BlockDefinition.Id.SubtypeName)
             {
-                memberWeapon = new PhysicalWeapon(WeaponPartGetter.Instance.CreatedPhysicalWeapons, this, WeaponDefinition);
+                memberWeapon = new PhysicalWeapon(WeaponPartManager.Instance.CreatedPhysicalWeapons, this, WeaponDefinition);
             }
             else
-                WeaponPartGetter.Instance.QueuedConnectionChecks.Add(this);
+                WeaponPartManager.Instance.QueuedConnectionChecks.Add(this);
         }
 
         public void CheckForExistingWeapon()
@@ -74,7 +77,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
                 if (nBlockPart.memberWeapon == null)
                 {
-                    WeaponPartGetter.Instance.QueuedConnectionChecks.Add(nBlockPart);
+                    WeaponPartManager.Instance.QueuedConnectionChecks.Add(nBlockPart);
                     MyAPIGateway.Utilities.ShowNotification("Forced a weapon join");
                 }
                 else if (nBlockPart.memberWeapon != memberWeapon)
@@ -116,7 +119,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             foreach (var nBlock in GetValidNeighbors())
             {
                 WeaponPart nBlockPart;
-                if (WeaponPartGetter.Instance.AllWeaponParts.TryGetValue(nBlock, out nBlockPart))
+                if (WeaponPartManager.Instance.AllWeaponParts.TryGetValue(nBlock, out nBlockPart))
                 {
                     validNeighbors.Add(nBlockPart);
                 }

@@ -76,7 +76,7 @@ namespace Scripts.IHATEKEEN.ModularWeaponry.Communication
 
                     if (defToCall == null)
                     {
-                        MyLog.Default.WriteLine($"ModularWeaponryDefinition: Function call [{call.DefinitionName}] not addressed to this.");
+                        //MyLog.Default.WriteLine($"ModularWeaponryDefinition: Function call [{call.DefinitionName}] not addressed to this.");
                         return;
                     }
 
@@ -122,7 +122,7 @@ namespace Scripts.IHATEKEEN.ModularWeaponry.Communication
         private void SendFunc(FunctionCall call)
         {
             MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, MyAPIGateway.Utilities.SerializeToBinary(call));
-            MyLog.Default.WriteLine($"ModularWeaponryDefinition: Sending function call [id {call.ActionId}].");
+            //MyLog.Default.WriteLine($"ModularWeaponryDefinition: Sending function call [id {call.ActionId}].");
         }
     }
 }

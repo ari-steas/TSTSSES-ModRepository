@@ -16,7 +16,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
         private Dictionary<string, Delegate> _apiDefinitions = new ApiDefinitions().ModApiMethods;
 
         /// <summary>
-        /// Is the API ready to be serve
+        /// Is the API ready?
         /// </summary>
         public bool IsReady { get; private set; }
 
@@ -32,7 +32,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
         }
 
         /// <summary>
-        /// Prepares the client to receive API endpoints and requests an update.
+        /// Registers for API requests and updates any pre-existing clients.
         /// </summary>
         public override void LoadData()
         {

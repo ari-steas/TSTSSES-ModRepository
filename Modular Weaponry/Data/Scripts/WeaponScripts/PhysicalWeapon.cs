@@ -17,6 +17,9 @@ using VRageMath;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 {
+    /// <summary>
+    /// The collection of WeaponParts attached to a modular weapon base.
+    /// </summary>
     public class PhysicalWeapon
     {
         public WeaponPart basePart;
@@ -43,24 +46,24 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             this.basePart = basePart;
             this.WeaponDefinition = WeaponDefinition;
             this.id = id;
-            WeaponPartGetter.Instance.CreatedPhysicalWeapons++;
+            WeaponPartManager.Instance.CreatedPhysicalWeapons++;
             AddPart(basePart);
 
-            if (WeaponPartGetter.Instance.AllPhysicalWeapons.ContainsKey(id))
+            if (WeaponPartManager.Instance.AllPhysicalWeapons.ContainsKey(id))
                 throw new Exception("Duplicate weapon ID!");
-            WeaponPartGetter.Instance.AllPhysicalWeapons.Add(id, this);
+            WeaponPartManager.Instance.AllPhysicalWeapons.Add(id, this);
 
             Random r = new Random();
             color = new Color(r.Next(255), r.Next(255), r.Next(255));
 
             // Register projectile callback
-            if (WeaponPartGetter.Instance.wAPI.IsReady && basePart.block.FatBlock != null)
+            if (WeaponPartManager.Instance.wAPI.IsReady && basePart.block.FatBlock != null)
             {
                 try
                 {
-                    if (WeaponPartGetter.Instance.wAPI.HasCoreWeapon((MyEntity)basePart.block.FatBlock))
+                    if (WeaponPartManager.Instance.wAPI.HasCoreWeapon((MyEntity)basePart.block.FatBlock))
                     {
-                        WeaponPartGetter.Instance.wAPI.AddProjectileCallback((MyEntity)basePart.block.FatBlock, 0, ProjectileCallback);
+                        WeaponPartManager.Instance.wAPI.AddProjectileCallback((MyEntity)basePart.block.FatBlock, 0, ProjectileCallback);
                     }
                 }
                 catch
@@ -69,7 +72,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 }
             }            
 
-            WeaponPartGetter.Instance.QueuedWeaponChecks.Add(basePart, this);
+            WeaponPartManager.Instance.QueuedWeaponChecks.Add(basePart, this);
         }
 
         public void ProjectileCallback(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
@@ -80,8 +83,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void UpdateProjectile(ulong projectileId, MyTuple<bool, Vector3D, Vector3D, float> projectileData)
         {
-            MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(WeaponPartGetter.Instance.wAPI.GetProjectileState(projectileId).Item2.Length(), 2));
-            WeaponPartGetter.Instance.wAPI.SetProjectileState(projectileId, projectileData);
+            MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length(), 2));
+            WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
         }
 
         public void AddPart(WeaponPart part, bool triggerDefinition = true)
@@ -155,8 +158,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 componentParts.Add(basePart);
 
                 MyAPIGateway.Utilities.ShowNotification("Recreating connections...");
-                WeaponPartGetter.Instance.QueuedConnectionChecks.Add(basePart);
-                WeaponPartGetter.Instance.QueuedWeaponChecks.Add(basePart, this);
+                WeaponPartManager.Instance.QueuedConnectionChecks.Add(basePart);
+                WeaponPartManager.Instance.QueuedWeaponChecks.Add(basePart, this);
 
                 return;
             }
@@ -184,20 +187,20 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 return;
             part.memberWeapon = null;
             part.connectedParts.Clear();
-            WeaponPartGetter.Instance.QueuedConnectionChecks.Add(part);
+            WeaponPartManager.Instance.QueuedConnectionChecks.Add(part);
         }
 
         public void Close()
         {
             if (basePart != null && basePart.block != null)
-                WeaponPartGetter.Instance.wAPI.RemoveProjectileCallback((MyEntity)basePart.block.FatBlock, 0, ProjectileCallback);
+                WeaponPartManager.Instance.wAPI.RemoveProjectileCallback((MyEntity)basePart.block.FatBlock, 0, ProjectileCallback);
 
             if (componentParts == null)
                 return;
 
             componentParts = null;
             basePart = null;
-            WeaponPartGetter.Instance.AllPhysicalWeapons.Remove(id);
+            WeaponPartManager.Instance.AllPhysicalWeapons.Remove(id);
         }
 
         public void RecursiveWeaponChecker(WeaponPart currentBlock)
@@ -220,7 +223,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 {
                     WeaponPart neighborPart;
                     
-                    if (WeaponPartGetter.Instance.AllWeaponParts.TryGetValue(neighbor, out neighborPart))
+                    if (WeaponPartManager.Instance.AllWeaponParts.TryGetValue(neighbor, out neighborPart))
                     {
                         // Avoid double-including blocks
                         if (componentParts.Contains(neighborPart))
@@ -232,8 +235,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                         //MyLog.Default.WriteLine("ModularWeapons: Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
 
                         componentParts.Add(neighborPart);
-                        WeaponPartGetter.Instance.QueuedConnectionChecks.Add(neighborPart);
-                        WeaponPartGetter.Instance.QueuedWeaponChecks.Add(neighborPart, this);
+                        WeaponPartManager.Instance.QueuedConnectionChecks.Add(neighborPart);
+                        WeaponPartManager.Instance.QueuedWeaponChecks.Add(neighborPart, this);
                     }
                 }
             }

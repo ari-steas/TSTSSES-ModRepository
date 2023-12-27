@@ -16,7 +16,7 @@ namespace IHATEKEEN.Scripts.ModularWeaponry
             OnPartAdd = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
             {
                 MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartAdd {IsBaseBlock}.");
-                MyLog.Default.WriteLine($"\nPartCount: {ModularAPI.GetAllParts().Length}\nWeaponCount: {ModularAPI.GetAllWeapons().Length}\nThisPartCount: {ModularAPI.GetMemberParts(PhysicalWeaponId).Length}");
+                MyLog.Default.WriteLine($"\nPartCount: {ModularAPI.GetAllParts().Length}\nWeaponCount: {ModularAPI.GetAllWeapons().Length}\nThisPartCount: {ModularAPI.GetMemberParts(PhysicalWeaponId).Length}\nConnectedBlocks: {ModularAPI.GetConnectedBlocks(ModularAPI.GetBasePart(PhysicalWeaponId)).Length}");
             },
 
             OnPartRemove = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
@@ -30,9 +30,8 @@ namespace IHATEKEEN.Scripts.ModularWeaponry
             },
 
             OnShoot = (int PhysicalWeaponId, long FirerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition) => {
-                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, OffsetProjectileVelocity(1, projectileId, FirerEntityId), 0);
+                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, ModularAPI.OffsetProjectileVelocity(1, projectileId, FirerEntityId), 0);
             },
-
 
             AllowedBlocks = new string[]
             {

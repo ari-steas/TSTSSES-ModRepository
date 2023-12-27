@@ -17,11 +17,22 @@ using VRageMath;
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 {
+    /// <summary>
+    /// Creates and manages all WeaponParts and PhysicalWeapons.
+    /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
-    public class WeaponPartGetter : MySessionComponentBase
+    public class WeaponPartManager : MySessionComponentBase
     {
-        public static WeaponPartGetter Instance; // the only way to access session comp from other classes and the only accepted static field.
+        public static WeaponPartManager Instance;
+
+        /// <summary>
+        /// Every single WeaponPart in the world.
+        /// </summary>
         public Dictionary<IMySlimBlock, WeaponPart> AllWeaponParts = new Dictionary<IMySlimBlock, WeaponPart>();
+
+        /// <summary>
+        /// Every single PhysicalWeapon in the world.
+        /// </summary>
         public Dictionary<int, PhysicalWeapon> AllPhysicalWeapons = new Dictionary<int, PhysicalWeapon>();
         public int CreatedPhysicalWeapons = 0;
 
