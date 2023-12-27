@@ -36,7 +36,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             if (WeaponDefinition.BaseBlockSubtype == block.BlockDefinition.Id.SubtypeName)
             {
-                memberWeapon = new PhysicalWeapon(WeaponPartGetter.Instance.NumPhysicalWeapons, this, WeaponDefinition);
+                memberWeapon = new PhysicalWeapon(WeaponPartGetter.Instance.CreatedPhysicalWeapons, this, WeaponDefinition);
             }
             else
                 WeaponPartGetter.Instance.QueuedConnectionChecks.Add(this);
@@ -45,8 +45,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public void CheckForExistingWeapon()
         {
             // You can't have two baseblocks per weapon
-            if (WeaponDefinition.BaseBlockSubtype != block.BlockDefinition.Id.SubtypeName)
-                memberWeapon = null;
+            //if (WeaponDefinition.BaseBlockSubtype != block.BlockDefinition.Id.SubtypeName)
+            //    memberWeapon = null;
 
             List<WeaponPart> validNeighbors = GetValidNeighborParts();
 

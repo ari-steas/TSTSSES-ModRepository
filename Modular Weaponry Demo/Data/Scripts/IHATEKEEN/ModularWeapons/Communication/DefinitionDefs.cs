@@ -2,9 +2,10 @@
 using System;
 using System.Collections.Generic;
 using VRage;
+using VRage.Utils;
 using VRageMath;
 
-namespace Scripts.IHATEKEEN.ModularWeapons.Communication
+namespace Scripts.IHATEKEEN.ModularWeaponry.Communication
 {
     public class DefinitionDefs
     {
@@ -33,7 +34,7 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
             /// Arg1 is PhysicalWeaponId, Arg2 is EntityId, Arg3 is IsBaseBlock
             /// </para>
             /// </summary>
-            public Action<int, long, bool> OnPartPlace { get; set; }
+            public Action<int, long, bool> OnPartAdd { get; set; }
 
             /// <summary>
             /// Called when a valid part is removed.
@@ -67,9 +68,13 @@ namespace Scripts.IHATEKEEN.ModularWeapons.Communication
             public enum ActionType
             {
                 OnShoot,
-                OnPartPlace,
+                OnPartAdd,
                 OnPartRemove,
                 OnPartDestroy,
+                GetAllParts,
+                GetAllWeapons,
+                GetMemberParts,
+                GetConnectedBlocks,
             }
         }
 

@@ -36,9 +36,13 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             public enum ActionType
             {
                 OnShoot,
-                OnPartPlace,
+                OnPartAdd,
                 OnPartRemove,
                 OnPartDestroy,
+                GetAllParts,
+                GetAllWeapons,
+                GetMemberParts,
+                GetConnectedBlocks,
             }
         }
 

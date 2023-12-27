@@ -137,7 +137,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             });
         }
 
-        public void SendOnPartPlace(string DefinitionName, int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock)
+        public void SendOnPartAdd(string DefinitionName, int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock)
         {
             SerializedObjectArray Values = new SerializedObjectArray
             (
@@ -147,7 +147,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
             SendFunc(new FunctionCall()
             {
-                ActionId = FunctionCall.ActionType.OnPartPlace,
+                ActionId = FunctionCall.ActionType.OnPartAdd,
                 DefinitionName = DefinitionName,
                 PhysicalWeaponId = PhysicalWeaponId,
                 Values = Values,

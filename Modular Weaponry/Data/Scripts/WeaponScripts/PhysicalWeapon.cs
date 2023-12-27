@@ -43,7 +43,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             this.basePart = basePart;
             this.WeaponDefinition = WeaponDefinition;
             this.id = id;
-            WeaponPartGetter.Instance.NumPhysicalWeapons++;
+            WeaponPartGetter.Instance.CreatedPhysicalWeapons++;
             AddPart(basePart);
 
             if (WeaponPartGetter.Instance.AllPhysicalWeapons.ContainsKey(id))
@@ -87,12 +87,15 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public void AddPart(WeaponPart part, bool triggerDefinition = true)
         {
             if (componentParts.Contains(part))
+            {
                 componentParts.Remove(part);
+                triggerDefinition = false;
+            }
 
             componentParts.Add(part);
             part.memberWeapon = this;
             if (triggerDefinition)
-                DefinitionHandler.Instance.SendOnPartPlace(WeaponDefinition.Name, id, part.block.FatBlock.EntityId, part == basePart);
+                DefinitionHandler.Instance.SendOnPartAdd(WeaponDefinition.Name, id, part.block.FatBlock.EntityId, part == basePart);
         }
 
         /// <summary>
@@ -127,6 +130,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             componentParts.Remove(part);
 
             DefinitionHandler.Instance.SendOnPartRemove(WeaponDefinition.Name, id, part.block.FatBlock.EntityId, part == basePart);
+            if (part.block.Integrity == 0)
+                DefinitionHandler.Instance.SendOnPartDestroy(WeaponDefinition.Name, id, part.block.FatBlock.EntityId, part == basePart);
 
             //MyAPIGateway.Utilities.ShowNotification("Subpart parts: " + part.connectedParts.Count);
 

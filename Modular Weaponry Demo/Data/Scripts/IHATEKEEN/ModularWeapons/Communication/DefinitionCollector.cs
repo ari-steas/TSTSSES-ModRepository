@@ -2,14 +2,19 @@
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
-using static Scripts.IHATEKEEN.ModularWeapons.Communication.DefinitionDefs;
-using static CoreParts.Data.Scripts.IHATEKEEN.ModularWeapons.WcApiConn;
+using static Scripts.IHATEKEEN.ModularWeaponry.Communication.DefinitionDefs;
+using static CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.WcApiConn;
+using CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.Communication;
+using CoreSystems.Api;
 
-namespace IHATEKEEN.Scripts.ModularWeapons
+namespace IHATEKEEN.Scripts.ModularWeaponry
 {
     partial class ModularDefinition
     {
         internal DefinitionContainer Container = new DefinitionContainer();
+        internal static ModularDefinitionAPI ModularAPI = null;
+        internal static WcApi WcAPI = null;
+
         internal void LoadDefinitions(params PhysicalDefinition[] defs)
         {
             Container.PhysicalDefs = defs;

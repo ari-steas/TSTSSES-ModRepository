@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using CoreParts.Data.Scripts.IHATEKEEN.ModularWeaponry.Communication;
+using System.Collections.Generic;
 using VRage;
 using VRage.Utils;
 using VRageMath;
-using static Scripts.IHATEKEEN.ModularWeapons.Communication.DefinitionDefs;
+using static Scripts.IHATEKEEN.ModularWeaponry.Communication.DefinitionDefs;
 
-namespace IHATEKEEN.Scripts.ModularWeapons
+namespace IHATEKEEN.Scripts.ModularWeaponry
 {
     partial class ModularDefinition
     {
@@ -12,9 +13,10 @@ namespace IHATEKEEN.Scripts.ModularWeapons
         {
             Name = "ModularDefinitionEx",
 
-            OnPartPlace = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
+            OnPartAdd = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
             {
-                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartPlace {IsBaseBlock}");
+                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartAdd {IsBaseBlock}.");
+                MyLog.Default.WriteLine($"\nPartCount: {ModularAPI.GetAllParts().Length}\nWeaponCount: {ModularAPI.GetAllWeapons().Length}\nThisPartCount: {ModularAPI.GetMemberParts(PhysicalWeaponId).Length}");
             },
 
             OnPartRemove = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>

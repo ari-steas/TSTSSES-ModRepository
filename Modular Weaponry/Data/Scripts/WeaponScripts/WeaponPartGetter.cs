@@ -23,7 +23,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public static WeaponPartGetter Instance; // the only way to access session comp from other classes and the only accepted static field.
         public Dictionary<IMySlimBlock, WeaponPart> AllWeaponParts = new Dictionary<IMySlimBlock, WeaponPart>();
         public Dictionary<int, PhysicalWeapon> AllPhysicalWeapons = new Dictionary<int, PhysicalWeapon>();
-        public int NumPhysicalWeapons = 0;
+        public int CreatedPhysicalWeapons = 0;
 
         public List<IMySlimBlock> QueuedBlockAdds = new List<IMySlimBlock>();
         public List<WeaponPart> QueuedConnectionChecks = new List<WeaponPart>();
@@ -143,7 +143,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             WeaponPart part;
             if (AllWeaponParts.TryGetValue(block, out part))
             {
-                //MyAPIGateway.Utilities.ShowNotification("Removing");
                 part.memberWeapon?.Remove(part);
                 AllWeaponParts.Remove(block);
             }
