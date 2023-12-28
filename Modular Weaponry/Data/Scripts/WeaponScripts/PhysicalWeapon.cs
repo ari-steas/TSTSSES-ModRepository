@@ -89,19 +89,16 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
         }
 
-        public void AddPart(WeaponPart part, bool triggerDefinition = true)
+        public void AddPart(WeaponPart part)
         {
             if (componentParts.Contains(part))
-            {
                 componentParts.Remove(part);
-                triggerDefinition = false;
-            }
 
             componentParts.Add(part);
-            part.prevWeapon = part.memberWeapon;
             part.memberWeapon = this;
-            if (triggerDefinition)
+            if (part.prevWeaponId != id)
                 DefinitionHandler.Instance.SendOnPartAdd(WeaponDefinition.Name, id, part.block.FatBlock.EntityId, part == basePart);
+            part.prevWeaponId = id;
         }
 
         /// <summary>
@@ -162,7 +159,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
                 if (WeaponPartManager.Instance.DebugMode)
                     MyAPIGateway.Utilities.ShowNotification("Recreating connections...");
-                WeaponPartManager.Instance.QueueConnectionCheck(basePart, true);
+                WeaponPartManager.Instance.QueueConnectionCheck(basePart);
                 WeaponPartManager.Instance.QueueWeaponCheck(basePart, this);
 
                 return;
@@ -191,7 +188,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 return;
             part.memberWeapon = null;
             part.connectedParts.Clear();
-            WeaponPartManager.Instance.QueueConnectionCheck(part, true);
+            WeaponPartManager.Instance.QueueConnectionCheck(part);
         }
 
         public void Close()
@@ -239,7 +236,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                         //MyLog.Default.WriteLine("ModularWeapons: Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
 
                         componentParts.Add(neighborPart);
-                        WeaponPartManager.Instance.QueueConnectionCheck(neighborPart, false);
+                        WeaponPartManager.Instance.QueueConnectionCheck(neighborPart);
                         WeaponPartManager.Instance.QueueWeaponCheck(neighborPart, this);
                     }
                 }
