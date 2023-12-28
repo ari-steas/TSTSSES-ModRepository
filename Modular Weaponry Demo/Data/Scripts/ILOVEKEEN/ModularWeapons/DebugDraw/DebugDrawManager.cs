@@ -1,12 +1,7 @@
-﻿using CoreSystems.Api;
-using Sandbox.Game.Entities;
-using Sandbox.Game.World;
-using Sandbox.ModAPI;
+﻿using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VRage;
 using VRage.Game;
 using VRage.Game.Components;
@@ -22,7 +17,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
     {
         // i'm gonna kiss digi on the 
 
-        public static DebugDrawManager Instance;
+        private static DebugDrawManager Instance;
         protected static readonly MyStringId MaterialDot = MyStringId.GetOrCompute("WhiteDot");
         protected static readonly MyStringId MaterialSquare = MyStringId.GetOrCompute("Square");
 
@@ -41,41 +36,50 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
             Instance = null;
         }
 
-        public void AddPoint(Vector3D globalPos, Color color, float duration)
+        public static void AddPoint(Vector3D globalPos, Color color, float duration)
         {
-            if (QueuedPoints.ContainsKey(globalPos))
-                QueuedPoints[globalPos] = new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color);
+            if (Instance == null)
+                return;
+
+            if (Instance.QueuedPoints.ContainsKey(globalPos))
+                Instance.QueuedPoints[globalPos] = new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color);
             else
-                QueuedPoints.Add(globalPos, new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color));
+                Instance.QueuedPoints.Add(globalPos, new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color));
         }
 
-        public void AddGPS(string name, Vector3D position, float duration)
+        public static void AddGPS(string name, Vector3D position, float duration)
         {
             IMyGps gps = MyAPIGateway.Session.GPS.Create(name, string.Empty, position, showOnHud: true, temporary: true);
             gps.DiscardAt = MyAPIGateway.Session.ElapsedPlayTime.Add(new TimeSpan((long)(duration * TimeSpan.TicksPerSecond)));
             MyAPIGateway.Session.GPS.AddLocalGps(gps);
         }
 
-        public void AddGridGPS(string name, Vector3I gridPosition, IMyCubeGrid grid, float duration)
+        public static void AddGridGPS(string name, Vector3I gridPosition, IMyCubeGrid grid, float duration)
         {
             AddGPS(name, GridToGlobal(gridPosition, grid), duration);
         }
 
-        public void AddGridPoint(Vector3I blockPos, IMyCubeGrid grid, Color color, float duration)
+        public static void AddGridPoint(Vector3I blockPos, IMyCubeGrid grid, Color color, float duration)
         {
-            if (QueuedGridPoints.ContainsKey(blockPos))
-                QueuedGridPoints[blockPos] = new MyTuple<long, Color, IMyCubeGrid>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color, grid);
+            if (Instance == null)
+                return;
+
+            if (Instance.QueuedGridPoints.ContainsKey(blockPos))
+                Instance.QueuedGridPoints[blockPos] = new MyTuple<long, Color, IMyCubeGrid>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color, grid);
             else
-                QueuedGridPoints.Add(blockPos, new MyTuple<long, Color, IMyCubeGrid>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color, grid));
+                Instance.QueuedGridPoints.Add(blockPos, new MyTuple<long, Color, IMyCubeGrid>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color, grid));
         }
 
-        public void AddLine(Vector3D origin, Vector3D destination, Color color, float duration)
+        public static void AddLine(Vector3D origin, Vector3D destination, Color color, float duration)
         {
+            if (Instance == null)
+                return;
+
             MyTuple<Vector3D, Vector3D> key = new MyTuple<Vector3D, Vector3D>(origin, destination);
-            if (QueuedLinePoints.ContainsKey(key))
-                QueuedLinePoints[key] = new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color);
+            if (Instance.QueuedLinePoints.ContainsKey(key))
+                Instance.QueuedLinePoints[key] = new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color);
             else
-                QueuedLinePoints.Add(key, new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color));
+                Instance.QueuedLinePoints.Add(key, new MyTuple<long, Color>(DateTime.Now.Ticks + (long)(duration * TimeSpan.TicksPerSecond), color));
         }
 
         public override void Draw()

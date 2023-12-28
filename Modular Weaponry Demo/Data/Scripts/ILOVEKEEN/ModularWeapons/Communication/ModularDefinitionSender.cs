@@ -83,22 +83,29 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
 
                     // TODO: Remove
                     //object[] Values = call.Values.Values();
-
-                    switch (call.ActionId)
+                    try
                     {
-                        case FunctionCall.ActionType.OnShoot:
-                            SendOnShoot(call.DefinitionName, call.PhysicalWeaponId, call.Values.ulongValues[0], defToCall.OnShoot(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.intValues[0], call.Values.ulongValues[0], call.Values.longValues[1], call.Values.vectorValues[0]));
-                            break;
-                        case FunctionCall.ActionType.OnPartAdd:
-                            // TODO: OnPartUpdate? With ConnectedParts?
-                            defToCall.OnPartAdd(call.PhysicalWeaponId, (MyEntity) MyAPIGateway.Entities.GetEntityById(call.Values.longValues[0]), call.Values.boolValues[0]);
-                            break;
-                        case FunctionCall.ActionType.OnPartRemove:
-                            defToCall.OnPartRemove(call.PhysicalWeaponId, (MyEntity) MyAPIGateway.Entities.GetEntityById(call.Values.longValues[0]), call.Values.boolValues[0]);
-                            break;
-                        case FunctionCall.ActionType.OnPartDestroy:
-                            defToCall.OnPartDestroy(call.PhysicalWeaponId, (MyEntity) MyAPIGateway.Entities.GetEntityById(call.Values.longValues[0]), call.Values.boolValues[0]);
-                            break;
+                        switch (call.ActionId)
+                        {
+                            case FunctionCall.ActionType.OnShoot:
+                                SendOnShoot(call.DefinitionName, call.PhysicalWeaponId, call.Values.ulongValues[0], defToCall.OnShoot(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.intValues[0], call.Values.ulongValues[0], call.Values.longValues[1], call.Values.vectorValues[0]));
+                                break;
+                            case FunctionCall.ActionType.OnPartAdd:
+                                // TODO: OnPartUpdate? With ConnectedParts?
+                                defToCall.OnPartAdd(call.PhysicalWeaponId, (MyEntity)MyAPIGateway.Entities.GetEntityById(call.Values.longValues[0]), call.Values.boolValues[0]);
+                                break;
+                            case FunctionCall.ActionType.OnPartRemove:
+                                defToCall.OnPartRemove(call.PhysicalWeaponId, (MyEntity)MyAPIGateway.Entities.GetEntityById(call.Values.longValues[0]), call.Values.boolValues[0]);
+                                break;
+                            case FunctionCall.ActionType.OnPartDestroy:
+                                defToCall.OnPartDestroy(call.PhysicalWeaponId, (MyEntity)MyAPIGateway.Entities.GetEntityById(call.Values.longValues[0]), call.Values.boolValues[0]);
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MyAPIGateway.Utilities.SendMessage($"ERROR in definition [{call.DefinitionName}]'s {call.ActionId}!\nCheck logs for stack trace.");
+                        throw ex;
                     }
                 }
                 catch (Exception ex)

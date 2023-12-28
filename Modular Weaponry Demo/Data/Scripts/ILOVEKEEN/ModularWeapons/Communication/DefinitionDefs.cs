@@ -49,7 +49,7 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
             public Action<int, MyEntity, bool> OnPartRemove { get; set; }
 
             /// <summary>
-            /// Called when a component part is destroyed.
+            /// Called when a component part is destroyed. Note - OnPartRemove is called simultaneously.
             /// <para>
             /// Arg1 is PhysicalWeaponId, Arg2 is BlockEntity, Arg3 is IsBaseBlock
             /// </para>

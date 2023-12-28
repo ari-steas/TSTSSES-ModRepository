@@ -2,6 +2,7 @@
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using VRage;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
@@ -16,28 +17,28 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
     {
         // You can declare functions in here, and they are shared between all other ModularDefinition files.
         private Dictionary<int, List<MyEntity[]>> Example_ValidArms = new Dictionary<int, List<MyEntity[]>>();
-        private List<MyEntity> Example_ScanArm(MyEntity blockEntity, MyEntity prevScan, MyEntity StopAt)
+        private List<MyEntity> Example_BufferArm = new List<MyEntity>();
+        private int StopHits = 0;
+        private bool Example_ScanArm(MyEntity blockEntity, MyEntity prevScan, MyEntity StopAt)
         {
-            DebugDrawManager.Instance.AddGridPoint(((IMyCubeBlock)blockEntity).Position, ((IMyCubeBlock)blockEntity).CubeGrid, Color.Blue, 2);
+            if (ModularAPI.IsDebug())
+                DebugDrawManager.AddGridPoint(((IMyCubeBlock)blockEntity).Position, ((IMyCubeBlock)blockEntity).CubeGrid, Color.Blue, 2);
+            Example_BufferArm.Add(blockEntity);
 
-            List<MyEntity> connectedBlocks = new List<MyEntity>(ModularAPI.GetConnectedBlocks(blockEntity, false));
+            MyEntity[] connectedBlocks = ModularAPI.GetConnectedBlocks(blockEntity, false);
 
-            // Check if connected to base AND connected to multiple blocks, saves performance
-            if (connectedBlocks.Count > 1)
+            foreach (var connectedBlock in connectedBlocks)
             {
-                foreach (var connectedBlock in connectedBlocks)
+                if (connectedBlock == StopAt)
+                    StopHits++;
+
+                if (connectedBlock != prevScan && connectedBlock != StopAt)
                 {
-                    if (connectedBlock != prevScan && connectedBlock != StopAt)
-                    {
-                        connectedBlocks.AddList(Example_ScanArm(connectedBlock, blockEntity, StopAt));
-                        break;
-                    }
+                    Example_ScanArm(connectedBlock, blockEntity, StopAt);
                 }
             }
-            else
-                return new List<MyEntity>();
 
-            return connectedBlocks;
+            return StopHits == 2;
         }
 
         // This is the important bit.
@@ -48,22 +49,28 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
             OnPartAdd = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
                 // Scan for 'arms' connected on both ends to the basepart.
-                if (!IsBaseBlock)
+                if (IsBaseBlock)
+                {
+                    Example_ValidArms.Add(PhysicalWeaponId, new List<MyEntity[]>());
+                }
+                else
                 {
                     MyEntity basePart = ModularAPI.GetBasePart(PhysicalWeaponId);
-                    List<MyEntity> scannedArm = Example_ScanArm(BlockEntity, null, basePart);
-                    if (scannedArm.Count == 0)
+                    if (!Example_ScanArm(BlockEntity, null, basePart))
                     {
-                        MyAPIGateway.Utilities.ShowNotification("Arms: " + Example_ValidArms[PhysicalWeaponId].Count);
+                        //MyAPIGateway.Utilities.ShowNotification("Fail | StopHits: " + StopHits);
+                        Example_BufferArm.Clear();
+                        StopHits = 0;
                         return;
                     }
 
-                    Example_ValidArms[PhysicalWeaponId].Add(scannedArm.ToArray());
+                    Example_ValidArms[PhysicalWeaponId].Add(Example_BufferArm.ToArray());
+                    Example_BufferArm.Clear();
+                    StopHits = 0;
                 }
-                else
-                    Example_ValidArms.Add(PhysicalWeaponId, new List<MyEntity[]>());
 
-                MyAPIGateway.Utilities.ShowNotification("Arms: " + Example_ValidArms[PhysicalWeaponId].Count);
+                if (ModularAPI.IsDebug())
+                    MyAPIGateway.Utilities.ShowNotification("Pass: Arms: " + Example_ValidArms[PhysicalWeaponId].Count + " (Size " + Example_ValidArms[PhysicalWeaponId][Example_ValidArms[PhysicalWeaponId].Count - 1].Length + ")");
             },
 
             OnPartRemove = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
@@ -82,6 +89,9 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
                     }
                     if (armToRemove != null)
                         Example_ValidArms[PhysicalWeaponId].Remove(armToRemove);
+
+                    if (ModularAPI.IsDebug())
+                        MyAPIGateway.Utilities.ShowNotification("Remove: Arms: " + Example_ValidArms[PhysicalWeaponId].Count);
                 }
                 else
                     Example_ValidArms.Remove(PhysicalWeaponId);

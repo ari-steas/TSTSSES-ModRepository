@@ -75,11 +75,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                     if (offsetAllowedPos.IsInsideInclusiveEnd(adajent.Min, adajent.Max))
                     {
                         if (WeaponPartManager.Instance.DebugMode)
-                            DebugDrawManager.Instance.AddGridPoint(offsetAllowedPos, block.CubeGrid, Color.Green, 3);
+                            DebugDrawManager.AddGridPoint(offsetAllowedPos, block.CubeGrid, Color.Green, 3);
                         return true;
                     }
                     if (WeaponPartManager.Instance.DebugMode)
-                        DebugDrawManager.Instance.AddGridPoint(offsetAllowedPos, block.CubeGrid, Color.Red, 3);
+                        DebugDrawManager.AddGridPoint(offsetAllowedPos, block.CubeGrid, Color.Red, 3);
                 }
                 return false;
             }

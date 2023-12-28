@@ -101,6 +101,7 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
         private Func<int, MyEntity[]> _getMemberParts;
         private Func<MyEntity, bool, MyEntity[]> _getConnectedBlocks;
         private Func<int, MyEntity> _getBasePart;
+        private Func<bool> _isDebug;
 
         /// <summary>
         /// Gets all WeaponParts in the world. Returns an array of all WeaponParts.
@@ -151,7 +152,14 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
             return _getBasePart?.Invoke(weaponId);
         }
 
-
+        /// <summary>
+        /// Returns true if debug mode is enabled.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsDebug()
+        {
+            return _isDebug.Invoke();
+        }
 
 
 
@@ -169,6 +177,7 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
             AssignMethod(delegates, "GetMemberParts", ref _getMemberParts);
             AssignMethod(delegates, "GetConnectedBlocks", ref _getConnectedBlocks);
             AssignMethod(delegates, "GetBasePart", ref _getBasePart);
+            AssignMethod(delegates, "IsDebug", ref _isDebug);
 
             if (_apiInit)
                 MyLog.Default.WriteLine("ModularDefinitions: ModularDefinitionsAPI loaded!");

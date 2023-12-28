@@ -36,9 +36,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             {
                 foreach (var part in componentParts)
                 {
-                    DebugDrawManager.Instance.AddGridPoint(part.block.Position, part.block.CubeGrid, color, 0f);
+                    DebugDrawManager.AddGridPoint(part.block.Position, part.block.CubeGrid, color, 0f);
                     foreach (var conPart in part.connectedParts)
-                        DebugDrawManager.Instance.AddLine(DebugDrawManager.GridToGlobal(part.block.Position, part.block.CubeGrid), DebugDrawManager.GridToGlobal(conPart.block.Position, part.block.CubeGrid), color, 0f);
+                        DebugDrawManager.AddLine(DebugDrawManager.GridToGlobal(part.block.Position, part.block.CubeGrid), DebugDrawManager.GridToGlobal(conPart.block.Position, part.block.CubeGrid), color, 0f);
                 }
                 MyAPIGateway.Utilities.ShowNotification(id + " PW Parts: " + componentParts.Count, 1000 / 60);
             }
@@ -207,7 +207,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public void RecursiveWeaponChecker(WeaponPart currentBlock)
         {
             // Safety check
-            if (currentBlock == null || currentBlock.block == null) return;
+            if (currentBlock == null || currentBlock.block == null || componentParts == null) return;
 
             // TODO split between threads/ticks
             currentBlock.memberWeapon = this;
