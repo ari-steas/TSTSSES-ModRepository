@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using VRage;
+using VRage.Game.Entity;
 using VRage.Library.Collections;
 using VRage.Utils;
 using VRageMath;
@@ -96,7 +97,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 doubleValues = doubleValuesL.ToArray();
                 projectileValues = projectileValuesL.ToArray();
 
-                //MyLog.Default.WriteLine($"ModularWeaponry.DefinitionDefs: {array.Length} values packaged.");
+                //MyLog.Default.WriteLine($"ModularDefinitions.DefinitionDefs: {array.Length} values packaged.");
             }
 
             [ProtoMember(1)] internal int[] intValues = new int[0];
@@ -107,7 +108,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             [ProtoMember(6)] internal float[] floatValues = new float[0];
             [ProtoMember(7)] internal bool[] boolValues = new bool[0];
             [ProtoMember(8)] internal double[] doubleValues = new double[0];
-            [ProtoMember(9)] internal MyTuple<bool, Vector3D, Vector3D, float>[] projectileValues = new MyTuple<bool, Vector3D, Vector3D, float>[0];
+            [ProtoMember(10)] internal MyTuple<bool, Vector3D, Vector3D, float>[] projectileValues = new MyTuple<bool, Vector3D, Vector3D, float>[0];
 
             public object[] Values()
             {
@@ -132,10 +133,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 foreach (var value in projectileValues)
                     values.Add(value);
 
-                //MyLog.Default.WriteLine($"ModularWeaponry.DefinitionDefs: {values.Count} values recieved.");
+                //MyLog.Default.WriteLine($"ModularDefinitions.DefinitionDefs: {values.Count} values recieved.");
                 return values.ToArray();
             }
         }
-
     }
 }

@@ -7,6 +7,7 @@ using System;
 using VRageMath;
 using CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication;
 using CoreSystems.Api;
+using VRage.Game.Entity;
 
 namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
 {
@@ -90,13 +91,13 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
                             break;
                         case FunctionCall.ActionType.OnPartAdd:
                             // TODO: OnPartUpdate? With ConnectedParts?
-                            defToCall.OnPartAdd(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
+                            defToCall.OnPartAdd(call.PhysicalWeaponId, (MyEntity) MyAPIGateway.Entities.GetEntityById(call.Values.longValues[0]), call.Values.boolValues[0]);
                             break;
                         case FunctionCall.ActionType.OnPartRemove:
-                            defToCall.OnPartRemove(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
+                            defToCall.OnPartRemove(call.PhysicalWeaponId, (MyEntity) MyAPIGateway.Entities.GetEntityById(call.Values.longValues[0]), call.Values.boolValues[0]);
                             break;
                         case FunctionCall.ActionType.OnPartDestroy:
-                            defToCall.OnPartDestroy(call.PhysicalWeaponId, call.Values.longValues[0], call.Values.boolValues[0]);
+                            defToCall.OnPartDestroy(call.PhysicalWeaponId, (MyEntity) MyAPIGateway.Entities.GetEntityById(call.Values.longValues[0]), call.Values.boolValues[0]);
                             break;
                     }
                 }

@@ -85,7 +85,7 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
         /// </summary>
         /// <param name="blockId"></param>
         /// <returns></returns>
-        public IMyCubeGrid GetGridFromBlockId(long blockId)
+        public IMyCubeGrid GridFromBlockId(long blockId)
         {
             IMyEntity entity = MyAPIGateway.Entities.GetEntityById(blockId);
             if (entity is IMyCubeBlock)

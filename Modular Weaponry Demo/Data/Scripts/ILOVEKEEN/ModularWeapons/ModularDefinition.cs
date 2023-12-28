@@ -7,7 +7,7 @@
         {
             // it's just like weaponcore, insert definitions here
 
-            LoadDefinitions(ModularDefinitionEx);
+            LoadDefinitions(ModularDefinitionExample);
         }
     }
 }

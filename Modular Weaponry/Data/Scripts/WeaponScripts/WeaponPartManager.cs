@@ -38,9 +38,21 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public Dictionary<int, PhysicalWeapon> AllPhysicalWeapons = new Dictionary<int, PhysicalWeapon>();
         public int CreatedPhysicalWeapons = 0;
 
-        public List<IMySlimBlock> QueuedBlockAdds = new List<IMySlimBlock>();
-        public List<WeaponPart> QueuedConnectionChecks = new List<WeaponPart>();
-        public Dictionary<WeaponPart, PhysicalWeapon> QueuedWeaponChecks = new Dictionary<WeaponPart, PhysicalWeapon>();
+        private List<IMySlimBlock> QueuedBlockAdds = new List<IMySlimBlock>();
+        private Dictionary<WeaponPart, bool> QueuedConnectionChecks = new Dictionary<WeaponPart, bool>();
+        private Dictionary<WeaponPart, PhysicalWeapon> QueuedWeaponChecks = new Dictionary<WeaponPart, PhysicalWeapon>();
+
+        public void QueueBlockAdd(IMySlimBlock block) => QueuedBlockAdds.Add(block);
+        public void QueueConnectionCheck(WeaponPart part, bool isRefresh)
+        {
+            if (!QueuedConnectionChecks.ContainsKey(part))
+                QueuedConnectionChecks.Add(part, isRefresh);
+        }
+        public void QueueWeaponCheck(WeaponPart part, PhysicalWeapon weapon)
+        {
+            if (!QueuedWeaponChecks.ContainsKey(part))
+                QueuedWeaponChecks.Add(part, weapon);
+        }
 
         public WcApi wAPI = new WcApi();
 
@@ -106,9 +118,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             }
 
             // Queue partadds to account for world load/grid pasting
-            foreach (var queuedPart in QueuedConnectionChecks.ToList())
+            foreach (var queuedPart in QueuedConnectionChecks.Keys.ToList())
             {
-                queuedPart.CheckForExistingWeapon();
+                queuedPart.CheckForExistingWeapon(QueuedConnectionChecks[queuedPart]);
                 QueuedConnectionChecks.Remove(queuedPart);
             }
 

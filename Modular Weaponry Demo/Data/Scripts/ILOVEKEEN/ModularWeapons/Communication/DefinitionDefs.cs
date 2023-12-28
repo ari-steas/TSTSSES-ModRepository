@@ -2,7 +2,8 @@
 using System;
 using System.Collections.Generic;
 using VRage;
-using VRage.Utils;
+using VRage.Game.Entity;
+using VRage.ModAPI;
 using VRageMath;
 
 namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
@@ -34,26 +35,26 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
             /// <summary>
             /// Called when a valid part is placed.
             /// <para>
-            /// Arg1 is PhysicalWeaponId, Arg2 is EntityId, Arg3 is IsBaseBlock
+            /// Arg1 is PhysicalWeaponId, Arg2 is BlockEntity, Arg3 is IsBaseBlock
             /// </para>
             /// </summary>
-            public Action<int, long, bool> OnPartAdd { get; set; }
+            public Action<int, MyEntity, bool> OnPartAdd { get; set; }
 
             /// <summary>
             /// Called when a valid part is removed.
             /// <para>
-            /// Arg1 is PhysicalWeaponId, Arg2 is EntityId, Arg3 is IsBaseBlock
+            /// Arg1 is PhysicalWeaponId, Arg2 is BlockEntity, Arg3 is IsBaseBlock
             /// </para>
             /// </summary>
-            public Action<int, long, bool> OnPartRemove { get; set; }
+            public Action<int, MyEntity, bool> OnPartRemove { get; set; }
 
             /// <summary>
             /// Called when a component part is destroyed.
             /// <para>
-            /// Arg1 is PhysicalWeaponId, Arg2 is EntityId, Arg3 is IsBaseBlock
+            /// Arg1 is PhysicalWeaponId, Arg2 is BlockEntity, Arg3 is IsBaseBlock
             /// </para>
             /// </summary>
-            public Action<int, long, bool> OnPartDestroy { get; set; }
+            public Action<int, MyEntity, bool> OnPartDestroy { get; set; }
 
             /// <summary>
             /// All allowed SubtypeIds. The mod will likely misbehave if two mods allow the same blocks, so please be cautious.
@@ -153,7 +154,7 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
             [ProtoMember(6)] internal float[] floatValues = new float[0];
             [ProtoMember(7)] internal bool[] boolValues = new bool[0];
             [ProtoMember(8)] internal double[] doubleValues = new double[0];
-            [ProtoMember(9)] internal MyTuple<bool, Vector3D, Vector3D, float>[] projectileValues = new MyTuple<bool, Vector3D, Vector3D, float>[0];
+            [ProtoMember(10)] internal MyTuple<bool, Vector3D, Vector3D, float>[] projectileValues = new MyTuple<bool, Vector3D, Vector3D, float>[0];
 
             public object[] Values()
             {

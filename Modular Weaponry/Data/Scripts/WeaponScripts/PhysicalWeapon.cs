@@ -75,7 +75,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             }
 
             AddPart(basePart);
-            WeaponPartManager.Instance.QueuedWeaponChecks.Add(basePart, this);
+            WeaponPartManager.Instance.QueueWeaponCheck(basePart, this);
         }
 
         public void ProjectileCallback(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
@@ -98,6 +98,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             }
 
             componentParts.Add(part);
+            part.prevWeapon = part.memberWeapon;
             part.memberWeapon = this;
             if (triggerDefinition)
                 DefinitionHandler.Instance.SendOnPartAdd(WeaponDefinition.Name, id, part.block.FatBlock.EntityId, part == basePart);
@@ -161,8 +162,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
                 if (WeaponPartManager.Instance.DebugMode)
                     MyAPIGateway.Utilities.ShowNotification("Recreating connections...");
-                WeaponPartManager.Instance.QueuedConnectionChecks.Add(basePart);
-                WeaponPartManager.Instance.QueuedWeaponChecks.Add(basePart, this);
+                WeaponPartManager.Instance.QueueConnectionCheck(basePart, true);
+                WeaponPartManager.Instance.QueueWeaponCheck(basePart, this);
 
                 return;
             }
@@ -190,7 +191,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 return;
             part.memberWeapon = null;
             part.connectedParts.Clear();
-            WeaponPartManager.Instance.QueuedConnectionChecks.Add(part);
+            WeaponPartManager.Instance.QueueConnectionCheck(part, true);
         }
 
         public void Close()
@@ -238,8 +239,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                         //MyLog.Default.WriteLine("ModularWeapons: Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
 
                         componentParts.Add(neighborPart);
-                        WeaponPartManager.Instance.QueuedConnectionChecks.Add(neighborPart);
-                        WeaponPartManager.Instance.QueuedWeaponChecks.Add(neighborPart, this);
+                        WeaponPartManager.Instance.QueueConnectionCheck(neighborPart, false);
+                        WeaponPartManager.Instance.QueueWeaponCheck(neighborPart, this);
                     }
                 }
             }

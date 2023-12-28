@@ -1,48 +1,93 @@
-﻿using CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication;
+﻿using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
+using Sandbox.ModAPI;
+using System;
 using System.Collections.Generic;
 using VRage;
+using VRage.Game.Entity;
+using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 using static Scripts.ILOVEKEEN.ModularWeaponry.Communication.DefinitionDefs;
 
 namespace ILOVEKEEN.Scripts.ModularWeaponry
 {
-    /* Hey modders!
-     * 
-     * This is a bit of a mess, so please bear with me. Ping [@aristeas.] on discord if you have any questions, comments, or concers.
-     * https://discord.com/invite/kssCqSmbYZ
-     * 
-     * This mod behaves kind of like Weaponcore. Kind of. Definitions are declared in a similar manner, with an example below.
-     * What makes this mod unique (other than the modular stuff) is that you're supposed to run code in it. It will not function well otherwise.
-     * 
-     * I tried my best to document stuff, most of it will be in DefinitionAPI.cs
-     *   - You can also hover over variables in most IDEs for a description.
-     * You have access to ModularAPI and WcAPI; ModularAPI handles stuff like GetMemberParts for modular weapons, whereas WcAPI is your bog-standard Weaponcore ModAPI.
-     * If you need logic to run in a MySessionComponent, you can init the ModularAPI via LoadData() and UnloadData().
-     * 
-     * As for file structure, DON'T TOUCH ANYTHING IN Scripts.ILOVEKEEN.ModularWeapons OTHER THAN DEFINITIONS. It is all important.
-     * 
-     * Good luck, and happy modularizing!
-     */
 
     partial class ModularDefinition
     {
-        PhysicalDefinition ModularDefinitionEx => new PhysicalDefinition
+        // You can declare functions in here, and they are shared between all other ModularDefinition files.
+        private Dictionary<int, List<MyEntity[]>> Example_ValidArms = new Dictionary<int, List<MyEntity[]>>();
+        private List<MyEntity> Example_ScanArm(MyEntity blockEntity, MyEntity prevScan, MyEntity StopAt)
         {
-            Name = "ModularDefinitionEx",
+            DebugDrawManager.Instance.AddGridPoint(((IMyCubeBlock)blockEntity).Position, ((IMyCubeBlock)blockEntity).CubeGrid, Color.Blue, 2);
 
-            OnPartAdd = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
+            List<MyEntity> connectedBlocks = new List<MyEntity>(ModularAPI.GetConnectedBlocks(blockEntity, false));
+
+            // Check if connected to base AND connected to multiple blocks, saves performance
+            if (connectedBlocks.Count > 1)
             {
-                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartAdd {IsBaseBlock}.");
-                MyLog.Default.WriteLine($"\nPartCount: {ModularAPI.GetAllParts().Length}\nWeaponCount: {ModularAPI.GetAllWeapons().Length}\nThisPartCount: {ModularAPI.GetMemberParts(PhysicalWeaponId).Length}\nConnectedBlocks: {ModularAPI.GetConnectedBlocks(ModularAPI.GetBasePart(PhysicalWeaponId), true).Length}");
+                foreach (var connectedBlock in connectedBlocks)
+                {
+                    if (connectedBlock != prevScan && connectedBlock != StopAt)
+                    {
+                        connectedBlocks.AddList(Example_ScanArm(connectedBlock, blockEntity, StopAt));
+                        break;
+                    }
+                }
+            }
+            else
+                return new List<MyEntity>();
+
+            return connectedBlocks;
+        }
+
+        // This is the important bit.
+        PhysicalDefinition ModularDefinitionExample => new PhysicalDefinition
+        {
+            Name = "ModularDefinitionExample",
+
+            OnPartAdd = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
+            {
+                // Scan for 'arms' connected on both ends to the basepart.
+                if (!IsBaseBlock)
+                {
+                    MyEntity basePart = ModularAPI.GetBasePart(PhysicalWeaponId);
+                    List<MyEntity> scannedArm = Example_ScanArm(BlockEntity, null, basePart);
+                    if (scannedArm.Count == 0)
+                    {
+                        MyAPIGateway.Utilities.ShowNotification("Arms: " + Example_ValidArms[PhysicalWeaponId].Count);
+                        return;
+                    }
+
+                    Example_ValidArms[PhysicalWeaponId].Add(scannedArm.ToArray());
+                }
+                else
+                    Example_ValidArms.Add(PhysicalWeaponId, new List<MyEntity[]>());
+
+                MyAPIGateway.Utilities.ShowNotification("Arms: " + Example_ValidArms[PhysicalWeaponId].Count);
             },
 
-            OnPartRemove = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
+            OnPartRemove = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
-                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartRemove {IsBaseBlock}");
+                // Remove if the connection is broken.
+                if (!IsBaseBlock)
+                {
+                    MyEntity[] armToRemove = null;
+                    foreach (var arm in Example_ValidArms[PhysicalWeaponId])
+                    {
+                        if (arm.Contains(BlockEntity))
+                        {
+                            armToRemove = arm;
+                            break;
+                        }
+                    }
+                    if (armToRemove != null)
+                        Example_ValidArms[PhysicalWeaponId].Remove(armToRemove);
+                }
+                else
+                    Example_ValidArms.Remove(PhysicalWeaponId);
             },
 
-            OnPartDestroy = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
+            OnPartDestroy = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
                 MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
             },
