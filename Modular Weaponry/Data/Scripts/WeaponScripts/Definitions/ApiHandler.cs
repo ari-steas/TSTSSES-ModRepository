@@ -36,6 +36,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
         /// </summary>
         public override void LoadData()
         {
+            // Should not run on clients.
+            if (!MyAPIGateway.Multiplayer.IsServer)
+                return;
+
             MyAPIGateway.Utilities.RegisterMessageHandler(Channel, HandleMessage);
 
             IsReady = true;

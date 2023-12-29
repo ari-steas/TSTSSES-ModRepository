@@ -29,6 +29,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             if (!MyAPIGateway.Session.IsServer)
                 return;
 
+            MyLog.Default.WriteLineAndConsole("Modular Weaponry: DefinitionHandler loading...");
+
             MyLog.Default.WriteLineAndConsole("ModularWeapons: Init DefinitionHandler.cs");
             MyAPIGateway.Utilities.RegisterMessageHandler(DefinitionMessageId, DefMessageHandler);
             MyAPIGateway.Utilities.RegisterMessageHandler(InboundMessageId, ActionMessageHandler);
@@ -40,6 +42,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             Instance = null;
             if (!MyAPIGateway.Session.IsServer)
                 return;
+
+            MyLog.Default.WriteLineAndConsole("Modular Weaponry: DefinitionHandler closing...");
 
             base.UnloadData();
             MyAPIGateway.Utilities.UnregisterMessageHandler(DefinitionMessageId, DefMessageHandler);

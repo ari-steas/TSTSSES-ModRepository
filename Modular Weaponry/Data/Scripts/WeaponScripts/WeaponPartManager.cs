@@ -58,8 +58,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public override void LoadData()
         {
-            Instance = this;
-
             if (!MyAPIGateway.Multiplayer.MultiplayerActive)
             {
                 MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Run !mwhelp for commands");
@@ -68,10 +66,17 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             else
                 MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Commands disabled, load into a singleplayer world for testing.");
 
+            MyLog.Default.WriteLineAndConsole("Modular Weaponry: WeaponPartManager loading...");
+
+            Instance = this;
+            wAPI.Load();
+
+            // None of this should run on client.
+            if (!MyAPIGateway.Multiplayer.IsServer)
+                return;
+
             MyAPIGateway.Entities.OnEntityAdd += OnGridAdd;
             MyAPIGateway.Entities.OnEntityRemove += OnGridRemove;
-
-            wAPI.Load();
         }
 
         private void ChatCommandHandler(ulong sender, string messageText, ref bool sendToOthers)
@@ -96,15 +101,21 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         protected override void UnloadData()
         {
             Instance = null; // important for avoiding this object to remain allocated in memory
+            wAPI.Unload();
+
+            // None of this should run on client.
+            if (!MyAPIGateway.Multiplayer.IsServer)
+                return;
+
+            MyLog.Default.WriteLineAndConsole("Modular Weaponry: WeaponPartManager closing...");
+
             MyAPIGateway.Entities.OnEntityAdd -= OnGridAdd;
             MyAPIGateway.Entities.OnEntityRemove -= OnGridRemove;
 
-            if (MyAPIGateway.Utilities.IsDedicated)
+            if (!MyAPIGateway.Multiplayer.MultiplayerActive)
             {
                 MyAPIGateway.Utilities.MessageEnteredSender -= ChatCommandHandler;
             }
-
-            wAPI.Unload();
         }
 
         public override void UpdateAfterSimulation()

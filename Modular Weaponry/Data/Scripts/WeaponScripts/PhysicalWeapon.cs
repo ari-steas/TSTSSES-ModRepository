@@ -1,4 +1,5 @@
 ﻿using CoreSystems.Api;
+using Modular_Weaponry.Data.Scripts.WeaponScripts.Client;
 using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
 using Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions;
 using Sandbox.Game.Entities.Cube;
@@ -70,7 +71,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 }
                 catch
                 {
-                    MyAPIGateway.Utilities.SendMessage($"Error in registering projectile callback!\nDefinition: {WeaponDefinition.Name}\nBasePart: {basePart.block.BlockDefinition.Id.SubtypeName}");
+                    MyAPIGateway.Utilities.SendMessage($"Modular Weaponry: Error in registering projectile callback!\nDefinition: {WeaponDefinition.Name}\nBasePart: {basePart.block.BlockDefinition.Id.SubtypeName}");
                 }
             }
 
@@ -80,19 +81,19 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void ProjectileCallback(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
         {
+            MyAPIGateway.Utilities.ShowNotification("PROS");
             if (projectileExists)
                 DefinitionHandler.Instance.SendOnShoot(WeaponDefinition.Name, id, firerEntityId, firerPartId, projectileId, targetEntityId, projectilePosition);
         }
 
         public void UpdateProjectile(ulong projectileId, MyTuple<bool, Vector3D, Vector3D, float> projectileData)
         {
-            if (!MyAPIGateway.Session.IsServer)
-                return;
-
+            MyAPIGateway.Utilities.ShowNotification("PRO");
             WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
 
             // TODO kil
             MyLog.Default.WriteLineAndConsole($"OnShoot ActualVel = {WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length()}");
+            ClientSync.ServerSyncProjectile(projectileId, projectileData);
         }
 
         public void AddPart(WeaponPart part)
