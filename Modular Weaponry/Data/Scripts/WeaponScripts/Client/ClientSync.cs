@@ -13,7 +13,7 @@ using static Modular_Weaponry.Data.Scripts.WeaponScripts.Client.ClientSyncDefini
 
 namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Client
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate)]
+    [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
     public class ClientSync : MySessionComponentBase
     {
         const ushort SyncId = 8770;
@@ -29,38 +29,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Client
 
             Instance = this;
             MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(SyncId, MessageHandler);
-
-            // TODO remove
-            MyAPIGateway.Entities.OnEntityAdd += OnGridAdd;
-        }
-
-        private void OnGridAdd(IMyEntity entity)
-        {
-            MyLog.Default.WriteLineAndConsole("gridadd");
-            if (!(entity is IMyCubeGrid))
-                return;
-
-            IMyCubeGrid grid = (IMyCubeGrid)entity;
-
-            // Exclude projected and held grids
-            if (grid.Physics == null)
-                return;
-
-            grid.OnBlockAdded += OnBlockAdd;
-            grid.OnBlockRemoved += OnBlockRemove;
-        }
-
-        private void OnBlockAdd(IMySlimBlock block)
-        {
-            MyLog.Default.WriteLineAndConsole("blockadd");
-            if (WeaponPartManager.Instance.wAPI.HasCoreWeapon((MyEntity)block.FatBlock))
-                WeaponPartManager.Instance.wAPI.AddProjectileCallback((MyEntity)block.FatBlock, 0, ProCall);
-        }
-
-        private void OnBlockRemove(IMySlimBlock block)
-        {
-            if (WeaponPartManager.Instance.wAPI.HasCoreWeapon((MyEntity)block.FatBlock))
-                WeaponPartManager.Instance.wAPI.RemoveProjectileCallback((MyEntity)block.FatBlock, 0, ProCall);
         }
 
         protected override void UnloadData()
@@ -84,6 +52,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Client
             byte[] serializedData = MyAPIGateway.Utilities.SerializeToBinary(container);
 
             MyAPIGateway.Multiplayer.SendMessageToOthers(SyncId, serializedData);
+            MyLog.Default.WriteLineAndConsole("Syncing projectile " + projectileId + " (speed " + projectileData.Item3 + ")");
         }
 
         private void MessageHandler(ushort handlerId, byte[] package, ulong senderId, bool fromServer)
@@ -115,15 +84,14 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Client
             projectileData.Item2 = newPosition;
 
             WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
-            MyLog.Default.WriteLineAndConsole($"UpdateProj Id: {projectileId} Vel: {WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length()} Delta: {delta}");
-        }
+            MyLog.Default.WriteLineAndConsole($"UpdateProj Id: {projectileId} AdditiveVel: {projectileData.Item3.Length()} NewVel: {WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length()} Delta: {delta}");
 
-        private void ProCall(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
-        {
-            MyLog.Default.WriteLineAndConsole("procall");
-            if (projectileExists)
+            for (int i = 0; i < 10000; i++)
             {
-                MyLog.Default.WriteLineAndConsole($"FireProj Id: {projectileId} Vel: {WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length()}");
+                Vector3D vel = WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2;
+                if (vel == Vector3D.Zero)
+                    return;
+                MyLog.Default.WriteLineAndConsole($"    Id: {i} Vel: {vel.Length()} Delta: {delta}");
             }
         }
     }
