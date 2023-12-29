@@ -19,6 +19,16 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
         private Dictionary<int, List<MyEntity[]>> Example_ValidArms = new Dictionary<int, List<MyEntity[]>>();
         private List<MyEntity> Example_BufferArm = new List<MyEntity>();
         private int StopHits = 0;
+
+        private int GetNumBlocksInArm(int PhysicalWeaponId)
+        {
+            int total = 0;
+
+            foreach (var arm in Example_ValidArms[PhysicalWeaponId])
+                total += arm.Length;
+
+            return total;
+        }
         private bool Example_ScanArm(MyEntity blockEntity, MyEntity prevScan, MyEntity StopAt)
         {
             if (ModularAPI.IsDebug())
@@ -48,10 +58,13 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
 
             OnPartAdd = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
+                if (!Example_ValidArms.ContainsKey(PhysicalWeaponId))
+                    Example_ValidArms.Add(PhysicalWeaponId, new List<MyEntity[]>());
+
                 // Scan for 'arms' connected on both ends to the basepart.
                 if (IsBaseBlock)
                 {
-                    Example_ValidArms.Add(PhysicalWeaponId, new List<MyEntity[]>());
+                    
                 }
                 else
                 {
@@ -99,11 +112,13 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
 
             OnPartDestroy = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
-                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
+                MyLog.Default.WriteLineAndConsole($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
             },
 
             OnShoot = (int PhysicalWeaponId, long FirerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition) => {
-                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, ModularAPI.OffsetProjectileVelocity(1, projectileId, FirerEntityId), 0);
+                float newSpeed = Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) * 10f;
+                MyLog.Default.WriteLineAndConsole($"OnShoot NewVel = {newSpeed}");
+                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, ModularAPI.OffsetProjectileVelocity(newSpeed, projectileId, FirerEntityId), 9999999);
             },
 
             AllowedBlocks = new string[]

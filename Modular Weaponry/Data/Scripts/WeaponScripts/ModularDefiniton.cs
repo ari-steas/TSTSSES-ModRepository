@@ -40,11 +40,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             if (def.AllowedBlocks == null || def.AllowedConnections == null || def.BaseBlockSubtype == null || def.Name == null)
             {
-                MyLog.Default.WriteLine("Modular Weaponry: !!Failed!! to create new ModularDefinition for " + definition.Name);
+                MyLog.Default.WriteLineAndConsole("Modular Weaponry: !!Failed!! to create new ModularDefinition for " + definition.Name);
                 return null;
             }
 
-            MyLog.Default.WriteLine("Modular Weaponry: Created new ModularDefinition for " + definition.Name);
+            MyLog.Default.WriteLineAndConsole("Modular Weaponry: Created new ModularDefinition for " + definition.Name);
             return def;
         }
 

@@ -60,12 +60,13 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         {
             Instance = this;
 
-            if (MyAPIGateway.Session.IsServer)
+            if (!MyAPIGateway.Multiplayer.MultiplayerActive)
             {
+                MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Run !mwhelp for commands");
                 MyAPIGateway.Utilities.MessageEnteredSender += ChatCommandHandler;
             }
             else
-                MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Run !mwhelp for commands");
+                MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Commands disabled, load into a singleplayer world for testing.");
 
             MyAPIGateway.Entities.OnEntityAdd += OnGridAdd;
             MyAPIGateway.Entities.OnEntityRemove += OnGridRemove;

@@ -97,7 +97,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 doubleValues = doubleValuesL.ToArray();
                 projectileValues = projectileValuesL.ToArray();
 
-                //MyLog.Default.WriteLine($"ModularDefinitions.DefinitionDefs: {array.Length} values packaged.");
+                //MyLog.Default.WriteLineAndConsole($"ModularDefinitions.DefinitionDefs: {array.Length} values packaged.");
             }
 
             [ProtoMember(1)] internal int[] intValues = new int[0];
@@ -133,7 +133,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 foreach (var value in projectileValues)
                     values.Add(value);
 
-                //MyLog.Default.WriteLine($"ModularDefinitions.DefinitionDefs: {values.Count} values recieved.");
+                //MyLog.Default.WriteLineAndConsole($"ModularDefinitions.DefinitionDefs: {values.Count} values recieved.");
                 return values.ToArray();
             }
         }

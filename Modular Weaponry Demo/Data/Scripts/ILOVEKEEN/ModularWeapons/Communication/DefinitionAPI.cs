@@ -93,6 +93,17 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
             return null;
         }
 
+        public MyEntity CreateWeaponPhantom(int PhysicalWeaponId)
+        {
+            IMyCubeBlock weapon = (IMyCubeBlock) GetBasePart(PhysicalWeaponId);
+            return ModularDefinition.WcAPI.SpawnPhantom(weapon.BlockDefinition.SubtypeId, parnet: (MyEntity) weapon);
+        }
+
+        public void FirePhantom(MyEntity phantom)
+        {
+            ModularDefinition.WcAPI.SetTriggerState(phantom, WcApi.TriggerActions.TriggerOnce);
+        }
+
 
         #region API calls
 
@@ -180,9 +191,9 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
             AssignMethod(delegates, "IsDebug", ref _isDebug);
 
             if (_apiInit)
-                MyLog.Default.WriteLine("ModularDefinitions: ModularDefinitionsAPI loaded!");
+                MyLog.Default.WriteLineAndConsole("ModularDefinitions: ModularDefinitionsAPI loaded!");
             else
-                MyLog.Default.WriteLine("ModularDefinitions: ModularDefinitionsAPI cleared.");
+                MyLog.Default.WriteLineAndConsole("ModularDefinitions: ModularDefinitionsAPI cleared.");
         }
 
         public void LoadData()
@@ -193,7 +204,7 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
             _isRegistered = true;
             MyAPIGateway.Utilities.RegisterMessageHandler(ApiChannel, HandleMessage);
             MyAPIGateway.Utilities.SendModMessage(ApiChannel, "ApiEndpointRequest");
-            MyLog.Default.WriteLine("ModularDefinitions: ModularDefinitionsAPI inited.");
+            MyLog.Default.WriteLineAndConsole("ModularDefinitions: ModularDefinitionsAPI inited.");
         }
 
         public void UnloadData()
@@ -205,14 +216,14 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
             _isRegistered = false;
             _apiInit = false;
             IsReady = false;
-            MyLog.Default.WriteLine("ModularDefinitions: ModularDefinitionsAPI unloaded.");
+            MyLog.Default.WriteLineAndConsole("ModularDefinitions: ModularDefinitionsAPI unloaded.");
         }
 
         private void HandleMessage(object obj)
         {
             if (_apiInit || obj is string) // the sent "ApiEndpointRequest" will also be received here, explicitly ignoring that
             {
-                MyLog.Default.WriteLine($"ModularDefinitions: ModularDefinitionsAPI ignored message {obj as string}!");
+                MyLog.Default.WriteLineAndConsole($"ModularDefinitions: ModularDefinitionsAPI ignored message {obj as string}!");
                 return;
             }
 
@@ -220,7 +231,7 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
 
             if (dict == null)
             {
-                MyLog.Default.WriteLine("ModularDefinitions: ModularDefinitionsAPI ERR: Recieved null dictionary!");
+                MyLog.Default.WriteLineAndConsole("ModularDefinitions: ModularDefinitionsAPI ERR: Recieved null dictionary!");
                 return;
             }
 

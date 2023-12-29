@@ -24,8 +24,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
         public override void LoadData()
         {
-            MyLog.Default.WriteLine("ModularWeapons: Init DefinitionHandler.cs");
             Instance = this;
+
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
+            MyLog.Default.WriteLineAndConsole("ModularWeapons: Init DefinitionHandler.cs");
             MyAPIGateway.Utilities.RegisterMessageHandler(DefinitionMessageId, DefMessageHandler);
             MyAPIGateway.Utilities.RegisterMessageHandler(InboundMessageId, ActionMessageHandler);
             MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, true);
@@ -33,10 +37,13 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
         protected override void UnloadData()
         {
+            Instance = null;
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
             base.UnloadData();
             MyAPIGateway.Utilities.UnregisterMessageHandler(DefinitionMessageId, DefMessageHandler);
             MyAPIGateway.Utilities.UnregisterMessageHandler(InboundMessageId, ActionMessageHandler);
-            Instance = null;
         }
 
         public void DefMessageHandler(object o)
@@ -57,7 +64,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
                 if (baseDefArray != null)
                 {
-                    MyLog.Default.WriteLine($"ModularWeapons: Recieved {baseDefArray.PhysicalDefs.Length} definitions.");
+                    MyLog.Default.WriteLineAndConsole($"ModularWeapons: Recieved {baseDefArray.PhysicalDefs.Length} definitions.");
                     foreach (var def in baseDefArray.PhysicalDefs)
                     {
                         ModularDefinition modDef = ModularDefinition.Load(def);
@@ -67,10 +74,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 }
                 else
                 {
-                    MyLog.Default.WriteLine($"ModularWeapons: baseDefArray null!");
+                    MyLog.Default.WriteLineAndConsole($"ModularWeapons: baseDefArray null!");
                 }
             }
-            catch (Exception ex) { MyLog.Default.WriteLine($"ModularWeapons: Exception in DefinitionMessageHandler: {ex}"); }
+            catch (Exception ex) { MyLog.Default.WriteLineAndConsole($"ModularWeapons: Exception in DefinitionMessageHandler: {ex}"); }
         }
 
         public void ActionMessageHandler(object o)
@@ -89,12 +96,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
                 if (functionCall != null)
                 {
-                    //MyLog.Default.WriteLine($"ModularWeapons: Recieved action of type {functionCall.ActionId}.");
+                    //MyLog.Default.WriteLineAndConsole($"ModularWeapons: Recieved action of type {functionCall.ActionId}.");
 
                     PhysicalWeapon wep = WeaponPartManager.Instance.AllPhysicalWeapons[functionCall.PhysicalWeaponId];
                     if (wep == null)
                     {
-                        MyLog.Default.WriteLine($"ModularWeapons: Invalid PhysicalWeapon!");
+                        MyLog.Default.WriteLineAndConsole($"ModularWeapons: Invalid PhysicalWeapon!");
                         return;
                     }
 
@@ -110,10 +117,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 }
                 else
                 {
-                    MyLog.Default.WriteLine($"ModularWeapons: functionCall null!");
+                    MyLog.Default.WriteLineAndConsole($"ModularWeapons: functionCall null!");
                 }
             }
-            catch (Exception ex) { MyLog.Default.WriteLine($"ModularWeapons: Exception in ActionMessageHandler: {ex}"); }
+            catch (Exception ex) { MyLog.Default.WriteLineAndConsole($"ModularWeapons: Exception in ActionMessageHandler: {ex}"); }
         }
 
 
@@ -190,8 +197,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
         private void SendFunc(FunctionCall call)
         {
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
             MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, MyAPIGateway.Utilities.SerializeToBinary(call));
-            //MyLog.Default.WriteLine($"ModularWeapons: Sending function call [id {call.ActionId}] to [{call.DefinitionName}].");
+            //MyLog.Default.WriteLineAndConsole($"ModularWeapons: Sending function call [id {call.ActionId}] to [{call.DefinitionName}].");
         }
     }
 }

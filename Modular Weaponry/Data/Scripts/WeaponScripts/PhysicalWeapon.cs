@@ -86,7 +86,13 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void UpdateProjectile(ulong projectileId, MyTuple<bool, Vector3D, Vector3D, float> projectileData)
         {
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
             WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
+
+            // TODO kil
+            MyLog.Default.WriteLineAndConsole($"OnShoot ActualVel = {WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length()}");
         }
 
         public void AddPart(WeaponPart part)
@@ -229,11 +235,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                         // Avoid double-including blocks
                         if (componentParts.Contains(neighborPart))
                         {
-                            //MyLog.Default.WriteLine("ModularWeapons: Skip part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
+                            //MyLog.Default.WriteLineAndConsole("ModularWeapons: Skip part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
                             continue;
                         }
 
-                        //MyLog.Default.WriteLine("ModularWeapons: Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
+                        //MyLog.Default.WriteLineAndConsole("ModularWeapons: Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
 
                         componentParts.Add(neighborPart);
                         WeaponPartManager.Instance.QueueConnectionCheck(neighborPart);
