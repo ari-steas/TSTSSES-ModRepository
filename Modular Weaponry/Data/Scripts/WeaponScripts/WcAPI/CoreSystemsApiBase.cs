@@ -92,6 +92,10 @@ namespace CoreSystems.Api
         private Func<MyEntity, int, MyDefinitionId, bool, bool> _setMagazine;
         private Func<MyEntity, int, bool> _forceReload;
 
+        private Action<MyEntity, float> _setRofMultiplier;
+        public void SetRofMultiplier(MyEntity block, float rof) =>
+            _setRofMultiplier?.Invoke(block, rof);
+
         public void SetWeaponTarget(MyEntity weapon, MyEntity target, int weaponId = 0) =>
             _setWeaponTarget?.Invoke(weapon, target, weaponId);
 
@@ -526,6 +530,9 @@ namespace CoreSystems.Api
         {
             _apiInit = (delegates != null);
             /// base methods
+
+            AssignMethod(delegates, "SetRofMultiplier", ref _setRofMultiplier);
+
             AssignMethod(delegates, "GetAllWeaponDefinitions", ref _getAllWeaponDefinitions);
             AssignMethod(delegates, "GetCoreWeapons", ref _getCoreWeapons);
             AssignMethod(delegates, "GetNpcSafeWeapons", ref _getNpcSafeWeapons);

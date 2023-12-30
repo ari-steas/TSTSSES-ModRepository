@@ -16,8 +16,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Client
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
     public class ClientSync : MySessionComponentBase
     {
-        const ushort SyncId = 8770;
+        const ushort ProjectileSyncId = 8770;
+        const ushort WeaponSyncId = 8769;
         private ClientSync Instance;
+        private List<IMyCubeBlock> trackedWeapons = new List<IMyCubeBlock>();
 
         public override void LoadData()
         {
@@ -28,7 +30,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Client
             MyLog.Default.WriteLineAndConsole("Modular Weaponry: ClientSync loading...");
 
             Instance = this;
-            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(SyncId, MessageHandler);
+            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(ProjectileSyncId, ProjectileMessageHandler);
+
+            MyAPIGateway.Entities.OnEntityAdd += OnEntityAdd;
         }
 
         protected override void UnloadData()
@@ -39,23 +43,25 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Client
 
             MyLog.Default.WriteLineAndConsole("Modular Weaponry: ClientSync closing...");
             Instance = null;
-            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(SyncId, MessageHandler);
+            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ProjectileSyncId, ProjectileMessageHandler);
+
+            MyAPIGateway.Entities.OnEntityAdd -= OnEntityAdd;
         }
 
-        public static void ServerSyncProjectile(ulong projectileId, MyTuple<bool, Vector3D, Vector3D, float> projectileData)
+        public static void ServerSyncProjectile(long firerId, MyTuple<bool, Vector3D, Vector3D, float> projectileData)
         {
             // This should only run on server.
             if (!MyAPIGateway.Multiplayer.IsServer)
                 return;
 
-            ProjectileContainer container = new ProjectileContainer(projectileId, projectileData, DateTime.Now.Ticks);
+            ProjectileContainer container = new ProjectileContainer(firerId, projectileData, DateTime.Now.Ticks);
             byte[] serializedData = MyAPIGateway.Utilities.SerializeToBinary(container);
 
-            MyAPIGateway.Multiplayer.SendMessageToOthers(SyncId, serializedData);
-            MyLog.Default.WriteLineAndConsole("Syncing projectile " + projectileId + " (speed " + projectileData.Item3 + ")");
+            MyAPIGateway.Multiplayer.SendMessageToOthers(ProjectileSyncId, serializedData);
+            MyLog.Default.WriteLineAndConsole("Syncing projectile " + firerId + " (speed " + projectileData.Item3 + ")");
         }
 
-        private void MessageHandler(ushort handlerId, byte[] package, ulong senderId, bool fromServer)
+        private void ProjectileMessageHandler(ushort handlerId, byte[] package, ulong senderId, bool fromServer)
         {
             if (MyAPIGateway.Session.IsServer && fromServer)
                 return;
@@ -68,7 +74,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Client
                     MyLog.Default.WriteLineAndConsole($"Modular Weaponry: Invalid message from \nHID: {handlerId}\nSID: {senderId}\nFromServer: {fromServer}");
                     return;
                 }
-                ClientSyncProjectile(container.ProjectileId, container.ProjectileData, container.Time);
+                ClientSyncProjectile(container.FirerId, container.ProjectileData, container.Time);
             }
             catch (Exception ex)
             {
@@ -76,23 +82,45 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Client
             }
         }
 
-        private void ClientSyncProjectile(ulong projectileId, MyTuple<bool, Vector3D, Vector3D, float> projectileData, long fireTime)
+        private void OnEntityAdd(IMyEntity entity)
+        {
+            if (entity is IMyCubeGrid)
+            {
+                ((IMyCubeGrid)entity).OnBlockAdded += OnBlockAdd;
+            }
+        }
+
+        private void OnBlockAdd(IMySlimBlock block)
+        {
+            if (block.FatBlock != null)
+                if (block.BlockDefinition.Id.SubtypeId.String == "Caster_FocusLens")
+                    ClientSyncWeapon(block.FatBlock);
+        }
+
+        private void ClientSyncProjectile(long firerId, MyTuple<bool, Vector3D, Vector3D, float> projectileData, long fireTime)
         {
             double delta = (DateTime.Now.Ticks - fireTime)/(double) TimeSpan.TicksPerSecond;
 
             Vector3D newPosition = projectileData.Item2 + projectileData.Item3 * delta;
             projectileData.Item2 = newPosition;
 
-            WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
-            MyLog.Default.WriteLineAndConsole($"UpdateProj Id: {projectileId} AdditiveVel: {projectileData.Item3.Length()} NewVel: {WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length()} Delta: {delta}");
+            //WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
+            //MyLog.Default.WriteLineAndConsole($"UpdateProj Id: {projectileId} AdditiveSpd: {projectileData.Item3.Length()} ActualSpd: {WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length()} Delta: {delta}");
+        }
 
-            for (int i = 0; i < 10000; i++)
-            {
-                Vector3D vel = WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2;
-                if (vel == Vector3D.Zero)
-                    return;
-                MyLog.Default.WriteLineAndConsole($"    Id: {i} Vel: {vel.Length()} Delta: {delta}");
-            }
+        private void ClientSyncWeapon(IMyCubeBlock weapon)
+        {
+            MyEntity entity = (MyEntity) weapon;
+
+            trackedWeapons.Add(weapon);
+
+            MyLog.Default.WriteLineAndConsole("Modular Weaponry: SYNC");
+            WeaponPartManager.Instance.wAPI.AddProjectileCallback(entity, 0, ProjectileCallback);
+        }
+
+        private void ProjectileCallback(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
+        {
+            MyLog.Default.WriteLineAndConsole($"Modular Weaponry: FIRE {projectileId} Speed: {WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length()}");
         }
     }
 }
