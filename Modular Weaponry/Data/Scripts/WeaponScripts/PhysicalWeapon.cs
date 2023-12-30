@@ -1,5 +1,4 @@
 ﻿using CoreSystems.Api;
-using Modular_Weaponry.Data.Scripts.WeaponScripts.Client;
 using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
 using Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions;
 using Sandbox.Game.Entities.Cube;
@@ -33,6 +32,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void Update()
         {
+            MyAPIGateway.Utilities.ShowNotification("" + WeaponPartManager.Instance.wAPI.GetAreaRadiusMultiplier((MyEntity)basePart.block.FatBlock), 1000/60);
+
             if (WeaponPartManager.Instance.DebugMode)
             {
                 foreach (var part in componentParts)
@@ -67,7 +68,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                     if (WeaponPartManager.Instance.wAPI.HasCoreWeapon((MyEntity)basePart.block.FatBlock))
                     {
                         WeaponPartManager.Instance.wAPI.AddProjectileCallback((MyEntity)basePart.block.FatBlock, 0, ProjectileCallback);
-                        WeaponPartManager.Instance.wAPI.SetRofMultiplier((MyEntity) basePart.block.FatBlock, 0.1f);
                     }
                 }
                 catch
@@ -88,11 +88,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void UpdateProjectile(ulong projectileId, MyTuple<bool, Vector3D, Vector3D, float> projectileData)
         {
-            WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
+            //WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
 
             // TODO kil
             MyLog.Default.WriteLineAndConsole($"OnShoot ActualVel = {WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length()}");
-            ClientSync.ServerSyncProjectile(basePart.block.FatBlock.EntityId, projectileData);
         }
 
         public void AddPart(WeaponPart part)

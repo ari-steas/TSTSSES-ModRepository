@@ -82,6 +82,12 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
                     StopHits = 0;
                 }
 
+                MyEntity basePartEntity = ModularAPI.GetBasePart(PhysicalWeaponId);
+                float velocityMult = Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f;
+
+                WcAPI.SetVelocityMultiplier(basePartEntity, velocityMult);
+                WcAPI.SetFiringAllowed(basePartEntity, velocityMult * 500 < 1);
+
                 if (ModularAPI.IsDebug())
                     MyAPIGateway.Utilities.ShowNotification("Pass: Arms: " + Example_ValidArms[PhysicalWeaponId].Count + " (Size " + Example_ValidArms[PhysicalWeaponId][Example_ValidArms[PhysicalWeaponId].Count - 1].Length + ")");
             },
@@ -101,7 +107,15 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
                         }
                     }
                     if (armToRemove != null)
+                    {
                         Example_ValidArms[PhysicalWeaponId].Remove(armToRemove);
+
+                        MyEntity basePartEntity = ModularAPI.GetBasePart(PhysicalWeaponId);
+                        float velocityMult = Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f;
+
+                        WcAPI.SetVelocityMultiplier(basePartEntity, velocityMult);
+                        WcAPI.SetFiringAllowed(basePartEntity, velocityMult * 500 < 1);
+                    }
 
                     if (ModularAPI.IsDebug())
                         MyAPIGateway.Utilities.ShowNotification("Remove: Arms: " + Example_ValidArms[PhysicalWeaponId].Count);
@@ -116,9 +130,10 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
             },
 
             OnShoot = (int PhysicalWeaponId, long FirerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition) => {
-                float newSpeed = Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) * 10f;
+                float newSpeed = 500 * (Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f);
                 MyLog.Default.WriteLineAndConsole($"OnShoot NewVel = {newSpeed}");
-                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, ModularAPI.OffsetProjectileVelocity(newSpeed, projectileId, FirerEntityId), 9999999);
+
+                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, Vector3D.Zero, 0);
             },
 
             AllowedBlocks = new string[]

@@ -50,8 +50,8 @@ namespace ILOVEKEEN.Scripts
             Health = 0, // How much damage the projectile can take from other projectiles (base of 1 per hit) before dying; 0 disables this and makes the projectile untargetable.
             BackKickForce = 0f, // Recoil. This is applied to the Parent Grid.
             DecayPerShot = 0f, // Damage to the firing weapon itself. 
-			       //float.MaxValue will drop the weapon to the first build state and destroy all components used for construction
-			       //If greater than cube integrity it will remove the cube upon firing, without causing deformation (makes it look like the whole "block" flew away)
+                               //float.MaxValue will drop the weapon to the first build state and destroy all components used for construction
+                               //If greater than cube integrity it will remove the cube upon firing, without causing deformation (makes it look like the whole "block" flew away)
             HardPointUsable = true, // Whether this is a primary ammo type fired directly by the turret. Set to false if this is a shrapnel ammoType and you don't want the turret to be able to select it directly.
             EnergyMagazineSize = 1, // For energy weapons, how many shots to fire before reloading.
             IgnoreWater = false, // Whether the projectile should be able to penetrate water when using WaterMod.
@@ -77,7 +77,7 @@ namespace ILOVEKEEN.Scripts
             },
             Fragment = new FragmentDef // Formerly known as Shrapnel. Spawns specified ammo fragments on projectile death (via hit or detonation).
             {
-                AmmoRound = "MagicFragment", // AmmoRound field of the ammo to spawn.
+                AmmoRound = "", // AmmoRound field of the ammo to spawn.
                 Fragments = 100, // Number of projectiles to spawn.
                 Degrees = 15, // Cone in which to randomize direction of spawned projectiles.
                 Reverse = false, // Spawn projectiles backward instead of forward.
@@ -111,7 +111,7 @@ namespace ILOVEKEEN.Scripts
                 Mode = Fragment, // Select when to activate this pattern, options: Never, Weapon, Fragment, Both 
                 TriggerChance = 1f, // This is %
                 Random = false, // This randomizes the number spawned at once, NOT the list order.
-                RandomMin = 1, 
+                RandomMin = 1,
                 RandomMax = 1,
                 SkipParent = false, // Skip the Ammo itself, in the list
                 PatternSteps = 1, // Number of Ammos activated per round, will progress in order and loop. Ignored if Random = true.
@@ -184,11 +184,11 @@ namespace ILOVEKEEN.Scripts
                 ByBlockHit = new ByBlockHitDef
                 {
                     Enable = true,
-                    Radius = 5f, // Meters
-                    Damage = 5f,
+                    Radius = 1f, // Meters
+                    Damage = 1000f,
                     Depth = 1f, // Max depth of AOE effect, in meters. 0=disabled, and AOE effect will reach to a depth of the radius value
                     MaxAbsorb = 64000f, // Soft cutoff for damage (total, against shields or grids), except for pooled falloff.  If pooled falloff, limits max damage per block.
-                    Falloff = Pooled, //.NoFalloff applies the same damage to all blocks in radius
+                    Falloff = NoFalloff, //.NoFalloff applies the same damage to all blocks in radius
                     //.Linear drops evenly by distance from center out to max radius
                     //.Curve drops off damage sharply as it approaches the max radius
                     //.InvCurve drops off sharply from the middle and tapers to max radius
@@ -200,11 +200,11 @@ namespace ILOVEKEEN.Scripts
                 EndOfLife = new EndOfLifeDef
                 {
                     Enable = true,
-                    Radius = 5f, // Radius of AOE effect, in meters.
-                    Damage = 5f,
+                    Radius = 1f, // Radius of AOE effect, in meters.
+                    Damage = 1000f,
                     Depth = 1f, // Max depth of AOE effect, in meters. 0=disabled, and AOE effect will reach to a depth of the radius value
                     MaxAbsorb = 64000f, // Soft cutoff for damage (total, against shields or grids), except for pooled falloff.  If pooled falloff, limits max damage per block.
-                    Falloff = Pooled, //.NoFalloff applies the same damage to all blocks in radius
+                    Falloff = NoFalloff, //.NoFalloff applies the same damage to all blocks in radius
                     //.Linear drops evenly by distance from center out to max radius
                     //.Curve drops off damage sharply as it approaches the max radius
                     //.InvCurve drops off sharply from the middle and tapers to max radius
@@ -219,7 +219,7 @@ namespace ILOVEKEEN.Scripts
                     CustomParticle = "particleName", // Particle SubtypeID, from your Particle SBC
                     CustomSound = "soundName", // SubtypeID from your Audio SBC, not a filename
                     Shape = Diamond, // Round or Diamond shape.  Diamond is more performance friendly.
-                }, 
+                },
             },
             Ewar = new EwarDef
             {
@@ -326,7 +326,7 @@ namespace ILOVEKEEN.Scripts
                     NoTargetApproach = false, // If true approaches can begin prior to the projectile ever having had a target.
                     AltNavigation = false, // If true this will swap the default navigation algorithm from ProNav to ZeroEffort Miss.  Zero effort is more direct/precise but less cinematic 
                 },
-                Approaches = new [] // These approaches move forward and backward in order, once the end condition of the last one is reached it will revert to default behavior. Cost level of 4+, or 5+ if used with steering.
+                Approaches = new[] // These approaches move forward and backward in order, once the end condition of the last one is reached it will revert to default behavior. Cost level of 4+, or 5+ if used with steering.
                 {
                     /*
                      * What are approaches? How do they interact with other config variables?  What problems do they solve? 
@@ -361,7 +361,7 @@ namespace ILOVEKEEN.Scripts
                     {
                         // Start/End behaviors 
                         RestartCondition = MoveToPrevious, // Wait*, MoveToPrevious, MoveToNext, ForceRestart -- A restart condition is when the end condition is reached without having met the start condition. 
-                        RestartList = new[] 
+                        RestartList = new[]
                         { // This list is used if RestartCondition is set to ForceRestart and trigger requirement was met. -1 to reset to BEFORE the for approach stage was activated.  First stage is 0, second is 1, etc...
                             new WeightedIdListDef
                             {// If all valid entries (below MaxRuns) role a 0 (i.e. weights are disabled), then the entry with the lowest current "Runs" will be selected, if two or more share lowest runs then the winner is decided by the order below.
@@ -377,7 +377,7 @@ namespace ILOVEKEEN.Scripts
                                 ApproachId = 0,
                                 MaxRuns = 0,
                                 Weight = Random(0, 55),
-                                End1WeightMod = 0, 
+                                End1WeightMod = 0,
                                 End2WeightMod = 0,
                                 End3WeightMod = 0,
                             },
@@ -386,7 +386,7 @@ namespace ILOVEKEEN.Scripts
                                 ApproachId = 1,
                                 MaxRuns = 0,
                                 Weight = Random(0, 31.5f),
-                                End1WeightMod = 0, 
+                                End1WeightMod = 0,
                                 End2WeightMod = 0,
                                 End3WeightMod = 0,
                             },
@@ -403,18 +403,18 @@ namespace ILOVEKEEN.Scripts
                                                     // NextTimedSpawn[<=], SinceTimedSpawn[>=], RelativeLifetime[>=], RelativeDeadTime[<=], RelativeSpawns[>=], EnemyTargetLoss[>=],
                                                     // RelativeHealthLost[>=], HealthRemaining[<=],
                                                     // *NOTE* DO NOT set start1 and start2 or end1 and end2 to same condition
-                        StartCondition2 = Ignore, 
-                        EndCondition1 = DesiredElevation, 
+                        StartCondition2 = Ignore,
+                        EndCondition1 = DesiredElevation,
                         EndCondition2 = Ignore,
                         EndCondition3 = Ignore,
                         // Start/End thresholds -- both conditions are evaluated before activation, use Ignore to skip
                         Start1Value = 60,
                         Start2Value = 0,
-                        End1Value = 1000, 
+                        End1Value = 1000,
                         End2Value = 0,
                         End3Value = 0, 
                         // Special triggers when the start/end conditions are met (DoNothing*, EndProjectile, EndProjectileOnRestart, StorePositionA, StorePositionB, StorePositionC, Refund)
-                        StartEvent = DoNothing, 
+                        StartEvent = DoNothing,
                         EndEvent = DoNothing,  
                         
                         // Stored "Local" positions are always relative to the shooter and will remain true even if the shooter moves or rotates.
@@ -423,7 +423,7 @@ namespace ILOVEKEEN.Scripts
                         Forward = ForwardElevationDirection, // ForwardElevationDirection*, ForwardRelativeToBlock, ForwardRelativeToShooter, ForwardRelativeToGravity, ForwardTargetDirection, ForwardTargetVelocity, ForwardStoredStartPosition, ForwardStoredEndPosition, ForwardStoredStartLocalPosition, ForwardStoredEndLocalPosition, ForwardOriginDirection    
                         Up = UpRelativeToBlock, // UpRelativeToBlock*, UpRelativeToShooter, UpRelativeToGravity, UpTargetDirection, UpTargetVelocity, UpStoredStartPosition, UpStoredEndPosition, UpStoredStartLocalPosition, UpStoredEndLocalPosition, UpOriginDirection, UpElevationDirection
                         PositionB = Surface, // Origin*, Shooter, Target, Surface, MidPoint, PositionA, Nothing, StoredStartPosition, StoredEndPosition, StoredStartLocalPosition, StoredEndLocalPosition
-                        PositionC = StoredStartPosition, 
+                        PositionC = StoredStartPosition,
                         Elevation = Surface, 
                         
                         //
@@ -479,7 +479,7 @@ namespace ILOVEKEEN.Scripts
                         // Audio/Visual Section
                         AlternateParticle = new ParticleDef // if blank it will use default, must be a default version for this to be useable. 
                         {
-                            Name = "", 
+                            Name = "",
                             Offset = Vector(x: 0, y: 0, z: 0),
                             DisableCameraCulling = false,// If not true will not cull when not in view of camera, be careful with this and only use if you know you need it
                             Extras = new ParticleOptionDef
@@ -510,7 +510,8 @@ namespace ILOVEKEEN.Scripts
                     Cloak = false,
                     Persist = false,
                 },
-                OnHit = new OnHitDef {
+                OnHit = new OnHitDef
+                {
                 }
             },
             AmmoGraphics = new GraphicDef
@@ -604,7 +605,7 @@ namespace ILOVEKEEN.Scripts
                             Color = Color(red: 1, green: 2, blue: 2.5f, alpha: 1),
                             FactionColor = DontUse, // DontUse, Foreground, Background.
                             WidthMultiplier = 1f,
-                            Reverse = false, 
+                            Reverse = false,
                             UseLineVariance = true,
                             WidthVariance = Random(start: 0f, end: 0f),
                             ColorVariance = Random(start: 0f, end: 0f)
@@ -658,96 +659,6 @@ namespace ILOVEKEEN.Scripts
                     Delay = 0, // delay in ticks after shot before ejected
                 }
             }, // Don't edit below this line
-        };
-
-      
-
- private AmmoDef AmmoType2 => new AmmoDef // Your ID, for slotting into the Weapon CS --- This ammo has been stripped to a minimal config as an example
-        {
-            AmmoMagazine = "Energy", 
-            AmmoRound = "Ammo 2", 
-            HybridRound = false, 
-            EnergyCost = 0.1f, 
-            BaseDamage = 111f, 
-            Health = 1,
-            HardPointUsable = true, 
-            EnergyMagazineSize = 1, 
-
-            AreaOfDamage = new AreaOfDamageDef
-            {
-                EndOfLife = new EndOfLifeDef
-                {
-                    Enable = true,
-                    Radius = 5f, 
-                    Damage = 5f,
-                    Depth = 1f,
-                    MaxAbsorb = 0f,
-                    Falloff = Squeeze, 
-                    MinArmingTime = 100, 
-                    ParticleScale = 1,
-                    CustomParticle = "particleName",
-                    CustomSound = "soundName", 
-                }, 
-            },
-            Trajectory = new TrajectoryDef
-            {
-                Guidance = None, 
-                TargetLossDegree = 80f, 
-                MaxLifeTime = 1200, 
-                AccelPerSec = 120f, 
-                DesiredSpeed = 600, 
-                MaxTrajectory = 1000f, 
-                TotalAcceleration = 1234.5,
-            },
-            AmmoGraphics = new GraphicDef
-            {
-                ModelName = "", 
-                VisualProbability = 1f,
-                ShieldHitDraw = false,
-                Particles = new AmmoParticleDef
-                {
-                    Hit = new ParticleDef
-                    {
-                    },
-                },
-                Lines = new LineDef
-                {
-                    ColorVariance = Random(start: 0.75f, end: 2f),
-                    WidthVariance = Random(start: 0f, end: 0f), 
-                    Tracer = new TracerBaseDef
-                    {
-                        Enable = true,
-                        Length = 5f, //
-                        Width = 0.1f, //
-                        Color = Color(red: 3, green: 2, blue: 1f, alpha: 1), 
-                        VisualFadeStart = 0, 
-                        VisualFadeEnd = 0, 
-                        Textures = new[] {
-                            "WeaponLaser", 
-                        },
-                        TextureMode = Normal, 
-                    },
-                    Trail = new TrailDef
-                    {
-                        Enable = true,
-                        Textures = new[] {
-                            "WeaponLaser", 
-                        },
-                        TextureMode = Normal,
-                        DecayTime = 3, 
-                        Color = Color(red: 0, green: 0, blue: 1, alpha: 1),
-                        Back = false,
-                        CustomWidth = 0,
-                        UseWidthVariance = false,
-                        UseColorFade = true,
-                    },
-                },
-            },
-            AmmoAudio = new AmmoAudioDef
-            {
-                HitPlayChance = 0.5f,
-                HitPlayShield = true,
-            },
         };
     }
 }
