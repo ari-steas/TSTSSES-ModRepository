@@ -32,8 +32,6 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void Update()
         {
-            MyAPIGateway.Utilities.ShowNotification("" + WeaponPartManager.Instance.wAPI.GetAreaRadiusMultiplier((MyEntity)basePart.block.FatBlock), 1000/60);
-
             if (WeaponPartManager.Instance.DebugMode)
             {
                 foreach (var part in componentParts)

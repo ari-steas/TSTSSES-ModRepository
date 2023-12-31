@@ -69,15 +69,9 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
                 else
                 {
                     MyEntity basePart = ModularAPI.GetBasePart(PhysicalWeaponId);
-                    if (!Example_ScanArm(BlockEntity, null, basePart))
-                    {
-                        //MyAPIGateway.Utilities.ShowNotification("Fail | StopHits: " + StopHits);
-                        Example_BufferArm.Clear();
-                        StopHits = 0;
-                        return;
-                    }
-
-                    Example_ValidArms[PhysicalWeaponId].Add(Example_BufferArm.ToArray());
+                    if (Example_ScanArm(BlockEntity, null, basePart))
+                        Example_ValidArms[PhysicalWeaponId].Add(Example_BufferArm.ToArray());
+                    
                     Example_BufferArm.Clear();
                     StopHits = 0;
                 }
@@ -86,7 +80,8 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
                 float velocityMult = Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f;
 
                 WcAPI.SetVelocityMultiplier(basePartEntity, velocityMult);
-                WcAPI.SetFiringAllowed(basePartEntity, velocityMult * 500 < 1);
+                WcAPI.SetFiringAllowed(basePartEntity, velocityMult > 0);
+                MyAPIGateway.Utilities.SendMessage("" + WcAPI.GetFiringAllowed(basePartEntity));
 
                 if (ModularAPI.IsDebug())
                     MyAPIGateway.Utilities.ShowNotification("Pass: Arms: " + Example_ValidArms[PhysicalWeaponId].Count + " (Size " + Example_ValidArms[PhysicalWeaponId][Example_ValidArms[PhysicalWeaponId].Count - 1].Length + ")");
@@ -114,7 +109,8 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
                         float velocityMult = Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f;
 
                         WcAPI.SetVelocityMultiplier(basePartEntity, velocityMult);
-                        WcAPI.SetFiringAllowed(basePartEntity, velocityMult * 500 < 1);
+                        WcAPI.SetFiringAllowed(basePartEntity, velocityMult > 0);
+                        MyAPIGateway.Utilities.SendMessage("" + WcAPI.GetFiringAllowed(basePartEntity));
                     }
 
                     if (ModularAPI.IsDebug())
