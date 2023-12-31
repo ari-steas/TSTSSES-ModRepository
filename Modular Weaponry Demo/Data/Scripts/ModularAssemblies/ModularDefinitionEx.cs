@@ -9,6 +9,8 @@ using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 using static Scripts.ModularAssemblies.Communication.DefinitionDefs;
+using VRage.ModAPI;
+using Sandbox.Game;
 
 namespace Scripts.ModularAssemblies.Communication
 {
@@ -113,6 +115,8 @@ namespace Scripts.ModularAssemblies.Communication
                         UpdatePower(PhysicalAssemblyId);
                     }
 
+                    //MyAPIGateway.Utilities.SendMessage("/stop");
+
                     if (ModularAPI.IsDebug())
                         MyAPIGateway.Utilities.ShowNotification("Remove: Arms: " + Example_ValidArms[PhysicalAssemblyId].Count);
                 }
@@ -125,6 +129,8 @@ namespace Scripts.ModularAssemblies.Communication
                 MyLog.Default.WriteLineAndConsole($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
             },
 
+            BaseBlock = "Caster_FocusLens",
+
             AllowedBlocks = new string[]
             {
                 "Caster_FocusLens",
@@ -132,34 +138,40 @@ namespace Scripts.ModularAssemblies.Communication
                 "Caster_Accelerator_90",
             },
 
-            AllowedConnections = new Dictionary<string, Vector3I[]>
+            AllowedConnections = new Dictionary<string, Dictionary<Vector3I, string[]>>
             {
                 {
-                    "Caster_FocusLens", new Vector3I[]
+                    "Caster_FocusLens", new Dictionary<Vector3I, string[]>
                     {
-                        new Vector3I(1, 0, 2),
-                        new Vector3I(-1, 0, 2),
-                        new Vector3I(0, 1, 2),
-                        new Vector3I(0, -1, 2),
+                        { new Vector3I(1, 0, 2), new string[] {
+                            "Caster_Accelerator_0"
+                        }},
+                        { new Vector3I(-1, 0, 2), new string[] {
+                            "Caster_Accelerator_0"
+                        }},
+                        { new Vector3I(0, 1, 2), new string[] {
+                            "Caster_Accelerator_0"
+                        }},
+                        { new Vector3I(0, -1, 2), new string[] {
+                            "Caster_Accelerator_0"
+                        }},
                     }
                 },
                 {
-                    "Caster_Accelerator_0", new Vector3I[]
+                    "Caster_Accelerator_0", new Dictionary<Vector3I, string[]>
                     {
-                        Vector3I.Forward,
-                        Vector3I.Backward,
+                        { Vector3I.Forward, new string[0] },
+                        { Vector3I.Backward, new string[0] },
                     }
                 },
                 {
-                    "Caster_Accelerator_90", new Vector3I[]
+                    "Caster_Accelerator_90", new Dictionary<Vector3I, string[]>
                     {
-                        Vector3I.Forward,
-                        Vector3I.Right,
+                        { Vector3I.Forward, new string[0] },
+                        { Vector3I.Right, new string[0] },
                     }
                 },
             },
-
-            BaseBlock = "Caster_FocusLens",
         };
     }
 }

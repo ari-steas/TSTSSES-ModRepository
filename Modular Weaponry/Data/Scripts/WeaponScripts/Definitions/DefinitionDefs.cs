@@ -22,7 +22,7 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
         {
             [ProtoMember(1)] public string Name { get; set; }
             [ProtoMember(2)] public string[] AllowedBlocks { get; set; }
-            [ProtoMember(3)] public Dictionary<string, Vector3I[]> AllowedConnections { get; set; }
+            [ProtoMember(3)] public Dictionary<string, Dictionary<Vector3I, string[]>> AllowedConnections { get; set; }
             [ProtoMember(4)] public string BaseBlock { get; set; }
         }
 

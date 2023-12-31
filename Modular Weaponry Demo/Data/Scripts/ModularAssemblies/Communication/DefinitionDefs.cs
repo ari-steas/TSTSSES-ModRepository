@@ -52,9 +52,9 @@ namespace Scripts.ModularAssemblies.Communication
             [ProtoMember(2)] public string[] AllowedBlocks { get; set; }
 
             /// <summary>
-            /// Allowed connection directions. Measured in blocks.
+            /// Allowed connection directions. Measured in blocks. If an allowed SubtypeId is not included here, connections are allowed on all sides. If the connection type whitelist is empty, all allowed subtypes may connect on that side.
             /// </summary>
-            [ProtoMember(3)] public Dictionary<string, Vector3I[]> AllowedConnections { get; set; }
+            [ProtoMember(3)] public Dictionary<string, Dictionary<Vector3I, string[]>> AllowedConnections { get; set; }
 
             /// <summary>
             /// The primary block of a PhysicalAssembly. Make sure this is a Assemblycore block.

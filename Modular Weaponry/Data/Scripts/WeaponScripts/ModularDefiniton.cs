@@ -1,4 +1,5 @@
 ﻿using Modular_Assemblies.Data.Scripts.AssemblyScripts.DebugDraw;
+using System;
 using System.Collections.Generic;
 using VRage.Game.ModAPI;
 using VRage.Utils;
@@ -12,7 +13,7 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts
 
         public string[] AllowedBlocks = null;
 
-        public Dictionary<string, Vector3I[]> AllowedConnections = null;
+        public Dictionary<string, Dictionary<Vector3I, string[]>> AllowedConnections = null;
 
         public string BaseBlockSubtype = null;
         public string Name = null;
@@ -58,9 +59,12 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts
 
             if (AllowedConnections.ContainsKey(block.BlockDefinition.Id.SubtypeName))
             {
-                foreach (Vector3I allowedPos in AllowedConnections[block.BlockDefinition.Id.SubtypeName])
+                foreach (var allowedPosKvp in AllowedConnections[block.BlockDefinition.Id.SubtypeName])
                 {
-                    Vector3I offsetAllowedPos = (Vector3I)Vector3D.Rotate((Vector3D)allowedPos, localOrientation) + block.Position;
+                    if (!(allowedPosKvp.Value?.Contains(adajent.BlockDefinition.Id.SubtypeName) ?? true))
+                        continue;
+
+                    Vector3I offsetAllowedPos = (Vector3I)Vector3D.Rotate((Vector3D)allowedPosKvp.Key, localOrientation) + block.Position;
 
                     if (offsetAllowedPos.IsInsideInclusiveEnd(adajent.Min, adajent.Max))
                     {
