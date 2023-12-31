@@ -25,10 +25,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             if ((o as string) == "ApiEndpointRequest")
             {
                 MyAPIGateway.Utilities.SendModMessage(Channel, _apiDefinitions);
-                MyLog.Default.WriteLine("ModularWeaponry: ModularDefinitionsAPI start load.");
+                MyLog.Default.WriteLineAndConsole("ModularWeaponry: ModularDefinitionsAPI start load.");
             }
             else
-                MyLog.Default.WriteLine($"ModularWeaponry: ModularDefinitionsAPI ignored message {o as string}.");
+                MyLog.Default.WriteLineAndConsole($"ModularWeaponry: ModularDefinitionsAPI ignored message {o as string}.");
         }
 
         /// <summary>
@@ -36,6 +36,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
         /// </summary>
         public override void LoadData()
         {
+            // Should not run on clients.
+            if (!MyAPIGateway.Multiplayer.IsServer)
+                return;
+
             MyAPIGateway.Utilities.RegisterMessageHandler(Channel, HandleMessage);
 
             IsReady = true;
@@ -45,9 +49,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             }
             catch (Exception ex)
             {
-                MyLog.Default.WriteLine($"Exception in Api Load: {ex}"); 
+                MyLog.Default.WriteLineAndConsole($"Exception in Api Load: {ex}"); 
             }
-            MyLog.Default.WriteLine("ModularWeaponry: ModularDefinitionsAPI inited.");
+            MyLog.Default.WriteLineAndConsole("ModularWeaponry: ModularDefinitionsAPI inited.");
         }
 
 
@@ -61,7 +65,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             IsReady = false;
             MyAPIGateway.Utilities.SendModMessage(Channel, new Dictionary<string, Delegate>());
 
-            MyLog.Default.WriteLine("ModularWeaponry: ModularDefinitionsAPI unloaded.");
+            MyLog.Default.WriteLineAndConsole("ModularWeaponry: ModularDefinitionsAPI unloaded.");
         }
     }
 }

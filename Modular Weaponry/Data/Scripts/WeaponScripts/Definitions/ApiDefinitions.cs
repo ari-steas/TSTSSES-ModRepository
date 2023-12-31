@@ -22,7 +22,13 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 ["GetMemberParts"] = new Func<int, MyEntity[]>(GetMemberParts),
                 ["GetConnectedBlocks"] = new Func<MyEntity, bool, MyEntity[]>(GetConnectedBlocks),
                 ["GetBasePart"] = new Func<int, MyEntity>(GetBasePart),
+                ["IsDebug"] = new Func<bool>(IsDebug),
             };
+        }
+
+        private bool IsDebug()
+        {
+            return WeaponPartManager.Instance.DebugMode;
         }
 
         private MyEntity[] GetAllParts()

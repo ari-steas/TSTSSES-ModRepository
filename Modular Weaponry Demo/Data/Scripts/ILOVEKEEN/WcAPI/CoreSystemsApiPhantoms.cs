@@ -57,6 +57,7 @@ namespace CoreSystems.Api
         /// <param name="weapon"></param>
         /// <param name="quanity"></param>
         internal void AddMagazines(MyEntity phantom, int weapon, long quanity) => _addMagazines?.Invoke(phantom, weapon, quanity);
+
         /// <summary>
         /// Set/switch ammo
         /// </summary>
@@ -64,6 +65,7 @@ namespace CoreSystems.Api
         /// <param name="weapon"></param>
         /// <param name="ammoName"></param>
         internal void SetAmmo(MyEntity phantom, int weapon, string ammoName) => _setAmmo?.Invoke(phantom, weapon, ammoName);
+
         /// <summary>
         /// Close phantoms, required for phantoms that do not auto close
         /// </summary>

@@ -42,10 +42,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 memberWeapon = new PhysicalWeapon(WeaponPartManager.Instance.CreatedPhysicalWeapons, this, WeaponDefinition);
             }
             else
-                WeaponPartManager.Instance.QueuedConnectionChecks.Add(this);
+                WeaponPartManager.Instance.QueueConnectionCheck(this);
         }
 
-        public void CheckForExistingWeapon()
+        public int prevWeaponId = -1;
+        public void CheckForExistingWeapon(bool isRefresh = false)
         {
             // You can't have two baseblocks per weapon
             //if (WeaponDefinition.BaseBlockSubtype != block.BlockDefinition.Id.SubtypeName)
@@ -58,7 +59,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             {
                 if (nBlockPart.memberWeapon == null)
                     continue;
-                nBlockPart.memberWeapon.AddPart(this, memberWeapon != nBlockPart.memberWeapon);
+                nBlockPart.memberWeapon.AddPart(this);
                 break;
             }
 
@@ -77,7 +78,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
                 if (nBlockPart.memberWeapon == null)
                 {
-                    WeaponPartManager.Instance.QueuedConnectionChecks.Add(nBlockPart);
+                    WeaponPartManager.Instance.QueueConnectionCheck(nBlockPart);
                     //MyAPIGateway.Utilities.ShowNotification("Forced a weapon join");
                 }
                 //else if (nBlockPart.memberWeapon != memberWeapon)

@@ -36,9 +36,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             {
                 foreach (var part in componentParts)
                 {
-                    DebugDrawManager.Instance.AddGridPoint(part.block.Position, part.block.CubeGrid, color, 0f);
+                    DebugDrawManager.AddGridPoint(part.block.Position, part.block.CubeGrid, color, 0f);
                     foreach (var conPart in part.connectedParts)
-                        DebugDrawManager.Instance.AddLine(DebugDrawManager.GridToGlobal(part.block.Position, part.block.CubeGrid), DebugDrawManager.GridToGlobal(conPart.block.Position, part.block.CubeGrid), color, 0f);
+                        DebugDrawManager.AddLine(DebugDrawManager.GridToGlobal(part.block.Position, part.block.CubeGrid), DebugDrawManager.GridToGlobal(conPart.block.Position, part.block.CubeGrid), color, 0f);
                 }
                 MyAPIGateway.Utilities.ShowNotification(id + " PW Parts: " + componentParts.Count, 1000 / 60);
             }
@@ -70,12 +70,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 }
                 catch
                 {
-                    MyAPIGateway.Utilities.SendMessage($"Error in registering projectile callback!\nDefinition: {WeaponDefinition.Name}\nBasePart: {basePart.block.BlockDefinition.Id.SubtypeName}");
+                    MyAPIGateway.Utilities.SendMessage($"Modular Weaponry: Error in registering projectile callback!\nDefinition: {WeaponDefinition.Name}\nBasePart: {basePart.block.BlockDefinition.Id.SubtypeName}");
                 }
             }
 
             AddPart(basePart);
-            WeaponPartManager.Instance.QueuedWeaponChecks.Add(basePart, this);
+            WeaponPartManager.Instance.QueueWeaponCheck(basePart, this);
         }
 
         public void ProjectileCallback(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition, bool projectileExists)
@@ -86,21 +86,22 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
         public void UpdateProjectile(ulong projectileId, MyTuple<bool, Vector3D, Vector3D, float> projectileData)
         {
-            WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
+            //WeaponPartManager.Instance.wAPI.SetProjectileState(projectileId, projectileData);
+
+            // TODO kil
+            MyLog.Default.WriteLineAndConsole($"OnShoot ActualVel = {WeaponPartManager.Instance.wAPI.GetProjectileState(projectileId).Item2.Length()}");
         }
 
-        public void AddPart(WeaponPart part, bool triggerDefinition = true)
+        public void AddPart(WeaponPart part)
         {
             if (componentParts.Contains(part))
-            {
                 componentParts.Remove(part);
-                triggerDefinition = false;
-            }
 
             componentParts.Add(part);
             part.memberWeapon = this;
-            if (triggerDefinition)
+            if (part.prevWeaponId != id)
                 DefinitionHandler.Instance.SendOnPartAdd(WeaponDefinition.Name, id, part.block.FatBlock.EntityId, part == basePart);
+            part.prevWeaponId = id;
         }
 
         /// <summary>
@@ -161,8 +162,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
                 if (WeaponPartManager.Instance.DebugMode)
                     MyAPIGateway.Utilities.ShowNotification("Recreating connections...");
-                WeaponPartManager.Instance.QueuedConnectionChecks.Add(basePart);
-                WeaponPartManager.Instance.QueuedWeaponChecks.Add(basePart, this);
+                WeaponPartManager.Instance.QueueConnectionCheck(basePart);
+                WeaponPartManager.Instance.QueueWeaponCheck(basePart, this);
 
                 return;
             }
@@ -190,7 +191,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 return;
             part.memberWeapon = null;
             part.connectedParts.Clear();
-            WeaponPartManager.Instance.QueuedConnectionChecks.Add(part);
+            WeaponPartManager.Instance.QueueConnectionCheck(part);
         }
 
         public void Close()
@@ -209,7 +210,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public void RecursiveWeaponChecker(WeaponPart currentBlock)
         {
             // Safety check
-            if (currentBlock == null || currentBlock.block == null) return;
+            if (currentBlock == null || currentBlock.block == null || componentParts == null) return;
 
             // TODO split between threads/ticks
             currentBlock.memberWeapon = this;
@@ -231,15 +232,15 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                         // Avoid double-including blocks
                         if (componentParts.Contains(neighborPart))
                         {
-                            //MyLog.Default.WriteLine("ModularWeapons: Skip part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
+                            //MyLog.Default.WriteLineAndConsole("ModularWeapons: Skip part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
                             continue;
                         }
 
-                        //MyLog.Default.WriteLine("ModularWeapons: Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
+                        //MyLog.Default.WriteLineAndConsole("ModularWeapons: Add part " + neighbor.BlockDefinition.Id.SubtypeName + " @ " + neighbor.Position);
 
                         componentParts.Add(neighborPart);
-                        WeaponPartManager.Instance.QueuedConnectionChecks.Add(neighborPart);
-                        WeaponPartManager.Instance.QueuedWeaponChecks.Add(neighborPart, this);
+                        WeaponPartManager.Instance.QueueConnectionCheck(neighborPart);
+                        WeaponPartManager.Instance.QueueWeaponCheck(neighborPart, this);
                     }
                 }
             }

@@ -16,6 +16,7 @@
 			<Model>Models\Caster_FocusLens.mwm</Model>
 			<Components>
 				<Component Subtype="SteelPlate" Count="10"/>
+				<Component Subtype="Computer" Count="10"/>
 			</Components>
 			<CriticalComponent Subtype="SteelPlate" Index="0"/>
 			<MountPoints>

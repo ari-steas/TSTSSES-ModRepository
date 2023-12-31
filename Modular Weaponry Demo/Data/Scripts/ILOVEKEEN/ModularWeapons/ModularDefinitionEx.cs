@@ -1,54 +1,135 @@
-﻿using CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication;
+﻿using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
+using Sandbox.ModAPI;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using VRage;
+using VRage.Game.Entity;
+using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 using static Scripts.ILOVEKEEN.ModularWeaponry.Communication.DefinitionDefs;
 
 namespace ILOVEKEEN.Scripts.ModularWeaponry
 {
-    /* Hey modders!
-     * 
-     * This is a bit of a mess, so please bear with me. Ping [@aristeas.] on discord if you have any questions, comments, or concers.
-     * https://discord.com/invite/kssCqSmbYZ
-     * 
-     * This mod behaves kind of like Weaponcore. Kind of. Definitions are declared in a similar manner, with an example below.
-     * What makes this mod unique (other than the modular stuff) is that you're supposed to run code in it. It will not function well otherwise.
-     * 
-     * I tried my best to document stuff, most of it will be in DefinitionAPI.cs
-     *   - You can also hover over variables in most IDEs for a description.
-     * You have access to ModularAPI and WcAPI; ModularAPI handles stuff like GetMemberParts for modular weapons, whereas WcAPI is your bog-standard Weaponcore ModAPI.
-     * If you need logic to run in a MySessionComponent, you can init the ModularAPI via LoadData() and UnloadData().
-     * 
-     * As for file structure, DON'T TOUCH ANYTHING IN Scripts.ILOVEKEEN.ModularWeapons OTHER THAN DEFINITIONS. It is all important.
-     * 
-     * Good luck, and happy modularizing!
-     */
 
     partial class ModularDefinition
     {
-        PhysicalDefinition ModularDefinitionEx => new PhysicalDefinition
+        // You can declare functions in here, and they are shared between all other ModularDefinition files.
+        private Dictionary<int, List<MyEntity[]>> Example_ValidArms = new Dictionary<int, List<MyEntity[]>>();
+        private List<MyEntity> Example_BufferArm = new List<MyEntity>();
+        private int StopHits = 0;
+
+        private int GetNumBlocksInArm(int PhysicalWeaponId)
         {
-            Name = "ModularDefinitionEx",
+            int total = 0;
 
-            OnPartAdd = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
+            foreach (var arm in Example_ValidArms[PhysicalWeaponId])
+                total += arm.Length;
+
+            return total;
+        }
+        private bool Example_ScanArm(MyEntity blockEntity, MyEntity prevScan, MyEntity StopAt)
+        {
+            if (ModularAPI.IsDebug())
+                DebugDrawManager.AddGridPoint(((IMyCubeBlock)blockEntity).Position, ((IMyCubeBlock)blockEntity).CubeGrid, Color.Blue, 2);
+            Example_BufferArm.Add(blockEntity);
+
+            MyEntity[] connectedBlocks = ModularAPI.GetConnectedBlocks(blockEntity, false);
+
+            foreach (var connectedBlock in connectedBlocks)
             {
-                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartAdd {IsBaseBlock}.");
-                MyLog.Default.WriteLine($"\nPartCount: {ModularAPI.GetAllParts().Length}\nWeaponCount: {ModularAPI.GetAllWeapons().Length}\nThisPartCount: {ModularAPI.GetMemberParts(PhysicalWeaponId).Length}\nConnectedBlocks: {ModularAPI.GetConnectedBlocks(ModularAPI.GetBasePart(PhysicalWeaponId), true).Length}");
+                if (connectedBlock == StopAt)
+                    StopHits++;
+
+                if (connectedBlock != prevScan && connectedBlock != StopAt)
+                {
+                    Example_ScanArm(connectedBlock, blockEntity, StopAt);
+                }
+            }
+
+            return StopHits == 2;
+        }
+
+        // This is the important bit.
+        PhysicalDefinition ModularDefinitionExample => new PhysicalDefinition
+        {
+            Name = "ModularDefinitionExample",
+
+            OnPartAdd = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
+            {
+                if (!Example_ValidArms.ContainsKey(PhysicalWeaponId))
+                    Example_ValidArms.Add(PhysicalWeaponId, new List<MyEntity[]>());
+
+                // Scan for 'arms' connected on both ends to the basepart.
+                if (IsBaseBlock)
+                {
+                    
+                }
+                else
+                {
+                    MyEntity basePart = ModularAPI.GetBasePart(PhysicalWeaponId);
+                    if (Example_ScanArm(BlockEntity, null, basePart))
+                        Example_ValidArms[PhysicalWeaponId].Add(Example_BufferArm.ToArray());
+                    
+                    Example_BufferArm.Clear();
+                    StopHits = 0;
+                }
+
+                MyEntity basePartEntity = ModularAPI.GetBasePart(PhysicalWeaponId);
+                float velocityMult = Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f;
+
+                WcAPI.SetVelocityMultiplier(basePartEntity, velocityMult);
+                WcAPI.SetFiringAllowed(basePartEntity, velocityMult > 0);
+                MyAPIGateway.Utilities.SendMessage("" + WcAPI.GetFiringAllowed(basePartEntity));
+
+                if (ModularAPI.IsDebug())
+                    MyAPIGateway.Utilities.ShowNotification("Pass: Arms: " + Example_ValidArms[PhysicalWeaponId].Count + " (Size " + Example_ValidArms[PhysicalWeaponId][Example_ValidArms[PhysicalWeaponId].Count - 1].Length + ")");
             },
 
-            OnPartRemove = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
+            OnPartRemove = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
-                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartRemove {IsBaseBlock}");
+                // Remove if the connection is broken.
+                if (!IsBaseBlock)
+                {
+                    MyEntity[] armToRemove = null;
+                    foreach (var arm in Example_ValidArms[PhysicalWeaponId])
+                    {
+                        if (arm.Contains(BlockEntity))
+                        {
+                            armToRemove = arm;
+                            break;
+                        }
+                    }
+                    if (armToRemove != null)
+                    {
+                        Example_ValidArms[PhysicalWeaponId].Remove(armToRemove);
+
+                        MyEntity basePartEntity = ModularAPI.GetBasePart(PhysicalWeaponId);
+                        float velocityMult = Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f;
+
+                        WcAPI.SetVelocityMultiplier(basePartEntity, velocityMult);
+                        WcAPI.SetFiringAllowed(basePartEntity, velocityMult > 0);
+                        MyAPIGateway.Utilities.SendMessage("" + WcAPI.GetFiringAllowed(basePartEntity));
+                    }
+
+                    if (ModularAPI.IsDebug())
+                        MyAPIGateway.Utilities.ShowNotification("Remove: Arms: " + Example_ValidArms[PhysicalWeaponId].Count);
+                }
+                else
+                    Example_ValidArms.Remove(PhysicalWeaponId);
             },
 
-            OnPartDestroy = (int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock) =>
+            OnPartDestroy = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
-                MyLog.Default.WriteLine($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
+                MyLog.Default.WriteLineAndConsole($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
             },
 
             OnShoot = (int PhysicalWeaponId, long FirerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition) => {
-                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, ModularAPI.OffsetProjectileVelocity(1, projectileId, FirerEntityId), 0);
+                float newSpeed = 500 * (Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f);
+                MyLog.Default.WriteLineAndConsole($"OnShoot NewVel = {newSpeed}");
+
+                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, Vector3D.Zero, 0);
             },
 
             AllowedBlocks = new string[]

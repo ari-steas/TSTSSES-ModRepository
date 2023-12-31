@@ -38,27 +38,45 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         public Dictionary<int, PhysicalWeapon> AllPhysicalWeapons = new Dictionary<int, PhysicalWeapon>();
         public int CreatedPhysicalWeapons = 0;
 
-        public List<IMySlimBlock> QueuedBlockAdds = new List<IMySlimBlock>();
-        public List<WeaponPart> QueuedConnectionChecks = new List<WeaponPart>();
-        public Dictionary<WeaponPart, PhysicalWeapon> QueuedWeaponChecks = new Dictionary<WeaponPart, PhysicalWeapon>();
+        private List<IMySlimBlock> QueuedBlockAdds = new List<IMySlimBlock>();
+        private List<WeaponPart> QueuedConnectionChecks = new List<WeaponPart>();
+        private Dictionary<WeaponPart, PhysicalWeapon> QueuedWeaponChecks = new Dictionary<WeaponPart, PhysicalWeapon>();
+
+        public void QueueBlockAdd(IMySlimBlock block) => QueuedBlockAdds.Add(block);
+        public void QueueConnectionCheck(WeaponPart part)
+        {
+            if (!QueuedConnectionChecks.Contains(part))
+                QueuedConnectionChecks.Add(part);
+        }
+        public void QueueWeaponCheck(WeaponPart part, PhysicalWeapon weapon)
+        {
+            if (!QueuedWeaponChecks.ContainsKey(part))
+                QueuedWeaponChecks.Add(part, weapon);
+        }
 
         public WcApi wAPI = new WcApi();
 
         public override void LoadData()
         {
-            Instance = this;
-
-            if (MyAPIGateway.Session.IsServer)
+            if (!MyAPIGateway.Multiplayer.MultiplayerActive)
             {
+                MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Run !mwhelp for commands");
                 MyAPIGateway.Utilities.MessageEnteredSender += ChatCommandHandler;
             }
             else
-                MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Run !mwhelp for commands");
+                MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Commands disabled, load into a singleplayer world for testing.");
+
+            MyLog.Default.WriteLineAndConsole("Modular Weaponry: WeaponPartManager loading...");
+
+            Instance = this;
+            wAPI.Load();
+
+            // None of this should run on client.
+            if (!MyAPIGateway.Multiplayer.IsServer)
+                return;
 
             MyAPIGateway.Entities.OnEntityAdd += OnGridAdd;
             MyAPIGateway.Entities.OnEntityRemove += OnGridRemove;
-
-            wAPI.Load();
         }
 
         private void ChatCommandHandler(ulong sender, string messageText, ref bool sendToOthers)
@@ -83,15 +101,21 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         protected override void UnloadData()
         {
             Instance = null; // important for avoiding this object to remain allocated in memory
+            wAPI.Unload();
+
+            // None of this should run on client.
+            if (!MyAPIGateway.Multiplayer.IsServer)
+                return;
+
+            MyLog.Default.WriteLineAndConsole("Modular Weaponry: WeaponPartManager closing...");
+
             MyAPIGateway.Entities.OnEntityAdd -= OnGridAdd;
             MyAPIGateway.Entities.OnEntityRemove -= OnGridRemove;
 
-            if (MyAPIGateway.Utilities.IsDedicated)
+            if (!MyAPIGateway.Multiplayer.MultiplayerActive)
             {
                 MyAPIGateway.Utilities.MessageEnteredSender -= ChatCommandHandler;
             }
-
-            wAPI.Unload();
         }
 
         public override void UpdateAfterSimulation()
