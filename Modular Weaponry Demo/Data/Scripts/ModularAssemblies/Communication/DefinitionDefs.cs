@@ -1,9 +1,7 @@
 ﻿using ProtoBuf;
 using System;
 using System.Collections.Generic;
-using VRage;
 using VRage.Game.Entity;
-using VRage.ModAPI;
 using VRageMath;
 
 namespace Scripts.ModularAssemblies.Communication

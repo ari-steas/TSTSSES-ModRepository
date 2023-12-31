@@ -55,9 +55,10 @@ namespace Scripts.ModularAssemblies.Communication
         {
             IMyReactor basePart = (IMyReactor) ModularAPI.GetBasePart(PhysicalAssemblyId);
 
-            int desiredPower = Example_ValidArms[PhysicalAssemblyId].Count * GetNumBlocksInArm(PhysicalAssemblyId);
+            float desiredPower = Example_ValidArms[PhysicalAssemblyId].Count * GetNumBlocksInArm(PhysicalAssemblyId);
 
-            basePart.PowerOutputMultiplier = basePart.MaxOutput;
+            basePart.PowerOutputMultiplier = desiredPower / (basePart.MaxOutput / basePart.PowerOutputMultiplier);
+            MyAPIGateway.Utilities.ShowMessage("MW", "" + basePart.PowerOutputMultiplier);
         }
 
         // This is the important bit.
@@ -85,8 +86,7 @@ namespace Scripts.ModularAssemblies.Communication
                     StopHits = 0;
                 }
 
-                MyEntity basePartEntity = ModularAPI.GetBasePart(PhysicalAssemblyId);
-                float velocityMult = Example_ValidArms[PhysicalAssemblyId].Count * GetNumBlocksInArm(PhysicalAssemblyId) / 50f;
+                UpdatePower(PhysicalAssemblyId);
 
                 if (ModularAPI.IsDebug())
                     MyAPIGateway.Utilities.ShowNotification("Pass: Arms: " + Example_ValidArms[PhysicalAssemblyId].Count + " (Size " + Example_ValidArms[PhysicalAssemblyId][Example_ValidArms[PhysicalAssemblyId].Count - 1].Length + ")");
@@ -110,8 +110,7 @@ namespace Scripts.ModularAssemblies.Communication
                     {
                         Example_ValidArms[PhysicalAssemblyId].Remove(armToRemove);
 
-                        MyEntity basePartEntity = ModularAPI.GetBasePart(PhysicalAssemblyId);
-                        float velocityMult = Example_ValidArms[PhysicalAssemblyId].Count * GetNumBlocksInArm(PhysicalAssemblyId) / 50f;
+                        UpdatePower(PhysicalAssemblyId);
                     }
 
                     if (ModularAPI.IsDebug())
