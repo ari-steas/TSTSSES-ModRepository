@@ -10,7 +10,7 @@ using VRage.Utils;
 using VRageMath;
 using static VRageRender.MyBillboard;
 
-namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
+namespace Scripts.ModularAssemblies.DebugDraw
 {
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class DebugDrawManager : MySessionComponentBase
@@ -115,7 +115,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
         {
             //MyTransparentGeometry.AddPointBillboard(MaterialDot, color, globalPos, 1.25f, 0, blendType: BlendTypeEnum.PostPP);
             float depthScale = ToAlwaysOnTop(ref globalPos);
-            MyTransparentGeometry.AddPointBillboard(MaterialDot, color * OnTopColorMul, globalPos, 1.25f*depthScale, 0, blendType: BlendTypeEnum.PostPP);
+            MyTransparentGeometry.AddPointBillboard(MaterialDot, color * OnTopColorMul, globalPos, 1.25f * depthScale, 0, blendType: BlendTypeEnum.PostPP);
         }
 
         private void DrawGridPoint0(Vector3I blockPos, IMyCubeGrid grid, Color color)
@@ -138,7 +138,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
 
         public static Vector3D GridToGlobal(Vector3I position, IMyCubeGrid grid)
         {
-            return Vector3D.Rotate(((Vector3D)position) * 2.5f, grid.WorldMatrix) + grid.GetPosition();
+            return Vector3D.Rotate((Vector3D)position * 2.5f, grid.WorldMatrix) + grid.GetPosition();
         }
 
         protected const float OnTopColorMul = 0.5f;
@@ -146,7 +146,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
         protected static float ToAlwaysOnTop(ref Vector3D position)
         {
             MatrixD camMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
-            position = camMatrix.Translation + ((position - camMatrix.Translation) * DepthRatioF);
+            position = camMatrix.Translation + (position - camMatrix.Translation) * DepthRatioF;
 
             return DepthRatioF;
         }

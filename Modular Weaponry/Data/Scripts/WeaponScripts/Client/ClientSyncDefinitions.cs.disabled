@@ -3,7 +3,7 @@ using VRage;
 using VRage.Game.Entity;
 using VRageMath;
 
-namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Client
+namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Client
 {
     internal class ClientSyncDefinitions
     {

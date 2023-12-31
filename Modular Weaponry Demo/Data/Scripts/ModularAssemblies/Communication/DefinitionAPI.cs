@@ -1,85 +1,16 @@
-﻿using CoreSystems.Api;
-using ILOVEKEEN.Scripts.ModularWeaponry;
-using Sandbox.ModAPI;
+﻿using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
-namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
+namespace Scripts.ModularAssemblies.Communication
 {
     public class ModularDefinitionAPI
     {
-        /// <summary>
-        /// Plug this into a WcAPI.SetProjectileState call. Returns the acceleration offset needed to set a projectile to a given relative speed.
-        /// </summary>
-        /// <param name="desiredSpeed"></param>
-        /// <param name="projectileId"></param>
-        /// <param name="blockId"></param>
-        /// <returns></returns>
-        public Vector3D OffsetProjectileVelocity(float desiredSpeed, ulong projectileId, long blockId)
-        {
-            IMyEntity entity = MyAPIGateway.Entities.GetEntityById(blockId);
-            if (entity is IMyCubeBlock)
-                return OffsetProjectileVelocity(desiredSpeed, projectileId, ((IMyCubeBlock)entity).CubeGrid);
-            return Vector3D.Zero;
-        }
-
-        /// <summary>
-        /// Plug this into a WcAPI.SetProjectileState call. Returns the acceleration offset needed to set a projectile to a given relative speed.
-        /// </summary>
-        /// <param name="desiredSpeed"></param>
-        /// <param name="projectileId"></param>
-        /// <param name="blockId"></param>
-        /// <returns></returns>
-        public Vector3D OffsetProjectileVelocity(float desiredSpeed, ulong projectileId, IMyCubeGrid grid)
-        {
-            Vector3D currentProjectileVelocity = ModularDefinition.WcAPI.GetProjectileState(projectileId).Item2;
-            Vector3D baseProjectileVelocity = currentProjectileVelocity - grid.LinearVelocity;
-
-            baseProjectileVelocity = baseProjectileVelocity.Normalized() * desiredSpeed;
-
-            return baseProjectileVelocity + grid.LinearVelocity - currentProjectileVelocity;
-        }
-
-        /// <summary>
-        /// Plug this into a WcAPI.SetProjectileState call. Returns the acceleration offset needed to multiply a projectile's relative speed.
-        /// </summary>
-        /// <param name="desiredSpeed"></param>
-        /// <param name="projectileId"></param>
-        /// <param name="blockId"></param>
-        /// <returns></returns>
-        public Vector3D MultiplyProjectileVelocity(float multiplier, ulong projectileId, long blockId)
-        {
-            IMyEntity entity = MyAPIGateway.Entities.GetEntityById(blockId);
-            if (entity is IMyCubeBlock)
-                return OffsetProjectileVelocity(multiplier, projectileId, ((IMyCubeBlock)entity).CubeGrid);
-            return Vector3D.Zero;
-        }
-
-        /// <summary>
-        /// Plug this into a WcAPI.SetProjectileState call. Returns the acceleration offset needed to multiply a projectile's relative speed.
-        /// </summary>
-        /// <param name="desiredSpeed"></param>
-        /// <param name="projectileId"></param>
-        /// <param name="blockId"></param>
-        /// <returns></returns>
-        public Vector3D MultiplyProjectileVelocity(float multiplier, ulong projectileId, IMyCubeGrid grid)
-        {
-            Vector3D currentProjectileVelocity = ModularDefinition.WcAPI.GetProjectileState(projectileId).Item2;
-            Vector3D baseProjectileVelocity = currentProjectileVelocity - grid.LinearVelocity;
-
-            baseProjectileVelocity *= multiplier;
-
-            return baseProjectileVelocity + grid.LinearVelocity - currentProjectileVelocity;
-        }
-
         /// <summary>
         /// Returns the IMyCubeGrid of a given IMyCubeBlock's EntityId.
         /// </summary>
@@ -93,29 +24,18 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
             return null;
         }
 
-        public MyEntity CreateWeaponPhantom(int PhysicalWeaponId)
-        {
-            IMyCubeBlock weapon = (IMyCubeBlock) GetBasePart(PhysicalWeaponId);
-            return ModularDefinition.WcAPI.SpawnPhantom(weapon.BlockDefinition.SubtypeId, parnet: (MyEntity) weapon);
-        }
-
-        public void FirePhantom(MyEntity phantom)
-        {
-            ModularDefinition.WcAPI.SetTriggerState(phantom, WcApi.TriggerActions.TriggerOnce);
-        }
-
 
         #region API calls
 
         private Func<MyEntity[]> _getAllParts;
-        private Func<int[]> _getAllWeapons;
+        private Func<int[]> _getAllAssemblies;
         private Func<int, MyEntity[]> _getMemberParts;
         private Func<MyEntity, bool, MyEntity[]> _getConnectedBlocks;
         private Func<int, MyEntity> _getBasePart;
         private Func<bool> _isDebug;
 
         /// <summary>
-        /// Gets all WeaponParts in the world. Returns an array of all WeaponParts.
+        /// Gets all AssemblyParts in the world. Returns an array of all AssemblyParts.
         /// </summary>
         public MyEntity[] GetAllParts()
         {
@@ -123,25 +43,25 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
         }
 
         /// <summary>
-        /// Gets all PhysicalWeapon ids in the world. Returns an empty list on fail.
+        /// Gets all PhysicalAssembly ids in the world. Returns an empty list on fail.
         /// <para>
-        /// Arg1 is weapon id
+        /// Arg1 is assembly id
         /// </para>
         /// </summary>
-        public int[] GetAllWeapons()
+        public int[] GetAllAssemblies()
         {
-            return _getAllWeapons?.Invoke();
+            return _getAllAssemblies?.Invoke();
         }
 
         /// <summary>
-        /// Gets all member parts of a weapon. Returns an empty list on fail.
+        /// Gets all member parts of a assembly. Returns an empty list on fail.
         /// <para>
         /// Arg1 is EntityId
         /// </para>
         /// </summary>
-        public MyEntity[] GetMemberParts(int weaponId)
+        public MyEntity[] GetMemberParts(int assemblyId)
         {
-            return _getMemberParts?.Invoke(weaponId);
+            return _getMemberParts?.Invoke(assemblyId);
         }
 
         /// <summary>
@@ -156,11 +76,11 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
         }
 
         /// <summary>
-        /// Gets the base part of a PhysicalWeapon. Returns null if weapon does not exist.
+        /// Gets the base part of a PhysicalAssembly. Returns null if assembly does not exist.
         /// </summary>
-        public MyEntity GetBasePart(int weaponId)
+        public MyEntity GetBasePart(int assemblyId)
         {
-            return _getBasePart?.Invoke(weaponId);
+            return _getBasePart?.Invoke(assemblyId);
         }
 
         /// <summary>
@@ -182,9 +102,9 @@ namespace CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication
 
         public void ApiAssign(IReadOnlyDictionary<string, Delegate> delegates)
         {
-            _apiInit = (delegates != null);
+            _apiInit = delegates != null;
             AssignMethod(delegates, "GetAllParts", ref _getAllParts);
-            AssignMethod(delegates, "GetAllWeapons", ref _getAllWeapons);
+            AssignMethod(delegates, "GetAllAssemblies", ref _getAllAssemblies);
             AssignMethod(delegates, "GetMemberParts", ref _getMemberParts);
             AssignMethod(delegates, "GetConnectedBlocks", ref _getConnectedBlocks);
             AssignMethod(delegates, "GetBasePart", ref _getBasePart);

@@ -8,9 +8,9 @@ using VRage;
 using VRage.Game.Components;
 using VRage.Utils;
 using VRageMath;
-using static Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions.DefinitionDefs;
+using static Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions.DefinitionDefs;
 
-namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
+namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
 {
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation | MyUpdateOrder.AfterSimulation | MyUpdateOrder.Simulation)]
     internal class DefinitionHandler : MySessionComponentBase
@@ -29,9 +29,9 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             if (!MyAPIGateway.Session.IsServer)
                 return;
 
-            MyLog.Default.WriteLineAndConsole("Modular Weaponry: DefinitionHandler loading...");
+            MyLog.Default.WriteLineAndConsole("Modular Assemblies: DefinitionHandler loading...");
 
-            MyLog.Default.WriteLineAndConsole("ModularWeapons: Init DefinitionHandler.cs");
+            MyLog.Default.WriteLineAndConsole("ModularAssemblies: Init DefinitionHandler.cs");
             MyAPIGateway.Utilities.RegisterMessageHandler(DefinitionMessageId, DefMessageHandler);
             MyAPIGateway.Utilities.RegisterMessageHandler(InboundMessageId, ActionMessageHandler);
             MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, true);
@@ -43,7 +43,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             if (!MyAPIGateway.Session.IsServer)
                 return;
 
-            MyLog.Default.WriteLineAndConsole("Modular Weaponry: DefinitionHandler closing...");
+            MyLog.Default.WriteLineAndConsole("Modular Assemblies: DefinitionHandler closing...");
 
             base.UnloadData();
             MyAPIGateway.Utilities.UnregisterMessageHandler(DefinitionMessageId, DefMessageHandler);
@@ -68,7 +68,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
                 if (baseDefArray != null)
                 {
-                    MyLog.Default.WriteLineAndConsole($"ModularWeapons: Recieved {baseDefArray.PhysicalDefs.Length} definitions.");
+                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Recieved {baseDefArray.PhysicalDefs.Length} definitions.");
                     foreach (var def in baseDefArray.PhysicalDefs)
                     {
                         ModularDefinition modDef = ModularDefinition.Load(def);
@@ -78,10 +78,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 }
                 else
                 {
-                    MyLog.Default.WriteLineAndConsole($"ModularWeapons: baseDefArray null!");
+                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: baseDefArray null!");
                 }
             }
-            catch (Exception ex) { MyLog.Default.WriteLineAndConsole($"ModularWeapons: Exception in DefinitionMessageHandler: {ex}"); }
+            catch (Exception ex) { MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Exception in DefinitionMessageHandler: {ex}"); }
         }
 
         public void ActionMessageHandler(object o)
@@ -100,12 +100,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
                 if (functionCall != null)
                 {
-                    //MyLog.Default.WriteLineAndConsole($"ModularWeapons: Recieved action of type {functionCall.ActionId}.");
+                    //MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Recieved action of type {functionCall.ActionId}.");
 
-                    PhysicalWeapon wep = WeaponPartManager.Instance.AllPhysicalWeapons[functionCall.PhysicalWeaponId];
+                    PhysicalAssembly wep = AssemblyPartManager.Instance.AllPhysicalAssemblies[functionCall.PhysicalAssemblyId];
                     if (wep == null)
                     {
-                        MyLog.Default.WriteLineAndConsole($"ModularWeapons: Invalid PhysicalWeapon!");
+                        MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Invalid PhysicalAssembly!");
                         return;
                     }
 
@@ -114,41 +114,20 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
                     switch (functionCall.ActionId)
                     {
-                        case FunctionCall.ActionType.OnShoot:
-                            wep.UpdateProjectile(functionCall.Values.ulongValues[0], functionCall.Values.projectileValues[0]);
+                        default:
+                            // Fill in here if necessary.
                             break;
                     }
                 }
                 else
                 {
-                    MyLog.Default.WriteLineAndConsole($"ModularWeapons: functionCall null!");
+                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: functionCall null!");
                 }
             }
-            catch (Exception ex) { MyLog.Default.WriteLineAndConsole($"ModularWeapons: Exception in ActionMessageHandler: {ex}"); }
+            catch (Exception ex) { MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Exception in ActionMessageHandler: {ex}"); }
         }
 
-
-        public void SendOnShoot(string DefinitionName, int PhysicalWeaponId, long FirerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition)
-        {
-            SerializedObjectArray Values = new SerializedObjectArray
-            (
-                FirerEntityId,
-                firerPartId,
-                projectileId,
-                targetEntityId,
-                projectilePosition
-            );
-
-            SendFunc(new FunctionCall()
-            {
-                ActionId = FunctionCall.ActionType.OnShoot,
-                DefinitionName = DefinitionName,
-                PhysicalWeaponId = PhysicalWeaponId,
-                Values = Values,
-            });
-        }
-
-        public void SendOnPartAdd(string DefinitionName, int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock)
+        public void SendOnPartAdd(string DefinitionName, int PhysicalAssemblyId, long BlockEntityId, bool IsBaseBlock)
         {
             SerializedObjectArray Values = new SerializedObjectArray
             (
@@ -160,12 +139,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             {
                 ActionId = FunctionCall.ActionType.OnPartAdd,
                 DefinitionName = DefinitionName,
-                PhysicalWeaponId = PhysicalWeaponId,
+                PhysicalAssemblyId = PhysicalAssemblyId,
                 Values = Values,
             });
         }
 
-        public void SendOnPartRemove(string DefinitionName, int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock)
+        public void SendOnPartRemove(string DefinitionName, int PhysicalAssemblyId, long BlockEntityId, bool IsBaseBlock)
         {
             SerializedObjectArray Values = new SerializedObjectArray
             (
@@ -177,12 +156,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             {
                 ActionId = FunctionCall.ActionType.OnPartRemove,
                 DefinitionName = DefinitionName,
-                PhysicalWeaponId = PhysicalWeaponId,
+                PhysicalAssemblyId = PhysicalAssemblyId,
                 Values = Values,
             });
         }
 
-        public void SendOnPartDestroy(string DefinitionName, int PhysicalWeaponId, long BlockEntityId, bool IsBaseBlock)
+        public void SendOnPartDestroy(string DefinitionName, int PhysicalAssemblyId, long BlockEntityId, bool IsBaseBlock)
         {
             SerializedObjectArray Values = new SerializedObjectArray
             (
@@ -194,7 +173,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             {
                 ActionId = FunctionCall.ActionType.OnPartDestroy,
                 DefinitionName = DefinitionName,
-                PhysicalWeaponId = PhysicalWeaponId,
+                PhysicalAssemblyId = PhysicalAssemblyId,
                 Values = Values,
             });
         }
@@ -205,7 +184,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
                 return;
 
             MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, MyAPIGateway.Utilities.SerializeToBinary(call));
-            //MyLog.Default.WriteLineAndConsole($"ModularWeapons: Sending function call [id {call.ActionId}] to [{call.DefinitionName}].");
+            //MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Sending function call [id {call.ActionId}] to [{call.DefinitionName}].");
         }
     }
 }
