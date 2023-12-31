@@ -31,27 +31,29 @@ namespace Scripts.ModularAssemblies.Communication
 
             return total;
         }
-        private bool Example_ScanArm(MyEntity blockEntity, MyEntity prevScan, MyEntity StopAt)
+        private bool Example_ScanArm(MyEntity blockEntity, MyEntity prevScan, string StopAt)
         {
             if (ModularAPI.IsDebug())
                 DebugDrawManager.AddGridPoint(((IMyCubeBlock)blockEntity).Position, ((IMyCubeBlock)blockEntity).CubeGrid, Color.Blue, 2);
             Example_BufferArm.Add(blockEntity);
 
             MyEntity[] connectedBlocks = ModularAPI.GetConnectedBlocks(blockEntity, false);
-
+            
             foreach (var connectedBlock in connectedBlocks)
             {
-                if (connectedBlock == StopAt)
+                string connectedSubtype = ((IMyCubeBlock)connectedBlock).BlockDefinition.SubtypeName;
+                if (connectedSubtype == StopAt)
                     StopHits++;
-
-                if (connectedBlock != prevScan && connectedBlock != StopAt)
+            
+                if (connectedBlock != prevScan && connectedSubtype != StopAt)
                 {
                     Example_ScanArm(connectedBlock, blockEntity, StopAt);
                 }
             }
-
+            
             return StopHits == 2;
         }
+        // TODO: MyVisualScriptLogicProvider.AddQuestlogDetail for debug mode
 
         private void UpdatePower(int PhysicalAssemblyId)
         {
@@ -68,24 +70,23 @@ namespace Scripts.ModularAssemblies.Communication
         {
             Name = "ModularDefinitionExample",
 
-            OnPartAdd = (int PhysicalAssemblyId, MyEntity BlockEntity, bool IsBaseBlock) =>
+            OnPartAdd = (int PhysicalAssemblyId, MyEntity NewBlockEntity, bool IsBaseBlock) =>
             {
                 if (!Example_ValidArms.ContainsKey(PhysicalAssemblyId))
                     Example_ValidArms.Add(PhysicalAssemblyId, new List<MyEntity[]>());
 
-                // Scan for 'arms' connected on both ends to the basepart.
-                if (IsBaseBlock)
+                // Scan for 'arms' connected on both ends to the feeder block.
+                switch (((IMyCubeBlock)NewBlockEntity).BlockDefinition.SubtypeName)
                 {
+                    case "Caster_Accelerator_0":
+                    case "Caster_Accelerator_90":
+                        MyEntity basePart = ModularAPI.GetBasePart(PhysicalAssemblyId);
+                        if (Example_ScanArm(NewBlockEntity, null, "Caster_Feeder"))
+                            Example_ValidArms[PhysicalAssemblyId].Add(Example_BufferArm.ToArray());
                     
-                }
-                else
-                {
-                    MyEntity basePart = ModularAPI.GetBasePart(PhysicalAssemblyId);
-                    if (Example_ScanArm(BlockEntity, null, basePart))
-                        Example_ValidArms[PhysicalAssemblyId].Add(Example_BufferArm.ToArray());
-                    
-                    Example_BufferArm.Clear();
-                    StopHits = 0;
+                        Example_BufferArm.Clear();
+                        StopHits = 0;
+                        break;
                 }
 
                 UpdatePower(PhysicalAssemblyId);
@@ -115,8 +116,6 @@ namespace Scripts.ModularAssemblies.Communication
                         UpdatePower(PhysicalAssemblyId);
                     }
 
-                    //MyAPIGateway.Utilities.SendMessage("/stop");
-
                     if (ModularAPI.IsDebug())
                         MyAPIGateway.Utilities.ShowNotification("Remove: Arms: " + Example_ValidArms[PhysicalAssemblyId].Count);
                 }
@@ -129,46 +128,198 @@ namespace Scripts.ModularAssemblies.Communication
                 MyLog.Default.WriteLineAndConsole($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
             },
 
-            BaseBlock = "Caster_FocusLens",
+            BaseBlock = "Caster_Controller",
 
             AllowedBlocks = new string[]
             {
                 "Caster_FocusLens",
                 "Caster_Accelerator_0",
                 "Caster_Accelerator_90",
+                "Caster_CentralPipe_0",
+                "Caster_CentralPipe_90",
+                "Caster_CentralPipe_T",
+                "Caster_Feeder",
+                "Caster_Controller",
             },
 
+            // Allowed connection directions & whitelists, measured in blocks.
+            // If an allowed SubtypeId is not included here, connections are allowed on all sides.
+            // If the connection type whitelist is empty, all allowed subtypes may connect on that side.
             AllowedConnections = new Dictionary<string, Dictionary<Vector3I, string[]>>
             {
                 {
+                    // Note - Offsets line up with BuildInfo block orientation.
+                    // Note - Offsets are measured from the center of the block; in this case, the Caster_FocusLens is a 3x3 that has connections on the back in a plus shape.
                     "Caster_FocusLens", new Dictionary<Vector3I, string[]>
                     {
                         { new Vector3I(1, 0, 2), new string[] {
-                            "Caster_Accelerator_0"
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
                         }},
                         { new Vector3I(-1, 0, 2), new string[] {
-                            "Caster_Accelerator_0"
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
                         }},
                         { new Vector3I(0, 1, 2), new string[] {
-                            "Caster_Accelerator_0"
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
                         }},
                         { new Vector3I(0, -1, 2), new string[] {
-                            "Caster_Accelerator_0"
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
                         }},
                     }
                 },
                 {
                     "Caster_Accelerator_0", new Dictionary<Vector3I, string[]>
                     {
-                        { Vector3I.Forward, new string[0] },
-                        { Vector3I.Backward, new string[0] },
+                        { Vector3I.Forward, new string[] {
+                            "Caster_Accelerator_0",
+                            "Caster_Accelerator_90",
+                            "Caster_Feeder",
+                        }},
+                        { Vector3I.Backward, new string[] {
+                            "Caster_Accelerator_0",
+                            "Caster_Accelerator_90",
+                            "Caster_Feeder",
+                        }},
                     }
                 },
                 {
                     "Caster_Accelerator_90", new Dictionary<Vector3I, string[]>
                     {
-                        { Vector3I.Forward, new string[0] },
-                        { Vector3I.Right, new string[0] },
+                        { Vector3I.Forward, new string[] {
+                            "Caster_Accelerator_0",
+                            "Caster_Accelerator_90",
+                            "Caster_Feeder",
+                        }},
+                        { Vector3I.Right, new string[] {
+                            "Caster_Accelerator_0",
+                            "Caster_Accelerator_90",
+                            "Caster_Feeder",
+                        }},
+                    }
+                },
+                {
+                    "Caster_CentralPipe_0", new Dictionary<Vector3I, string[]>
+                    {
+                        { Vector3I.Forward, new string[] {
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
+                            "Caster_Controller",
+                            "Caster_FocusLens",
+                        }},
+                        { Vector3I.Backward, new string[] {
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
+                            "Caster_Controller",
+                            "Caster_FocusLens",
+                        }},
+                    }
+                },
+                {
+                    "Caster_CentralPipe_90", new Dictionary<Vector3I, string[]>
+                    {
+                        { Vector3I.Forward, new string[] {
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
+                            "Caster_Controller",
+                            "Caster_FocusLens",
+                        }},
+                        { Vector3I.Right, new string[] {
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
+                            "Caster_Controller",
+                            "Caster_FocusLens",
+                        }},
+                    }
+                },
+                {
+                    "Caster_CentralPipe_T", new Dictionary<Vector3I, string[]>
+                    {
+                        { Vector3I.Forward, new string[] {
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
+                            "Caster_Controller",
+                            "Caster_FocusLens",
+                        }},
+                        { Vector3I.Right, new string[] {
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
+                            "Caster_Controller",
+                            "Caster_FocusLens",
+                        }},
+                        { Vector3I.Backward, new string[] {
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
+                            "Caster_Controller",
+                            "Caster_FocusLens",
+                        }},
+                    }
+                },
+                {
+                    "Caster_Feeder", new Dictionary<Vector3I, string[]>
+                    {
+                        { Vector3I.Forward, new string[] {
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
+                            "Caster_Controller",
+                            "Caster_FocusLens",
+                        }},
+                        { Vector3I.Backward, new string[] {
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
+                            "Caster_Controller",
+                            "Caster_FocusLens",
+                        }},
+
+                        { Vector3I.Up, new string[] {
+                            "Caster_Accelerator_0",
+                            "Caster_Accelerator_90",
+                            "Caster_Feeder",
+                        }},
+                        { Vector3I.Down, new string[] {
+                            "Caster_Accelerator_0",
+                            "Caster_Accelerator_90",
+                            "Caster_Feeder",
+                        }},
+                    }
+                },
+                {
+                    "Caster_Controller", new Dictionary<Vector3I, string[]>
+                    {
+                        { Vector3I.Backward, new string[] {
+                            "Caster_CentralPipe_0",
+                            "Caster_CentralPipe_90",
+                            "Caster_CentralPipe_T",
+                            "Caster_Feeder",
+                        }},
                     }
                 },
             },

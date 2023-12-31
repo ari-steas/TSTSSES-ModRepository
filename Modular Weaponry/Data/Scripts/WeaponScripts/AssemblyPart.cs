@@ -46,7 +46,7 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts
         }
 
         public int prevAssemblyId = -1;
-        public void CheckForExistingAssembly(bool isRefresh = false)
+        public void CheckForExistingAssembly()
         {
             // You can't have two baseblocks per assembly
             //if (AssemblyDefinition.BaseBlockSubtype != block.BlockDefinition.Id.SubtypeName)

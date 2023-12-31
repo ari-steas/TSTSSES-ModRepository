@@ -61,10 +61,15 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts
             {
                 foreach (var allowedPosKvp in AllowedConnections[block.BlockDefinition.Id.SubtypeName])
                 {
-                    if (!(allowedPosKvp.Value?.Contains(adajent.BlockDefinition.Id.SubtypeName) ?? true))
-                        continue;
-
                     Vector3I offsetAllowedPos = (Vector3I)Vector3D.Rotate((Vector3D)allowedPosKvp.Key, localOrientation) + block.Position;
+
+                    // If list is empty OR block is not in whitelist, continue.
+                    if (allowedPosKvp.Value?.Length == 0 || !(allowedPosKvp.Value?.Contains(adajent.BlockDefinition.Id.SubtypeName) ?? true))
+                    {
+                        if (AssemblyPartManager.Instance.DebugMode)
+                            DebugDrawManager.AddGridPoint(offsetAllowedPos, block.CubeGrid, Color.Red, 3);
+                        continue;
+                    }
 
                     if (offsetAllowedPos.IsInsideInclusiveEnd(adajent.Min, adajent.Max))
                     {
