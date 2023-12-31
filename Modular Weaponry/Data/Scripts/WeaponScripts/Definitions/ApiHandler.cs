@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using VRage.Game.Components;
 using VRage.Utils;
 
-namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
+namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
 {
     [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate, Priority = 0)]
     internal class ApiHandler : MySessionComponentBase
@@ -25,10 +25,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             if ((o as string) == "ApiEndpointRequest")
             {
                 MyAPIGateway.Utilities.SendModMessage(Channel, _apiDefinitions);
-                MyLog.Default.WriteLineAndConsole("ModularWeaponry: ModularDefinitionsAPI start load.");
+                MyLog.Default.WriteLineAndConsole("ModularAssemblies: ModularDefinitionsAPI start load.");
             }
             else
-                MyLog.Default.WriteLineAndConsole($"ModularWeaponry: ModularDefinitionsAPI ignored message {o as string}.");
+                MyLog.Default.WriteLineAndConsole($"ModularAssemblies: ModularDefinitionsAPI ignored message {o as string}.");
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             {
                 MyLog.Default.WriteLineAndConsole($"Exception in Api Load: {ex}"); 
             }
-            MyLog.Default.WriteLineAndConsole("ModularWeaponry: ModularDefinitionsAPI inited.");
+            MyLog.Default.WriteLineAndConsole("ModularAssemblies: ModularDefinitionsAPI inited.");
         }
 
 
@@ -65,7 +65,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             IsReady = false;
             MyAPIGateway.Utilities.SendModMessage(Channel, new Dictionary<string, Delegate>());
 
-            MyLog.Default.WriteLineAndConsole("ModularWeaponry: ModularDefinitionsAPI unloaded.");
+            MyLog.Default.WriteLineAndConsole("ModularAssemblies: ModularDefinitionsAPI unloaded.");
         }
     }
 }

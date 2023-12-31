@@ -1,4 +1,4 @@
-﻿using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
+﻿using Scripts.ModularAssemblies.DebugDraw;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -8,9 +8,9 @@ using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
-using static Scripts.ILOVEKEEN.ModularWeaponry.Communication.DefinitionDefs;
+using static Scripts.ModularAssemblies.Communication.DefinitionDefs;
 
-namespace ILOVEKEEN.Scripts.ModularWeaponry
+namespace Scripts.ModularAssemblies.Communication
 {
 
     partial class ModularDefinition
@@ -20,11 +20,11 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
         private List<MyEntity> Example_BufferArm = new List<MyEntity>();
         private int StopHits = 0;
 
-        private int GetNumBlocksInArm(int PhysicalWeaponId)
+        private int GetNumBlocksInArm(int PhysicalAssemblyId)
         {
             int total = 0;
 
-            foreach (var arm in Example_ValidArms[PhysicalWeaponId])
+            foreach (var arm in Example_ValidArms[PhysicalAssemblyId])
                 total += arm.Length;
 
             return total;
@@ -51,15 +51,24 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
             return StopHits == 2;
         }
 
+        private void UpdatePower(int PhysicalAssemblyId)
+        {
+            IMyReactor basePart = (IMyReactor) ModularAPI.GetBasePart(PhysicalAssemblyId);
+
+            int desiredPower = Example_ValidArms[PhysicalAssemblyId].Count * GetNumBlocksInArm(PhysicalAssemblyId);
+
+            basePart.PowerOutputMultiplier = basePart.MaxOutput;
+        }
+
         // This is the important bit.
         PhysicalDefinition ModularDefinitionExample => new PhysicalDefinition
         {
             Name = "ModularDefinitionExample",
 
-            OnPartAdd = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
+            OnPartAdd = (int PhysicalAssemblyId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
-                if (!Example_ValidArms.ContainsKey(PhysicalWeaponId))
-                    Example_ValidArms.Add(PhysicalWeaponId, new List<MyEntity[]>());
+                if (!Example_ValidArms.ContainsKey(PhysicalAssemblyId))
+                    Example_ValidArms.Add(PhysicalAssemblyId, new List<MyEntity[]>());
 
                 // Scan for 'arms' connected on both ends to the basepart.
                 if (IsBaseBlock)
@@ -68,32 +77,28 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
                 }
                 else
                 {
-                    MyEntity basePart = ModularAPI.GetBasePart(PhysicalWeaponId);
+                    MyEntity basePart = ModularAPI.GetBasePart(PhysicalAssemblyId);
                     if (Example_ScanArm(BlockEntity, null, basePart))
-                        Example_ValidArms[PhysicalWeaponId].Add(Example_BufferArm.ToArray());
+                        Example_ValidArms[PhysicalAssemblyId].Add(Example_BufferArm.ToArray());
                     
                     Example_BufferArm.Clear();
                     StopHits = 0;
                 }
 
-                MyEntity basePartEntity = ModularAPI.GetBasePart(PhysicalWeaponId);
-                float velocityMult = Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f;
-
-                WcAPI.SetVelocityMultiplier(basePartEntity, velocityMult);
-                WcAPI.SetFiringAllowed(basePartEntity, velocityMult > 0);
-                MyAPIGateway.Utilities.SendMessage("" + WcAPI.GetFiringAllowed(basePartEntity));
+                MyEntity basePartEntity = ModularAPI.GetBasePart(PhysicalAssemblyId);
+                float velocityMult = Example_ValidArms[PhysicalAssemblyId].Count * GetNumBlocksInArm(PhysicalAssemblyId) / 50f;
 
                 if (ModularAPI.IsDebug())
-                    MyAPIGateway.Utilities.ShowNotification("Pass: Arms: " + Example_ValidArms[PhysicalWeaponId].Count + " (Size " + Example_ValidArms[PhysicalWeaponId][Example_ValidArms[PhysicalWeaponId].Count - 1].Length + ")");
+                    MyAPIGateway.Utilities.ShowNotification("Pass: Arms: " + Example_ValidArms[PhysicalAssemblyId].Count + " (Size " + Example_ValidArms[PhysicalAssemblyId][Example_ValidArms[PhysicalAssemblyId].Count - 1].Length + ")");
             },
 
-            OnPartRemove = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
+            OnPartRemove = (int PhysicalAssemblyId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
                 // Remove if the connection is broken.
                 if (!IsBaseBlock)
                 {
                     MyEntity[] armToRemove = null;
-                    foreach (var arm in Example_ValidArms[PhysicalWeaponId])
+                    foreach (var arm in Example_ValidArms[PhysicalAssemblyId])
                     {
                         if (arm.Contains(BlockEntity))
                         {
@@ -103,33 +108,22 @@ namespace ILOVEKEEN.Scripts.ModularWeaponry
                     }
                     if (armToRemove != null)
                     {
-                        Example_ValidArms[PhysicalWeaponId].Remove(armToRemove);
+                        Example_ValidArms[PhysicalAssemblyId].Remove(armToRemove);
 
-                        MyEntity basePartEntity = ModularAPI.GetBasePart(PhysicalWeaponId);
-                        float velocityMult = Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f;
-
-                        WcAPI.SetVelocityMultiplier(basePartEntity, velocityMult);
-                        WcAPI.SetFiringAllowed(basePartEntity, velocityMult > 0);
-                        MyAPIGateway.Utilities.SendMessage("" + WcAPI.GetFiringAllowed(basePartEntity));
+                        MyEntity basePartEntity = ModularAPI.GetBasePart(PhysicalAssemblyId);
+                        float velocityMult = Example_ValidArms[PhysicalAssemblyId].Count * GetNumBlocksInArm(PhysicalAssemblyId) / 50f;
                     }
 
                     if (ModularAPI.IsDebug())
-                        MyAPIGateway.Utilities.ShowNotification("Remove: Arms: " + Example_ValidArms[PhysicalWeaponId].Count);
+                        MyAPIGateway.Utilities.ShowNotification("Remove: Arms: " + Example_ValidArms[PhysicalAssemblyId].Count);
                 }
                 else
-                    Example_ValidArms.Remove(PhysicalWeaponId);
+                    Example_ValidArms.Remove(PhysicalAssemblyId);
             },
 
-            OnPartDestroy = (int PhysicalWeaponId, MyEntity BlockEntity, bool IsBaseBlock) =>
+            OnPartDestroy = (int PhysicalAssemblyId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
                 MyLog.Default.WriteLineAndConsole($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
-            },
-
-            OnShoot = (int PhysicalWeaponId, long FirerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition) => {
-                float newSpeed = 500 * (Example_ValidArms[PhysicalWeaponId].Count * GetNumBlocksInArm(PhysicalWeaponId) / 50f);
-                MyLog.Default.WriteLineAndConsole($"OnShoot NewVel = {newSpeed}");
-
-                return new MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, Vector3D.Zero, 0);
             },
 
             AllowedBlocks = new string[]

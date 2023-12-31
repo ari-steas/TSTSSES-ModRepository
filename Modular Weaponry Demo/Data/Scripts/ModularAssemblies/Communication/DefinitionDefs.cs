@@ -6,7 +6,7 @@ using VRage.Game.Entity;
 using VRage.ModAPI;
 using VRageMath;
 
-namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
+namespace Scripts.ModularAssemblies.Communication
 {
     public class DefinitionDefs
     {
@@ -25,17 +25,9 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
             [ProtoMember(1)] public string Name { get; set; }
 
             /// <summary>
-            /// Called when a weapon is fired. Returns a MyTuple with contents: bool CloseImmediately, Vector3D ProjectilePosition, Vector3D AdditiveVelocity, float BaseDamagePool
-            /// <para>
-            /// Arg1 is PhysicalWeaponId, Arg2 is BlockEntityId, Arg3 is firerPartId, Arg4 is targetEntityId, Arg5 is projectilePosition
-            /// </para>
-            /// </summary>
-            public Func<int, long, int, ulong, long, Vector3D, MyTuple<bool, Vector3D, Vector3D, float>> OnShoot { get; set; }
-
-            /// <summary>
             /// Called when a valid part is placed.
             /// <para>
-            /// Arg1 is PhysicalWeaponId, Arg2 is BlockEntity, Arg3 is IsBaseBlock
+            /// Arg1 is PhysicalAssemblyId, Arg2 is BlockEntity, Arg3 is IsBaseBlock
             /// </para>
             /// </summary>
             public Action<int, MyEntity, bool> OnPartAdd { get; set; }
@@ -43,7 +35,7 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
             /// <summary>
             /// Called when a valid part is removed.
             /// <para>
-            /// Arg1 is PhysicalWeaponId, Arg2 is BlockEntity, Arg3 is IsBaseBlock
+            /// Arg1 is PhysicalAssemblyId, Arg2 is BlockEntity, Arg3 is IsBaseBlock
             /// </para>
             /// </summary>
             public Action<int, MyEntity, bool> OnPartRemove { get; set; }
@@ -51,7 +43,7 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
             /// <summary>
             /// Called when a component part is destroyed. Note - OnPartRemove is called simultaneously.
             /// <para>
-            /// Arg1 is PhysicalWeaponId, Arg2 is BlockEntity, Arg3 is IsBaseBlock
+            /// Arg1 is PhysicalAssemblyId, Arg2 is BlockEntity, Arg3 is IsBaseBlock
             /// </para>
             /// </summary>
             public Action<int, MyEntity, bool> OnPartDestroy { get; set; }
@@ -67,7 +59,7 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
             [ProtoMember(3)] public Dictionary<string, Vector3I[]> AllowedConnections { get; set; }
 
             /// <summary>
-            /// The primary block of a PhysicalWeapon. Make sure this is a Weaponcore block.
+            /// The primary block of a PhysicalAssembly. Make sure this is a Assemblycore block.
             /// </summary>
             [ProtoMember(4)] public string BaseBlock { get; set; }
         }
@@ -76,18 +68,17 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
         public class FunctionCall
         {
             [ProtoMember(1)] public string DefinitionName { get; set; }
-            [ProtoMember(2)] public int PhysicalWeaponId { get; set; }
+            [ProtoMember(2)] public int PhysicalAssemblyId { get; set; }
             [ProtoMember(3)] public ActionType ActionId { get; set; }
             [ProtoMember(4)] public SerializedObjectArray Values { get; set; }
 
             public enum ActionType
             {
-                OnShoot,
                 OnPartAdd,
                 OnPartRemove,
                 OnPartDestroy,
                 GetAllParts,
-                GetAllWeapons,
+                GetAllAssemblies,
                 GetMemberParts,
                 GetConnectedBlocks,
             }
@@ -108,7 +99,6 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
                 List<float> floatValuesL = new List<float>();
                 List<bool> boolValuesL = new List<bool>();
                 List<double> doubleValuesL = new List<double>();
-                List<MyTuple<bool, Vector3D, Vector3D, float>> projectileValuesL = new List<MyTuple<bool, Vector3D, Vector3D, float>>();
 
                 foreach (var value in array)
                 {
@@ -129,8 +119,6 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
                         boolValuesL.Add((bool)value);
                     else if (type == typeof(double))
                         doubleValuesL.Add((double)value);
-                    else if (type == typeof(MyTuple<bool, Vector3D, Vector3D, float>))
-                        projectileValuesL.Add((MyTuple<bool, Vector3D, Vector3D, float>)value);
                 }
 
                 intValues = intValuesL.ToArray();
@@ -141,7 +129,6 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
                 floatValues = floatValuesL.ToArray();
                 boolValues = boolValuesL.ToArray();
                 doubleValues = doubleValuesL.ToArray();
-                projectileValues = projectileValuesL.ToArray();
 
                 //MyLog.Default.WriteLineAndConsole($"ModularDefinitions.DefinitionDefs: {array.Length} values packaged.");
             }
@@ -154,7 +141,6 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
             [ProtoMember(6)] internal float[] floatValues = new float[0];
             [ProtoMember(7)] internal bool[] boolValues = new bool[0];
             [ProtoMember(8)] internal double[] doubleValues = new double[0];
-            [ProtoMember(10)] internal MyTuple<bool, Vector3D, Vector3D, float>[] projectileValues = new MyTuple<bool, Vector3D, Vector3D, float>[0];
 
             public object[] Values()
             {
@@ -175,8 +161,6 @@ namespace Scripts.ILOVEKEEN.ModularWeaponry.Communication
                 foreach (var value in boolValues)
                     values.Add(value);
                 foreach (var value in doubleValues)
-                    values.Add(value);
-                foreach (var value in projectileValues)
                     values.Add(value);
 
                 //MyLog.Default.WriteLineAndConsole($"ModularDefinitions.DefinitionDefs: {values.Count} values recieved.");

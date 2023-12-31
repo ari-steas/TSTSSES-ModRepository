@@ -1,75 +1,63 @@
-﻿using CoreSystems.Api;
-using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
-using Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions;
-using Sandbox.Game;
+﻿using Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions;
 using Sandbox.ModAPI;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VRage.Game.Components;
-using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Utils;
-using VRageMath;
-using VRageRender.Messages;
 
-namespace Modular_Weaponry.Data.Scripts.WeaponScripts
+namespace Modular_Assemblies.Data.Scripts.AssemblyScripts
 {
     /// <summary>
-    /// Creates and manages all WeaponParts and PhysicalWeapons.
+    /// Creates and manages all AssemblyParts and PhysicalAssemblies.
     /// </summary>
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
-    public class WeaponPartManager : MySessionComponentBase
+    public class AssemblyPartManager : MySessionComponentBase
     {
-        public static WeaponPartManager Instance;
+        public static AssemblyPartManager Instance;
         public bool DebugMode = false;
 
         /// <summary>
-        /// Every single WeaponPart in the world.
+        /// Every single AssemblyPart in the world.
         /// </summary>
-        public Dictionary<IMySlimBlock, WeaponPart> AllWeaponParts = new Dictionary<IMySlimBlock, WeaponPart>();
+        public Dictionary<IMySlimBlock, AssemblyPart> AllAssemblyParts = new Dictionary<IMySlimBlock, AssemblyPart>();
 
         /// <summary>
-        /// Every single PhysicalWeapon in the world.
+        /// Every single PhysicalAssembly in the world.
         /// </summary>
-        public Dictionary<int, PhysicalWeapon> AllPhysicalWeapons = new Dictionary<int, PhysicalWeapon>();
-        public int CreatedPhysicalWeapons = 0;
+        public Dictionary<int, PhysicalAssembly> AllPhysicalAssemblies = new Dictionary<int, PhysicalAssembly>();
+        public int CreatedPhysicalAssemblies = 0;
 
         private List<IMySlimBlock> QueuedBlockAdds = new List<IMySlimBlock>();
-        private List<WeaponPart> QueuedConnectionChecks = new List<WeaponPart>();
-        private Dictionary<WeaponPart, PhysicalWeapon> QueuedWeaponChecks = new Dictionary<WeaponPart, PhysicalWeapon>();
+        private List<AssemblyPart> QueuedConnectionChecks = new List<AssemblyPart>();
+        private Dictionary<AssemblyPart, PhysicalAssembly> QueuedAssemblyChecks = new Dictionary<AssemblyPart, PhysicalAssembly>();
 
         public void QueueBlockAdd(IMySlimBlock block) => QueuedBlockAdds.Add(block);
-        public void QueueConnectionCheck(WeaponPart part)
+        public void QueueConnectionCheck(AssemblyPart part)
         {
             if (!QueuedConnectionChecks.Contains(part))
                 QueuedConnectionChecks.Add(part);
         }
-        public void QueueWeaponCheck(WeaponPart part, PhysicalWeapon weapon)
+        public void QueueAssemblyCheck(AssemblyPart part, PhysicalAssembly assembly)
         {
-            if (!QueuedWeaponChecks.ContainsKey(part))
-                QueuedWeaponChecks.Add(part, weapon);
+            if (!QueuedAssemblyChecks.ContainsKey(part))
+                QueuedAssemblyChecks.Add(part, assembly);
         }
-
-        public WcApi wAPI = new WcApi();
 
         public override void LoadData()
         {
             if (!MyAPIGateway.Multiplayer.MultiplayerActive)
             {
-                MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Run !mwhelp for commands");
+                MyAPIGateway.Utilities.ShowMessage("Modular Assemblies", "Run !mwhelp for commands");
                 MyAPIGateway.Utilities.MessageEnteredSender += ChatCommandHandler;
             }
             else
-                MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Commands disabled, load into a singleplayer world for testing.");
+                MyAPIGateway.Utilities.ShowMessage("Modular Assemblies", "Commands disabled, load into a singleplayer world for testing.");
 
-            MyLog.Default.WriteLineAndConsole("Modular Weaponry: WeaponPartManager loading...");
+            MyLog.Default.WriteLineAndConsole("Modular Assemblies: AssemblyPartManager loading...");
 
             Instance = this;
-            wAPI.Load();
 
             // None of this should run on client.
             if (!MyAPIGateway.Multiplayer.IsServer)
@@ -88,7 +76,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             switch (split[0])
             {
                 case "!mwhelp":
-                    MyAPIGateway.Utilities.ShowMessage("Modular Weaponry", "Commands:\n!mwhelp - Prints all commands\n!debug - Toggles debug draw");
+                    MyAPIGateway.Utilities.ShowMessage("Modular Assemblies", "Commands:\n!mwhelp - Prints all commands\n!debug - Toggles debug draw");
                     sendToOthers = false;
                     break;
                 case "!debug":
@@ -101,13 +89,12 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
         protected override void UnloadData()
         {
             Instance = null; // important for avoiding this object to remain allocated in memory
-            wAPI.Unload();
 
             // None of this should run on client.
             if (!MyAPIGateway.Multiplayer.IsServer)
                 return;
 
-            MyLog.Default.WriteLineAndConsole("Modular Weaponry: WeaponPartManager closing...");
+            MyLog.Default.WriteLineAndConsole("Modular Assemblies: AssemblyPartManager closing...");
 
             MyAPIGateway.Entities.OnEntityAdd -= OnGridAdd;
             MyAPIGateway.Entities.OnEntityRemove -= OnGridRemove;
@@ -132,22 +119,22 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             // Queue partadds to account for world load/grid pasting
             foreach (var queuedPart in QueuedConnectionChecks.ToList())
             {
-                queuedPart.CheckForExistingWeapon();
+                queuedPart.CheckForExistingAssembly();
                 QueuedConnectionChecks.Remove(queuedPart);
             }
 
-            // Queue weapon pathing to account for world load/grid pasting
-            foreach (var queuedWeapon in QueuedWeaponChecks.Keys.ToList())
+            // Queue assembly pathing to account for world load/grid pasting
+            foreach (var queuedAssembly in QueuedAssemblyChecks.Keys.ToList())
             {
-                QueuedWeaponChecks[queuedWeapon].RecursiveWeaponChecker(queuedWeapon);
-                QueuedWeaponChecks.Remove(queuedWeapon);
+                QueuedAssemblyChecks[queuedAssembly].RecursiveAssemblyChecker(queuedAssembly);
+                QueuedAssemblyChecks.Remove(queuedAssembly);
             }
 
-            foreach (var weapon in AllPhysicalWeapons.Values)
-                weapon.Update();
+            foreach (var assembly in AllPhysicalAssemblies.Values)
+                assembly.Update();
 
             if (DebugMode)
-                MyAPIGateway.Utilities.ShowNotification("Weapons: " + AllPhysicalWeapons.Count + " | Parts: " + AllWeaponParts.Count, 1000 / 60);
+                MyAPIGateway.Utilities.ShowNotification("Assemblies: " + AllPhysicalAssemblies.Count + " | Parts: " + AllAssemblyParts.Count, 1000 / 60);
         }
 
         private void OnGridAdd(IMyEntity entity)
@@ -177,7 +164,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
                 if (!modularDefinition.IsBlockAllowed(block))
                     return;
 
-                WeaponPart w = new WeaponPart(block, modularDefinition);
+                AssemblyPart w = new AssemblyPart(block, modularDefinition);
             }
         }
 
@@ -194,8 +181,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
             if (grid.Physics == null)
                 return;
 
-            List<WeaponPart> toRemove = new List<WeaponPart>();
-            foreach (var partKvp in AllWeaponParts)
+            List<AssemblyPart> toRemove = new List<AssemblyPart>();
+            foreach (var partKvp in AllAssemblyParts)
             {
                 if (partKvp.Key.CubeGrid == grid)
                 {
@@ -205,18 +192,18 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             foreach (var deadPart in toRemove)
             {
-                deadPart.memberWeapon?.Close();
-                AllWeaponParts.Remove(deadPart.block);
+                deadPart.memberAssembly?.Close();
+                AllAssemblyParts.Remove(deadPart.block);
             }
         }
 
         private void OnBlockRemove(IMySlimBlock block)
         {
-            WeaponPart part;
-            if (AllWeaponParts.TryGetValue(block, out part))
+            AssemblyPart part;
+            if (AllAssemblyParts.TryGetValue(block, out part))
             {
-                part.memberWeapon?.Remove(part);
-                AllWeaponParts.Remove(block);
+                part.memberAssembly?.Remove(part);
+                AllAssemblyParts.Remove(block);
             }
         }
     }

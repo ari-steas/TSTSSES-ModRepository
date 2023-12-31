@@ -7,7 +7,7 @@ using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Utils;
 
-namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
+namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
 {
     internal class ApiDefinitions
     {
@@ -18,7 +18,7 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             ModApiMethods = new Dictionary<string, Delegate>()
             {
                 ["GetAllParts"] = new Func<MyEntity[]>(GetAllParts),
-                ["GetAllWeapons"] = new Func<int[]>(GetAllWeapons),
+                ["GetAllAssemblies"] = new Func<int[]>(GetAllAssemblies),
                 ["GetMemberParts"] = new Func<int, MyEntity[]>(GetMemberParts),
                 ["GetConnectedBlocks"] = new Func<MyEntity, bool, MyEntity[]>(GetConnectedBlocks),
                 ["GetBasePart"] = new Func<int, MyEntity>(GetBasePart),
@@ -28,27 +28,27 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
 
         private bool IsDebug()
         {
-            return WeaponPartManager.Instance.DebugMode;
+            return AssemblyPartManager.Instance.DebugMode;
         }
 
         private MyEntity[] GetAllParts()
         {
             List<MyEntity> parts = new List<MyEntity>();
-            foreach (var block in WeaponPartManager.Instance.AllWeaponParts.Keys)
+            foreach (var block in AssemblyPartManager.Instance.AllAssemblyParts.Keys)
                 if (block.FatBlock != null)
                     parts.Add((MyEntity)block.FatBlock);
             return parts.ToArray();
         }
 
-        private int[] GetAllWeapons()
+        private int[] GetAllAssemblies()
         {
-            return WeaponPartManager.Instance.AllPhysicalWeapons.Keys.ToArray();
+            return AssemblyPartManager.Instance.AllPhysicalAssemblies.Keys.ToArray();
         }
 
-        private MyEntity[] GetMemberParts(int weaponId)
+        private MyEntity[] GetMemberParts(int assemblyId)
         {
-            PhysicalWeapon wep;
-            if (!WeaponPartManager.Instance.AllPhysicalWeapons.TryGetValue(weaponId, out wep))
+            PhysicalAssembly wep;
+            if (!AssemblyPartManager.Instance.AllPhysicalAssemblies.TryGetValue(assemblyId, out wep))
                 return new MyEntity[0];
 
             List<MyEntity> parts = new List<MyEntity>();
@@ -64,8 +64,8 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             if (!(blockEntity is IMyCubeBlock))
                 return new MyEntity[0];
 
-            WeaponPart wep;
-            if (!WeaponPartManager.Instance.AllWeaponParts.TryGetValue(((IMyCubeBlock)blockEntity).SlimBlock, out wep) || wep.connectedParts == null)
+            AssemblyPart wep;
+            if (!AssemblyPartManager.Instance.AllAssemblyParts.TryGetValue(((IMyCubeBlock)blockEntity).SlimBlock, out wep) || wep.connectedParts == null)
                 return new MyEntity[0];
 
             List<MyEntity> parts = new List<MyEntity>();
@@ -85,10 +85,10 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions
             return parts.ToArray();
         }
 
-        private MyEntity GetBasePart(int weaponId)
+        private MyEntity GetBasePart(int assemblyId)
         {
-            PhysicalWeapon wep;
-            if (!WeaponPartManager.Instance.AllPhysicalWeapons.TryGetValue(weaponId, out wep))
+            PhysicalAssembly wep;
+            if (!AssemblyPartManager.Instance.AllPhysicalAssemblies.TryGetValue(assemblyId, out wep))
                 return null;
 
             return (MyEntity) wep.basePart.block.FatBlock;

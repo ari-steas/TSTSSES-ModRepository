@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<CubeBlocks>
-		<Definition xsi:type="MyObjectBuilder_ConveyorSorterDefinition">
+		<Definition xsi:type="MyObjectBuilder_ReactorDefinition">
 			<Id>
-				<TypeId>ConveyorSorter</TypeId>
+				<TypeId>Reactor</TypeId>
 				<SubtypeId>Caster_FocusLens</SubtypeId>
 			</Id>
 			<DisplayName>{LOC:DisplayName_Caster_FocusLens}</DisplayName>
@@ -23,6 +23,7 @@
 				<MountPoint Side="Back" StartX="0.00" StartY="0.00" EndX="3.00" EndY="3.00"/>
 			</MountPoints>
 			<BlockPairName>Caster_FocusLens</BlockPairName>
+			<MaxPowerOutput>15</MaxPowerOutput>
 		</Definition>
 	</CubeBlocks>
 </Definitions>

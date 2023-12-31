@@ -10,7 +10,7 @@ using VRage.Utils;
 using VRageMath;
 using static VRageRender.MyBillboard;
 
-namespace Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw
+namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.DebugDraw
 {
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class DebugDrawManager : MySessionComponentBase

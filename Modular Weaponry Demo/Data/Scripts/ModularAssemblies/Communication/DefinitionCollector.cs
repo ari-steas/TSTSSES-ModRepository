@@ -1,18 +1,12 @@
-﻿using Sandbox.ModAPI;
-using VRage.Game.ModAPI;
-using VRage.ModAPI;
-using VRageMath;
-using static Scripts.ILOVEKEEN.ModularWeaponry.Communication.DefinitionDefs;
-using CoreParts.Data.Scripts.ILOVEKEEN.ModularWeaponry.Communication;
-using CoreSystems.Api;
+﻿using static Scripts.ModularAssemblies.Communication.DefinitionDefs;
+using Scripts.ModularAssemblies.Communication;
 
-namespace ILOVEKEEN.Scripts.ModularWeaponry
+namespace Scripts.ModularAssemblies.Communication
 {
     partial class ModularDefinition
     {
         internal DefinitionContainer Container = new DefinitionContainer();
         internal static ModularDefinitionAPI ModularAPI = null;
-        internal static WcApi WcAPI = null;
 
         internal void LoadDefinitions(params PhysicalDefinition[] defs)
         {

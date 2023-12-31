@@ -1,21 +1,11 @@
-﻿using CoreSystems.Api;
-using Modular_Weaponry.Data.Scripts.WeaponScripts.DebugDraw;
-using Sandbox.Game.Entities.Cube;
-using Sandbox.Game.GUI;
-using Sandbox.ModAPI;
-using System;
-using System.CodeDom;
+﻿using Modular_Assemblies.Data.Scripts.AssemblyScripts.DebugDraw;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
-using static Modular_Weaponry.Data.Scripts.WeaponScripts.Definitions.DefinitionDefs;
+using static Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions.DefinitionDefs;
 
-namespace Modular_Weaponry.Data.Scripts.WeaponScripts
+namespace Modular_Assemblies.Data.Scripts.AssemblyScripts
 {
     public class ModularDefinition
     {
@@ -40,17 +30,17 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
             if (def.AllowedBlocks == null || def.AllowedConnections == null || def.BaseBlockSubtype == null || def.Name == null)
             {
-                MyLog.Default.WriteLineAndConsole("Modular Weaponry: !!Failed!! to create new ModularDefinition for " + definition.Name);
+                MyLog.Default.WriteLineAndConsole("Modular Assemblies: !!Failed!! to create new ModularDefinition for " + definition.Name);
                 return null;
             }
 
-            MyLog.Default.WriteLineAndConsole("Modular Weaponry: Created new ModularDefinition for " + definition.Name);
+            MyLog.Default.WriteLineAndConsole("Modular Assemblies: Created new ModularDefinition for " + definition.Name);
             return def;
         }
 
         //public VRage.MyTuple<bool, Vector3D, Vector3D, float> ChangeProjectileData(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition)
         //{
-        //    Vector3D velocityOffset = -WeaponPartGetter.Instance.wAPI.GetProjectileState(projectileId).Item2 * 0.5;
+        //    Vector3D velocityOffset = -AssemblyPartGetter.Instance.wAPI.GetProjectileState(projectileId).Item2 * 0.5;
         //    MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(velocityOffset.Length(), 2));
         //    return new VRage.MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, velocityOffset, 0);
         //}
@@ -74,11 +64,11 @@ namespace Modular_Weaponry.Data.Scripts.WeaponScripts
 
                     if (offsetAllowedPos.IsInsideInclusiveEnd(adajent.Min, adajent.Max))
                     {
-                        if (WeaponPartManager.Instance.DebugMode)
+                        if (AssemblyPartManager.Instance.DebugMode)
                             DebugDrawManager.AddGridPoint(offsetAllowedPos, block.CubeGrid, Color.Green, 3);
                         return true;
                     }
-                    if (WeaponPartManager.Instance.DebugMode)
+                    if (AssemblyPartManager.Instance.DebugMode)
                         DebugDrawManager.AddGridPoint(offsetAllowedPos, block.CubeGrid, Color.Red, 3);
                 }
                 return false;
