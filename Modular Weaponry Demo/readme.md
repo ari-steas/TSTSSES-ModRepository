@@ -1,4 +1,4 @@
-﻿Modular Assemblyry Definitions
+﻿Modular Assemblies Definitions
 ============================
 
 Hey modders!
