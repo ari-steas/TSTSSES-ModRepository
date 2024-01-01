@@ -33,7 +33,7 @@ namespace Scripts.ModularAssemblies.Communication
                 basePart.Enabled = true;
 
             // Reactor power output multipliers are funny
-            float desiredPower = Basic_ChargerCount[PhysicalAssemblyId] * 10;
+            float desiredPower = 15 + Basic_ChargerCount[PhysicalAssemblyId] * 10;
             basePart.PowerOutputMultiplier = (desiredPower * basePart.PowerOutputMultiplier) / basePart.MaxOutput;
 
             // Disable reactor so that fuel isn't used unnecessarily
@@ -73,12 +73,18 @@ namespace Scripts.ModularAssemblies.Communication
                 }
             },
 
-            BaseBlock = "Battery_Controller",
+            OnPartDestroy =
+            {
+                // You can remove this function, and any others if need be.
+            },
 
+            BaseBlock = "LargeBlockSmallGenerator", // The most important block in an assembly. Connection checking starts here.
+
+            // All SubtypeIds that can be part of this assembly.
             AllowedBlocks = new string[]
             {
-                "Battery_Controller",
-                "Battery_Charger",
+                "Reactor_Booster",
+                "LargeBlockSmallGenerator",
             },
 
             // Allowed connection directions & whitelists, measured in blocks.
@@ -88,9 +94,9 @@ namespace Scripts.ModularAssemblies.Communication
             {
                 {
                     // Note - Offsets line up with BuildInfo block orientation, and are measured from the center of the block.
-                    "Battery_Controller", new Dictionary<Vector3I, string[]>
+                    "Reactor_Booster", new Dictionary<Vector3I, string[]>
                     {
-                        { Vector3I.Backward, new string[0] }, // Connect to any AllowedBlock backwards
+                        { Vector3I.Backward, new string[0] }, // Only connect to AllowedBlocks backwards
                     }
                 },
             },

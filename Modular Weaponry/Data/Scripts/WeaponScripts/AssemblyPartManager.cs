@@ -49,7 +49,7 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts
         {
             if (!MyAPIGateway.Multiplayer.MultiplayerActive)
             {
-                MyAPIGateway.Utilities.ShowMessage("Modular Assemblies", "Run !mwhelp for commands");
+                MyAPIGateway.Utilities.ShowMessage("Modular Assemblies", "Run !mwHelp for commands");
                 MyAPIGateway.Utilities.MessageEnteredSender += ChatCommandHandler;
             }
             else
@@ -73,13 +73,13 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts
                 return;
 
             string[] split = messageText.Split(' ');
-            switch (split[0])
+            switch (split[0].ToLower())
             {
                 case "!mwhelp":
-                    MyAPIGateway.Utilities.ShowMessage("Modular Assemblies", "Commands:\n!mwhelp - Prints all commands\n!debug - Toggles debug draw");
+                    MyAPIGateway.Utilities.ShowMessage("Modular Assemblies", "Commands:\n!mwHelp - Prints all commands\n!mwDebug - Toggles debug draw");
                     sendToOthers = false;
                     break;
-                case "!debug":
+                case "!mwdebug":
                     DebugMode = !DebugMode;
                     sendToOthers = false;
                     break;

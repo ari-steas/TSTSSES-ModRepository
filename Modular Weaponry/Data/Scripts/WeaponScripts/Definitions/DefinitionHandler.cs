@@ -1,4 +1,6 @@
-﻿using Sandbox.ModAPI;
+﻿using Sandbox.Definitions;
+using Sandbox.Game.World;
+using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +37,8 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
             MyAPIGateway.Utilities.RegisterMessageHandler(DefinitionMessageId, DefMessageHandler);
             MyAPIGateway.Utilities.RegisterMessageHandler(InboundMessageId, ActionMessageHandler);
             MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, true);
+
+            MyAPIGateway.Session.OnSessionReady += CheckValidDefinitions;
         }
 
         protected override void UnloadData()
@@ -62,9 +66,7 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
                 {
                     baseDefArray = MyAPIGateway.Utilities.SerializeFromBinary<DefinitionContainer>(message);
                 }
-                catch (Exception e)
-                {
-                }
+                catch {}
 
                 if (baseDefArray != null)
                 {
@@ -73,12 +75,14 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
                     {
                         ModularDefinition modDef = ModularDefinition.Load(def);
                         if (modDef != null)
+                        {
                             ModularDefinitions.Add(modDef);
+                        }
                     }
                 }
                 else
                 {
-                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: baseDefArray null!");
+                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Invalid definition container!");
                 }
             }
             catch (Exception ex) { MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Exception in DefinitionMessageHandler: {ex}"); }
@@ -96,7 +100,7 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
                 {
                     functionCall = MyAPIGateway.Utilities.SerializeFromBinary<FunctionCall>(message);
                 }
-                catch (Exception e) { }
+                catch { }
 
                 if (functionCall != null)
                 {
@@ -185,6 +189,52 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
 
             MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, MyAPIGateway.Utilities.SerializeToBinary(call));
             //MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Sending function call [id {call.ActionId}] to [{call.DefinitionName}].");
+        }
+
+        private void CheckValidDefinitions()
+        {
+            // Get all block definition subtypes
+            var defs = MyDefinitionManager.Static.GetAllDefinitions();
+            List<string> validSubtypes = new List<string>();
+            foreach (var def in defs)
+            {
+                var blockDef = def as MyCubeBlockDefinition;
+
+                if (blockDef != null)
+                {
+                    validSubtypes.Add(def.Id.SubtypeName);
+                }
+            }
+
+            foreach (var def in ModularDefinitions.ToList())
+                if (!CheckDefinitionValid(def, validSubtypes))
+                    ModularDefinitions.Remove(def);
+        }
+
+        private bool CheckDefinitionValid(ModularDefinition modDef, List<string> validSubtypes)
+        {
+            bool isDefinitionValid = true;
+            foreach (var subtypeId in modDef.AllowedBlocks)
+            {
+                if (!validSubtypes.Contains(subtypeId))
+                {
+                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Invalid SubtypeId [{subtypeId}] in definition {modDef.Name}! Skipping load...");
+                    MyAPIGateway.Utilities.SendMessage($"ModularAssemblies: Invalid SubtypeId [{subtypeId}] in definition {modDef.Name}! Skipping load...");
+                    isDefinitionValid = false;
+                }
+            }
+
+            foreach (var definiton in ModularDefinitions)
+            {
+                if (definiton.Name == modDef.Name)
+                {
+                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Duplicate DefinitionName in definition {modDef.Name}! Skipping load...");
+                    MyAPIGateway.Utilities.SendMessage($"ModularAssemblies: Duplicate DefinitionName in definition {modDef.Name}! Skipping load...");
+                    isDefinitionValid = false;
+                }
+            }
+
+            return isDefinitionValid;
         }
     }
 }

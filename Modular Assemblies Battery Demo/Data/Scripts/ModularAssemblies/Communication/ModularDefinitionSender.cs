@@ -23,7 +23,7 @@ namespace Scripts.ModularAssemblies.Communication
             if (!MyAPIGateway.Session.IsServer)
                 return;
 
-            MyLog.Default.WriteLineAndConsole("ModularAssemblyryDefinition: Init new ModularAssemblyryDefinition");
+            MyLog.Default.WriteLineAndConsole("ModularAssembliesDefinition: Init new ModularAssembliesDefinition");
             MyAPIGateway.Utilities.RegisterMessageHandler(InboundMessageId, InputHandler);
 
             // Init
@@ -33,7 +33,7 @@ namespace Scripts.ModularAssemblies.Communication
             ModularDefinition.ModularAPI = new ModularDefinitionAPI();
             ModularDefinition.ModularAPI.LoadData();
 
-            MyLog.Default.WriteLineAndConsole($"ModularAssemblyryDefinition: Packaged definitions & going to sleep.");
+            MyLog.Default.WriteLineAndConsole($"ModularAssembliesDefinition: Packaged definitions & going to sleep.");
         }
 
         protected override void UnloadData()
@@ -54,7 +54,7 @@ namespace Scripts.ModularAssemblies.Communication
             if (o is bool && (bool)o)
             {
                 MyAPIGateway.Utilities.SendModMessage(DefinitionMessageId, Storage);
-                MyLog.Default.WriteLineAndConsole("ModularAssemblyryDefinition: Sent definitions & returning to sleep.");
+                MyLog.Default.WriteLineAndConsole("ModularAssembliesDefinition: Sent definitions & returning to sleep.");
             }
             else
             {
@@ -65,7 +65,7 @@ namespace Scripts.ModularAssemblies.Communication
 
                     if (call == null)
                     {
-                        MyLog.Default.WriteLineAndConsole($"ModularAssemblyryDefinition: Invalid FunctionCall!");
+                        MyLog.Default.WriteLineAndConsole($"ModularAssembliesDefinition: Invalid FunctionCall!");
                         return;
                     }
 
@@ -76,7 +76,7 @@ namespace Scripts.ModularAssemblies.Communication
 
                     if (defToCall == null)
                     {
-                        //MyLog.Default.WriteLineAndConsole($"ModularAssemblyryDefinition: Function call [{call.DefinitionName}] not addressed to this.");
+                        //MyLog.Default.WriteLineAndConsole($"ModularAssembliesDefinition: Function call [{call.DefinitionName}] not addressed to this.");
                         return;
                     }
 
@@ -107,7 +107,7 @@ namespace Scripts.ModularAssemblies.Communication
                 }
                 catch (Exception ex)
                 {
-                    MyLog.Default.WriteLineAndConsole($"ModularAssemblyryDefinition: Exception in InputHandler: {ex}\n{ex.StackTrace}");
+                    MyLog.Default.WriteLineAndConsole($"ModularAssembliesDefinition: Exception in InputHandler: {ex}\n{ex.StackTrace}");
                 }
             }
         }
@@ -115,7 +115,7 @@ namespace Scripts.ModularAssemblies.Communication
         private void SendFunc(FunctionCall call)
         {
             MyAPIGateway.Utilities.SendModMessage(OutboundMessageId, MyAPIGateway.Utilities.SerializeToBinary(call));
-            //MyLog.Default.WriteLineAndConsole($"ModularAssemblyryDefinition: Sending function call [id {call.ActionId}].");
+            //MyLog.Default.WriteLineAndConsole($"ModularAssembliesDefinition: Sending function call [id {call.ActionId}].");
         }
     }
 }

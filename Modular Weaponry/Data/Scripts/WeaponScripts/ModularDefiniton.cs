@@ -1,4 +1,6 @@
 ﻿using Modular_Assemblies.Data.Scripts.AssemblyScripts.DebugDraw;
+using Sandbox.Definitions;
+using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using VRage.Game.ModAPI;
@@ -28,23 +30,16 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts
                 BaseBlockSubtype = definition.BaseBlock,
                 Name = definition.Name,
             };
-
+            
             if (def.AllowedBlocks == null || def.AllowedConnections == null || def.BaseBlockSubtype == null || def.Name == null)
             {
-                MyLog.Default.WriteLineAndConsole("Modular Assemblies: !!Failed!! to create new ModularDefinition for " + definition.Name);
+                MyLog.Default.WriteLineAndConsole("Modular Assemblies: Failed to create new ModularDefinition for " + definition.Name);
                 return null;
             }
 
             MyLog.Default.WriteLineAndConsole("Modular Assemblies: Created new ModularDefinition for " + definition.Name);
             return def;
         }
-
-        //public VRage.MyTuple<bool, Vector3D, Vector3D, float> ChangeProjectileData(long firerEntityId, int firerPartId, ulong projectileId, long targetEntityId, Vector3D projectilePosition)
-        //{
-        //    Vector3D velocityOffset = -AssemblyPartGetter.Instance.wAPI.GetProjectileState(projectileId).Item2 * 0.5;
-        //    MyAPIGateway.Utilities.ShowNotification("Projectile " + Math.Round(velocityOffset.Length(), 2));
-        //    return new VRage.MyTuple<bool, Vector3D, Vector3D, float>(false, projectilePosition, velocityOffset, 0);
-        //}
 
         public bool DoesBlockConnect(IMySlimBlock block, IMySlimBlock adajent, bool lineCheck = true)
         {
