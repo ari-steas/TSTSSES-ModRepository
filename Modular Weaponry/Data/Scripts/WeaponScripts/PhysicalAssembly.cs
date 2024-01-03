@@ -32,7 +32,7 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts
                     foreach (var conPart in part.connectedParts)
                         DebugDrawManager.AddLine(DebugDrawManager.GridToGlobal(part.block.Position, part.block.CubeGrid), DebugDrawManager.GridToGlobal(conPart.block.Position, part.block.CubeGrid), color, 0f);
                 }
-                MyAPIGateway.Utilities.ShowNotification(id + " PW Parts: " + componentParts.Count, 1000 / 60);
+                MyAPIGateway.Utilities.ShowNotification($"Assembly {id} Parts: {componentParts.Count}", 1000 / 60);
             }
         }
 

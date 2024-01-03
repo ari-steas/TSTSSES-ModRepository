@@ -1,15 +1,12 @@
 ﻿using Sandbox.Definitions;
-using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VRage;
 using VRage.Game.Components;
+using VRage.Profiler;
 using VRage.Utils;
-using VRageMath;
 using static Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions.DefinitionDefs;
 
 namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
@@ -76,7 +73,18 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
                         ModularDefinition modDef = ModularDefinition.Load(def);
                         if (modDef != null)
                         {
-                            ModularDefinitions.Add(modDef);
+                            bool isDefinitionValid = true;
+                            foreach (var definiton in ModularDefinitions)
+                            {
+                                if (definiton.Name == modDef.Name)
+                                {
+                                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Duplicate DefinitionName in definition {modDef.Name}! Skipping load...");
+                                    MyAPIGateway.Utilities.ShowMessage("ModularAssemblies", $"Duplicate DefinitionName in definition {modDef.Name}! Skipping load...");
+                                    isDefinitionValid = false;
+                                }
+                            }
+                            if (isDefinitionValid)
+                                ModularDefinitions.Add(modDef);
                         }
                     }
                 }
@@ -205,36 +213,20 @@ namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
                     validSubtypes.Add(def.Id.SubtypeName);
                 }
             }
-
             foreach (var def in ModularDefinitions.ToList())
-                if (!CheckDefinitionValid(def, validSubtypes))
-                    ModularDefinitions.Remove(def);
+                CheckDefinitionValid(def, validSubtypes);
         }
 
-        private bool CheckDefinitionValid(ModularDefinition modDef, List<string> validSubtypes)
+        private void CheckDefinitionValid(ModularDefinition modDef, List<string> validSubtypes)
         {
-            bool isDefinitionValid = true;
             foreach (var subtypeId in modDef.AllowedBlocks)
             {
                 if (!validSubtypes.Contains(subtypeId))
                 {
-                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Invalid SubtypeId [{subtypeId}] in definition {modDef.Name}! Skipping load...");
-                    MyAPIGateway.Utilities.SendMessage($"ModularAssemblies: Invalid SubtypeId [{subtypeId}] in definition {modDef.Name}! Skipping load...");
-                    isDefinitionValid = false;
+                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Invalid SubtypeId [{subtypeId}] in definition {modDef.Name}! Unexpected behavior may occur.");
+                    MyAPIGateway.Utilities.ShowMessage("ModularAssemblies", $"Invalid SubtypeId [{subtypeId}] in definition {modDef.Name}! Unexpected behavior may occur.");
                 }
             }
-
-            foreach (var definiton in ModularDefinitions)
-            {
-                if (definiton.Name == modDef.Name)
-                {
-                    MyLog.Default.WriteLineAndConsole($"ModularAssemblies: Duplicate DefinitionName in definition {modDef.Name}! Skipping load...");
-                    MyAPIGateway.Utilities.SendMessage($"ModularAssemblies: Duplicate DefinitionName in definition {modDef.Name}! Skipping load...");
-                    isDefinitionValid = false;
-                }
-            }
-
-            return isDefinitionValid;
         }
     }
 }

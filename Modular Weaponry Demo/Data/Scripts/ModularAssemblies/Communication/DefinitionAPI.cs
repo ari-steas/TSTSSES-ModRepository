@@ -5,7 +5,6 @@ using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Utils;
-using VRageMath;
 
 namespace Scripts.ModularAssemblies.Communication
 {

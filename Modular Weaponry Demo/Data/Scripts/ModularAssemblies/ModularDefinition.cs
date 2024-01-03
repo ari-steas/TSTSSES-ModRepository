@@ -7,7 +7,7 @@
         {
             // it's just like assemblycore, insert definitions here
 
-            LoadDefinitions(ModularDefinitionExample);
+            LoadDefinitions(Modular_Fusion);
         }
     }
 }
