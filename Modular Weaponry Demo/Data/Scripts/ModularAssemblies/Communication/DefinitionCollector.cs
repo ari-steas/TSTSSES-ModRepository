@@ -1,5 +1,4 @@
 ﻿using static Scripts.ModularAssemblies.Communication.DefinitionDefs;
-using Scripts.ModularAssemblies.Communication;
 
 namespace Scripts.ModularAssemblies.Communication
 {

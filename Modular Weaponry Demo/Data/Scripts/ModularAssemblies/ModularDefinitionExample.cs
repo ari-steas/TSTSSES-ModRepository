@@ -3,14 +3,11 @@ using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using VRage;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
-using VRage.Utils;
 using VRageMath;
 using static Scripts.ModularAssemblies.Communication.DefinitionDefs;
-using VRage.ModAPI;
-using Sandbox.Game;
+using Modular_Definitions.Data.Scripts.ModularAssemblies;
 
 namespace Scripts.ModularAssemblies.Communication
 {
@@ -20,8 +17,9 @@ namespace Scripts.ModularAssemblies.Communication
         // You can declare functions in here, and they are shared between all other ModularDefinition files.
         private Dictionary<int, List<MyEntity[]>> Example_ValidArms = new Dictionary<int, List<MyEntity[]>>();
         private List<MyEntity> Example_BufferArm = new List<MyEntity>();
+        private Dictionary<int, List<IMyThrust>> Example_Thrusters = new Dictionary<int, List<IMyThrust>>();
         private int StopHits = 0;
-
+        
         private int GetNumBlocksInArm(int PhysicalAssemblyId)
         {
             int total = 0;
@@ -31,6 +29,7 @@ namespace Scripts.ModularAssemblies.Communication
 
             return total;
         }
+
         private bool Example_ScanArm(MyEntity blockEntity, MyEntity prevScan, string StopAt)
         {
             if (ModularAPI.IsDebug())
@@ -53,6 +52,7 @@ namespace Scripts.ModularAssemblies.Communication
             
             return StopHits == 2;
         }
+
         // TODO: MyVisualScriptLogicProvider.AddQuestlogDetail for debug mode
 
         private void UpdatePower(int PhysicalAssemblyId)
@@ -60,20 +60,32 @@ namespace Scripts.ModularAssemblies.Communication
             IMyReactor basePart = (IMyReactor) ModularAPI.GetBasePart(PhysicalAssemblyId);
 
             float desiredPower = Example_ValidArms[PhysicalAssemblyId].Count * GetNumBlocksInArm(PhysicalAssemblyId);
+            float actualPower = desiredPower;
 
-            basePart.PowerOutputMultiplier = desiredPower / (basePart.MaxOutput / basePart.PowerOutputMultiplier);
-            MyAPIGateway.Utilities.ShowMessage("MW", "" + basePart.PowerOutputMultiplier);
+            foreach (var thrust in Example_Thrusters[PhysicalAssemblyId])
+            {
+                SyncMultipliers.ThrusterOutput(thrust, desiredPower * 80000);
+                actualPower -= desiredPower / 4;
+            }
+
+            SyncMultipliers.ReactorOutput(basePart, actualPower);
+
+            MyAPIGateway.Utilities.SendMessage(basePart.PowerOutputMultiplier + " | " + actualPower);
         }
 
         // This is the important bit.
-        PhysicalDefinition ModularDefinitionExample => new PhysicalDefinition
+        PhysicalDefinition Modular_Fusion => new PhysicalDefinition
         {
-            Name = "ModularDefinitionExample",
+            // Unique name of the definition.
+            Name = "Modular_Fusion",
 
+            // Triggers whenever a new part is added to an assembly.
             OnPartAdd = (int PhysicalAssemblyId, MyEntity NewBlockEntity, bool IsBaseBlock) =>
             {
                 if (!Example_ValidArms.ContainsKey(PhysicalAssemblyId))
                     Example_ValidArms.Add(PhysicalAssemblyId, new List<MyEntity[]>());
+                if (!Example_Thrusters.ContainsKey(PhysicalAssemblyId))
+                    Example_Thrusters.Add(PhysicalAssemblyId, new List<IMyThrust>());
 
                 // Scan for 'arms' connected on both ends to the feeder block.
                 switch (((IMyCubeBlock)NewBlockEntity).BlockDefinition.SubtypeName)
@@ -89,17 +101,24 @@ namespace Scripts.ModularAssemblies.Communication
                         break;
                 }
 
+                if (NewBlockEntity is IMyThrust)
+                    Example_Thrusters[PhysicalAssemblyId].Add((IMyThrust) NewBlockEntity);
+
                 UpdatePower(PhysicalAssemblyId);
 
                 if (ModularAPI.IsDebug())
                     MyAPIGateway.Utilities.ShowNotification("Pass: Arms: " + Example_ValidArms[PhysicalAssemblyId].Count + " (Size " + Example_ValidArms[PhysicalAssemblyId][Example_ValidArms[PhysicalAssemblyId].Count - 1].Length + ")");
             },
 
+            // Triggers whenever a part is removed from an assembly.
             OnPartRemove = (int PhysicalAssemblyId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
                 // Remove if the connection is broken.
                 if (!IsBaseBlock)
                 {
+                    if (BlockEntity is IMyThrust)
+                        Example_Thrusters[PhysicalAssemblyId].Add((IMyThrust)BlockEntity);
+
                     MyEntity[] armToRemove = null;
                     foreach (var arm in Example_ValidArms[PhysicalAssemblyId])
                     {
@@ -120,16 +139,22 @@ namespace Scripts.ModularAssemblies.Communication
                         MyAPIGateway.Utilities.ShowNotification("Remove: Arms: " + Example_ValidArms[PhysicalAssemblyId].Count);
                 }
                 else
+                {
                     Example_ValidArms.Remove(PhysicalAssemblyId);
+                    Example_Thrusters.Remove(PhysicalAssemblyId);
+                }
             },
 
+            // Triggers whenever a part is destroyed, simultaneously with OnPartRemove
             OnPartDestroy = (int PhysicalAssemblyId, MyEntity BlockEntity, bool IsBaseBlock) =>
             {
-                MyLog.Default.WriteLineAndConsole($"ModularDefinitionEx: OnPartDestroy {IsBaseBlock}");
+                // You can remove this function, and any others if need be.
             },
 
+            // The most important block in an assembly. Connection checking starts here.
             BaseBlock = "Caster_Controller",
 
+            // All SubtypeIds that can be part of this assembly.
             AllowedBlocks = new string[]
             {
                 "Caster_FocusLens",

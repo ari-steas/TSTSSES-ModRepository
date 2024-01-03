@@ -1,10 +1,6 @@
 ﻿using ProtoBuf;
 using System;
 using System.Collections.Generic;
-using VRage;
-using VRage.Game.Entity;
-using VRage.Library.Collections;
-using VRage.Utils;
 using VRageMath;
 
 namespace Modular_Assemblies.Data.Scripts.AssemblyScripts.Definitions
