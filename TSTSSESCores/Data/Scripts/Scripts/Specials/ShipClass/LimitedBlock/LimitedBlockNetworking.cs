@@ -66,26 +66,20 @@ namespace MIG.SpecCores
         
         public void OnSettingsChanged() { }
 
-        public void NotifyAndSave(byte type = 255, bool forceSave = false)
+        public void NotifyAndSave(byte type=255, bool forceSave = false)
         {
             try
             {
                 if (MyAPIGateway.Session.IsServer)
                 {
-                    lock (Settings)
-                    {
-                        Sync.SendMessageToOthers(Block.EntityId, Settings, type: type);
-                        SaveSettings(forceSave);
-                    }
+                    Sync.SendMessageToOthers(Block.EntityId, Settings, type: type);
+                    SaveSettings(forceSave);
                 }
                 else
                 {
                     if (Sync != null)
                     {
-                        lock (Settings)
-                        {
-                            Sync.SendMessageToServer(Block.EntityId, Settings, type: type);
-                        }
+                        Sync.SendMessageToServer(Block.EntityId, Settings, type: type);
                     }
                 }
             }
@@ -94,8 +88,7 @@ namespace MIG.SpecCores
                 Log.ChatError($"NotifyAndSave {type} Exception {ex} {ex.StackTrace}");
             }
         }
-
-
+        
         public void SaveSettings(bool forceSave = false)
         {
             if (MyAPIGateway.Session.IsServer)

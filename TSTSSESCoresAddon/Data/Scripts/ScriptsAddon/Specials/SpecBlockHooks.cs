@@ -207,123 +207,67 @@ namespace Scripts.Specials.ShipClass
 
         public static IMyTerminalBlock GetLimitedBlockBlock(object block)
         {
-            if (getLimitedBlockBlock == null)
-            {
-                MyLog.Default.WriteLine("SpecBlockHooks: getLimitedBlockBlock is null");
-                return null;
-            }
-
-            if (block == null)
-            {
-                MyLog.Default.WriteLine("SpecBlockHooks: block is null");
-                return null;
-            }
-
-            try
-            {
-                var limitedBlock = block as ILimitedBlock;
-                if (limitedBlock == null)
-                {
-                    MyLog.Default.WriteLine($"SpecBlockHooks: block of type {block.GetType().FullName} does not implement ILimitedBlock");
-                    return null;
-                }
-
-                return getLimitedBlockBlock.Invoke(block);
-            }
-            catch (InvalidCastException)
-            {
-                MyLog.Default.WriteLine($"SpecBlockHooks: Failed to cast block of type {block.GetType().FullName} to ILimitedBlock");
-                return null;
-            }
-            catch (Exception e)
-            {
-                MyLog.Default.WriteLine($"SpecBlockHooks: Error in GetLimitedBlockBlock: {e.Message}");
-                return null;
-            }
+            return getLimitedBlockBlock?.Invoke(block);
         }
 
         public static void RegisterCustomLimitConsumer(string Id, Func<IMyTerminalBlock, ILimitedBlock> creator)
         {
-            SpecBlockHooks.RegisterCustomLimitConsumer(Id,
+            SpecBlockHooks.RegisterCustomLimitConsumer(Id, 
                 creator,
-                (logic) =>
+                (logic)=>
                 {
-                    var limitedBlock = logic as ILimitedBlock;
-                    if (limitedBlock != null) limitedBlock.CanWork();
+                    ((ILimitedBlock) logic).CanWork();
                 },
                 (block, logic) =>
                 {
-                    var limitedBlock = logic as ILimitedBlock;
-                    return limitedBlock != null && limitedBlock.CheckConditions(block);
+                    return ((ILimitedBlock) logic).CheckConditions(block);
                 },
-                (logic) =>
+                (logic)=>
                 {
-                    var limitedBlock = logic as ILimitedBlock;
-                    return limitedBlock != null && limitedBlock.CanBeDisabled();
+                    return ((ILimitedBlock) logic).CanBeDisabled();
                 },
-                (logic) =>
+                (logic)=>
                 {
-                    var limitedBlock = logic as ILimitedBlock;
-                    return limitedBlock != null && limitedBlock.IsDrainingPoints();
+                    return ((ILimitedBlock) logic).IsDrainingPoints();
                 },
-                (logic) =>
+                (logic)=>
                 {
-                    var limitedBlock = logic as ILimitedBlock;
-                    if (limitedBlock != null) limitedBlock.Disable();
+                    ((ILimitedBlock) logic).Disable();
                 });
         }
-
+        
         public static Dictionary<Type, HashSet<IMyCubeBlock>> GetGridBlocksByType(IMyCubeGrid grid)
         {
-            if (grid == null)
-            {
-                MyLog.Default.WriteLine("SpecBlockHooks: grid is null in GetGridBlocksByType");
-                return null;
-            }
             return getGridBlocksByType?.Invoke(grid) ?? null;
         }
-
+        
         public static Dictionary<MyDefinitionId, HashSet<IMyCubeBlock>> GetGridBlocksById(IMyCubeGrid grid)
         {
-            if (grid == null)
-            {
-                MyLog.Default.WriteLine("SpecBlockHooks: grid is null in GetGridBlocksById");
-                return null;
-            }
             return getGridBlocksById?.Invoke(grid) ?? null;
         }
-
-        public static void HandleDamage(object target, ref MyDamageInformation damage)
-        { //Parallel            
-            try
-            {
-                var slimBlock = target as IMySlimBlock;
-                if (slimBlock == null)
-                {
-                    MyLog.Default.WriteLine("SpecBlockHooks: target is not IMySlimBlock in HandleDamage");
-                    return;
-                }
-
-                var cubeGrid = slimBlock.CubeGrid;
-                var core = SpecBlockHooks.GetMainSpecCore(cubeGrid);
-                if (core == null)
-                {
-                    MyLog.Default.WriteLine("SpecBlockHooks: core is null in HandleDamage");
-                    return;
-                }
-
-                var stats = new Dictionary<int, float>();
-                SpecBlockHooks.GetSpecCoreLimits(core, stats, SpecBlockHooks.GetSpecCoreLimitsEnum.CurrentStaticOrDynamic);
-                if (stats != null && stats.ContainsKey(-33) && stats[-33] != 0)
-                {
-                    damage.Amount *= stats[-33];
-                }
-            }
-            catch (Exception e)
-            {
-                MyLog.Default.WriteLine($"SpecBlockHooks: Error in HandleDamage: {e.Message}");
-            }
-        }
-
-    }
+    
+		public static void HandleDamage(object target, ref MyDamageInformation damage)
+		{ //Paralell			
+			try
+			{
+				var slimBlock = target as IMySlimBlock;
+				if (slimBlock != null)
+				{
+					var cubeGrid = slimBlock.CubeGrid;
+					var core = SpecBlockHooks.GetMainSpecCore(slimBlock.CubeGrid);
+					var stats = new Dictionary<int, float>();
+					SpecBlockHooks.GetSpecCoreLimits(core, stats, SpecBlockHooks.GetSpecCoreLimitsEnum.CurrentStaticOrDynamic);
+					if(stats.ContainsKey(-33) && stats[-33]!=0)
+					{
+						damage.Amount *= stats [-33]; 
+					}
+				}
+			}
+			catch(Exception e)
+			{
+				
+			}			
+		}
+	
+	}
 }
