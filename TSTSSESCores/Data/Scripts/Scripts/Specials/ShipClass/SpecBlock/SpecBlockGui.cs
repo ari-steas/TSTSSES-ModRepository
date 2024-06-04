@@ -122,13 +122,14 @@ namespace MIG.SpecCores
             x.block.RefreshDI();
             UpdateControls(x);
         }
-        
+
         private static void ApplyUpgradesGui(SpecBlock x)
         {
             var settings = new UpgradableSpecBlockSettings();
             settings.Upgrades.AddRange(x.AddedUpgrades);
             x.AddedUpgrades.Clear();
             x.SelectedUpgrades.Clear();
+            Log.ChatError($"Applying upgrades: {string.Join(",", settings.Upgrades)} to block: {x.block.EntityId}");
             Sync.SendMessageToServer(x.block.EntityId, settings, type: APPLY_SELECTED);
             FrameExecutor.addDelayedLogic(30, (xx) => UpdateControls(x)); //1/2 sec
             if (!MyAPIGateway.Session.IsServer)
@@ -136,7 +137,7 @@ namespace MIG.SpecCores
                 x.Settings = settings; //Remove gui lag
             }
         }
-        
+
         private static void ApplyRandomUpgradesGui(SpecBlock x)
         {
             x.AddedUpgrades.Clear();
