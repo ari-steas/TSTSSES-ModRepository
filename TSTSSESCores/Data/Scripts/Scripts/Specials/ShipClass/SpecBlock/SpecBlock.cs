@@ -162,7 +162,6 @@ namespace MIG.SpecCores
 
         private static void Handler(SpecBlock block, UpgradableSpecBlockSettings settings, byte type, ulong userSteamId, bool isFromServer)
         {
-            Log.ChatError($"Handler called for block: {block.block.EntityId}, type: {type}, isFromServer: {isFromServer}");
             if (isFromServer && !MyAPIGateway.Session.IsServer)
             {
                 block.Settings = settings;

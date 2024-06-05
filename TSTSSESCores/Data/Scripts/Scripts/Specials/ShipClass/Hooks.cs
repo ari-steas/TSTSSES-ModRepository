@@ -12,30 +12,31 @@ using A = System.Action<object>;
 using C = System.Func<Sandbox.ModAPI.IMyTerminalBlock, object>;
 using U = System.Collections.Generic.List<int>;
 using L = System.Collections.Generic.IDictionary<int, float>;
-using VRage.Utils;
 
 namespace MIG.SpecCores
 {
     public class Hooks
     {
+        
         private static Action<string, C, A, FF, F, F, A> registerCustomLimitConsumer = RegisterCustomLimitConsumer;
         private static Func<IMyCubeGrid, object> getMainSpecCore = GetMainSpecCore;
         private static Func<IMyCubeGrid, IMyTerminalBlock> getMainSpecCoreBlock = GetMainSpecCoreBlock;
         private static Action<object, L, int> getSpecCoreLimits = GetSpecCoreLimits;
         private static Action<object, U> getSpecCoreUpgrades = GetSpecCoreUpgrades;
-        private static Action<object, L, L> setSpecCoreUpgrades = SetSpecCoreCustomValues;
-
+        private static Action<object, L,L> setSpecCoreUpgrades = SetSpecCoreCustomValues;
+        
         private static Func<IMyTerminalBlock, object> getSpecCoreBlock = GetSpecCoreBlock;
-
+        
         private static Func<IMyCubeGrid, Dictionary<Type, HashSet<IMyCubeBlock>>> getGridBlocksByType = GetGridBlocksByType;
         private static Func<IMyCubeGrid, Dictionary<MyDefinitionId, HashSet<IMyCubeBlock>>> getGridBlocksById = GetGridBlocksById;
-
+        
         private static Func<object, IMyTerminalBlock> getBlockSpecCore = GetBlockSpecCore;
         private static Func<IMyTerminalBlock, object> getLimitedBlock = GetLimitedBlock;
         private static Func<object, IMyTerminalBlock> getLimitedBlockBlock = GetLimitedBlockBlock;
-
-        private static Action<int, Func<object, List<IMyCubeGrid>, float>> registerSpecCoreCurrentPointCustomFx = RegisterSpecCoreCurrentPointCustomFx;
-
+        
+        private static Action <int, Func<object, List<IMyCubeGrid>, float>> registerSpecCoreCurrentPointCustomFx = RegisterSpecCoreCurrentPointCustomFx;
+        
+        
         private static Action<Action<IMyTerminalBlock, object, Dictionary<int, float>, Dictionary<int, float>>> addSpecCoreLimitsInterceptor = AddSpecCoreLimitsInterceptor;
         private static event Action<IMyTerminalBlock, object, Dictionary<int, float>, Dictionary<int, float>> SpecCoreLimitsInterceptor = null;
 
@@ -43,13 +44,15 @@ namespace MIG.SpecCores
         {
             SpecCoreLimitsInterceptor?.Invoke(block.block, block, st, dynam);
         }
-
+        
         private static Dictionary<int, Func<object, List<IMyCubeGrid>, float>> SpecCoreCurrentCustom = new Dictionary<int, Func<object, List<IMyCubeGrid>, float>>();
-
+        
+        
         private static Func<object, List<IMyCubeGrid>, string> CanSpecCoreWork;
-
+        
         public static Dictionary<string, HookedLimiterInfo> HookedConsumerInfos = new Dictionary<string, HookedLimiterInfo>();
-
+        
+        
         public static event Action<object> OnSpecBlockCreated;
         public static event Action<object> OnSpecBlockDestroyed;
         public static event Action<object> OnLimitedBlockCreated;
@@ -81,143 +84,53 @@ namespace MIG.SpecCores
         {
             OnLimitedBlockDestroyed?.Invoke(block);
         }
-
+        
         public static object GetSpecCoreBlock(IMyTerminalBlock block)
         {
-            if (block == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetSpecCoreBlock: block is null");
-                return null;
-            }
-
             var grid = block.CubeGrid;
-            if (grid == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetSpecCoreBlock: block.CubeGrid is null");
-                return null;
-            }
-
             var ship = grid.GetShip();
-            if (ship == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetSpecCoreBlock: grid.GetShip() is null");
-                return null;
-            }
-
+            if (ship == null) return null;
             ISpecBlock specBlock;
-            if (ship.SpecBlocks.TryGetValue(block, out specBlock))
-            {
-                return specBlock;
-            }
-            else
-            {
-                MyLog.Default.WriteLine("Hooks.GetSpecCoreBlock: ship.SpecBlocks does not contain the block");
-                return null;
-            }
+            ship.SpecBlocks.TryGetValue(block, out specBlock);
+            return specBlock;
         }
-
+        
         public static Dictionary<Type, HashSet<IMyCubeBlock>> GetGridBlocksByType(IMyCubeGrid grid)
         {
-            if (grid == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetGridBlocksByType: grid is null");
-                return null;
-            }
-
             var ship = grid.GetShip();
             return ship?.BlocksCache;
         }
-
+        
         public static Dictionary<MyDefinitionId, HashSet<IMyCubeBlock>> GetGridBlocksById(IMyCubeGrid grid)
         {
-            if (grid == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetGridBlocksById: grid is null");
-                return null;
-            }
-
             var ship = grid.GetShip();
             return ship?.BlocksCacheByType;
         }
 
         public static IMyTerminalBlock GetBlockSpecCore(object block)
         {
-            if (block == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetBlockSpecCore: block is null");
-                return null;
-            }
-
-            var specBlock = block as ISpecBlock;
-            if (specBlock == null)
-            {
-                MyLog.Default.WriteLine($"Hooks.GetBlockSpecCore: block of type {block.GetType().FullName} does not implement ISpecBlock");
-                return null;
-            }
-
-            return specBlock.block;
+            return ((ISpecBlock) block).block;
         }
-
+        
         public static object GetLimitedBlock(IMyTerminalBlock block)
         {
-            if (block == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetLimitedBlock: block is null");
-                return null;
-            }
-
             var grid = block.CubeGrid;
-            if (grid == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetLimitedBlock: block.CubeGrid is null");
-                return null;
-            }
-
             var ship = grid.GetShip();
-            if (ship == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetLimitedBlock: grid.GetShip() is null");
-                return null;
-            }
-
+            if (ship == null) return null;
             ILimitedBlock limitedBlock;
-            if (ship.LimitedBlocks.TryGetValue(block, out limitedBlock))
-            {
-                return limitedBlock;
-            }
-            else
-            {
-                MyLog.Default.WriteLine("Hooks.GetLimitedBlock: ship.LimitedBlocks does not contain the block");
-                return null;
-            }
+            ship.LimitedBlocks.TryGetValue(block, out limitedBlock);
+            return limitedBlock;
         }
 
         public static IMyTerminalBlock GetLimitedBlockBlock(object block)
         {
-            if (block == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetLimitedBlockBlock: block is null");
-                return null;
-            }
-
-            var limitedBlock = block as ILimitedBlock;
-            if (limitedBlock == null)
-            {
-                MyLog.Default.WriteLine($"Hooks.GetLimitedBlockBlock: block of type {block.GetType().FullName} does not implement ILimitedBlock");
-                return null;
-            }
-
-            return limitedBlock.GetBlock();
+            return ((ILimitedBlock) block).GetBlock();
         }
+
+
 
         public static object GetMainSpecCore(IMyCubeGrid grid)
         {
-            if (grid == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetMainSpecCore: grid is null");
-                return null;
-            }
-
             Ship ship;
             if (OriginalSpecCoreSession.Instance.gridToShip.TryGetValue(grid.EntityId, out ship))
             {
@@ -226,15 +139,9 @@ namespace MIG.SpecCores
 
             return null;
         }
-
+        
         public static IMyTerminalBlock GetMainSpecCoreBlock(IMyCubeGrid grid)
         {
-            if (grid == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetMainSpecCoreBlock: grid is null");
-                return null;
-            }
-
             Ship ship;
             if (OriginalSpecCoreSession.Instance.gridToShip.TryGetValue(grid.EntityId, out ship))
             {
@@ -243,15 +150,11 @@ namespace MIG.SpecCores
 
             return null;
         }
-
+        
         public static void GetSpecCoreLimits(object specCore, IDictionary<int, float> dictionary, int mode)
         {
             var specBlock = specCore as SpecBlock;
-            if (specBlock == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetSpecCoreLimits: specCore is not a SpecBlock");
-                return;
-            }
+            if (specBlock == null) return;
 
             switch (mode)
             {
@@ -262,50 +165,34 @@ namespace MIG.SpecCores
                 case 5: dictionary.Sum(specBlock.Settings.CustomStatic); break;
                 case 6: dictionary.Sum(specBlock.Settings.CustomDynamic); break;
                 case 7: dictionary.Sum(specBlock.GetLimits()); break;
-                default:
-                    MyLog.Default.WriteLine($"Hooks.GetSpecCoreLimits: Invalid mode {mode}");
-                    break;
             }
         }
-
+        
         public static void GetSpecCoreUpgrades(object specCore, List<int> copyTo, int mode)
         {
             var specBlock = specCore as SpecBlock;
-            if (specBlock == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetSpecCoreUpgrades: specCore is not a SpecBlock");
-                return;
-            }
-
+            if (specBlock == null) return;
             copyTo.AddRange(specBlock.Settings.Upgrades);
         }
-
+        
         public static void GetSpecCoreUpgrades(object specCore, List<int> copyTo)
         {
             var specBlock = specCore as SpecBlock;
-            if (specBlock == null)
-            {
-                MyLog.Default.WriteLine("Hooks.GetSpecCoreUpgrades: specCore is not a SpecBlock");
-                return;
-            }
-
+            if (specBlock == null) return;
             copyTo.AddRange(specBlock.Settings.Upgrades);
         }
 
         public static void SetSpecCoreCustomValues(object specCore, IDictionary<int, float> staticValues, IDictionary<int, float> dynamicValues)
         {
             var specBlock = specCore as SpecBlock;
-            if (specBlock == null)
-            {
-                MyLog.Default.WriteLine("Hooks.SetSpecCoreCustomValues: specCore is not a SpecBlock");
-                return;
-            }
-
+            if (specBlock == null) return;
             specBlock.Settings.CustomStatic.Sum(staticValues);
             specBlock.Settings.CustomDynamic.Sum(dynamicValues);
             specBlock.ApplyUpgrades();
             specBlock.SaveSettings();
         }
+
+        
 
         /// <summary>
         /// Must be inited in LoadData of MySessionComponentBase
@@ -315,7 +202,7 @@ namespace MIG.SpecCores
             ModConnection.Init();
 
             TorchExtensions.Init();
-
+            
             ModConnection.SetValue("MIG.SpecCores.RegisterCustomLimitConsumer", registerCustomLimitConsumer);
             ModConnection.SetValue("MIG.SpecCores.GetMainSpecCore", getMainSpecCore);
             ModConnection.SetValue("MIG.SpecCores.GetMainSpecCoreBlock", getMainSpecCoreBlock);
@@ -330,12 +217,12 @@ namespace MIG.SpecCores
             ModConnection.SetValue("MIG.SpecCores.GetBlockSpecCore", getBlockSpecCore);
             ModConnection.SetValue("MIG.SpecCores.GetLimitedBlock", getLimitedBlock);
             ModConnection.SetValue("MIG.SpecCores.GetLimitedBlockBlock", getLimitedBlockBlock);
-
+            
             ModConnection.Subscribe("MIG.SpecCores.RegisterCustomLimitConsumer", registerCustomLimitConsumer, (x) => { registerCustomLimitConsumer = x; });
-
+            
             ModConnection.SetValue("MIG.SpecCores.RegisterSpecCorePointCustomFx", registerSpecCoreCurrentPointCustomFx);
             ModConnection.SetValue("MIG.SpecCores.AddSpecCoreLimitsInterceptor", addSpecCoreLimitsInterceptor);
-
+           
             ModConnection.Subscribe("MIG.SpecCores.OnSpecBlockCreated", OnSpecBlockCreated, (a) => { OnSpecBlockCreated += a; });
             ModConnection.Subscribe("MIG.SpecCores.OnSpecBlockDestroyed", OnSpecBlockDestroyed, (a) => { OnSpecBlockDestroyed += a; });
             ModConnection.Subscribe("MIG.SpecCores.OnLimitedBlockCreated", OnLimitedBlockCreated, (a) => { OnLimitedBlockCreated += a; });
@@ -344,7 +231,7 @@ namespace MIG.SpecCores
             ModConnection.Subscribe("MIG.SpecCores.OnSpecBlockChanged", OnSpecCoreChanged, (a) => { OnSpecCoreChanged += a; });
             ModConnection.Subscribe("MIG.SpecCores.CanSpecCoreWork", CanSpecCoreWork, (a) => { CanSpecCoreWork = a; });
         }
-
+        
         public static void Close()
         {
             ModConnection.Close();
@@ -360,31 +247,19 @@ namespace MIG.SpecCores
                 IsDrainingPoints = IsDrainingPoints,
                 Disable = Disable,
             };
-
         }
 
+        
         public static void RegisterSpecCoreCurrentPointCustomFx(int id, Func<object, List<IMyCubeGrid>, float> fx)
         {
-            if (fx == null)
-            {
-                MyLog.Default.WriteLine($"Hooks.RegisterSpecCoreCurrentPointCustomFx: fx is null for id {id}");
-                return;
-            }
-
             SpecCoreCurrentCustom[id] = fx;
         }
-
+        
         public static void AddSpecCoreLimitsInterceptor(Action<IMyTerminalBlock, object, Dictionary<int, float>, Dictionary<int, float>> fx)
         {
-            if (fx == null)
-            {
-                MyLog.Default.WriteLine("Hooks.AddSpecCoreLimitsInterceptor: fx is null");
-                return;
-            }
-
             SpecCoreLimitsInterceptor += fx;
         }
-
+        
         public static string CanBeApplied(ISpecBlock specBlock, List<IMyCubeGrid> grids)
         {
             return CanSpecCoreWork?.Invoke(specBlock, grids) ?? null;
@@ -399,7 +274,7 @@ namespace MIG.SpecCores
             }
             return fx?.Invoke(specBlock, grids) ?? 0;
         }
-
+        
         public static float GetMaxPointValueForSpecCore(ISpecBlock specBlock, List<IMyCubeGrid> grids, LimitPoint lp)
         {
             var fx = SpecCoreCurrentCustom.GetOr(lp.Id, null);
