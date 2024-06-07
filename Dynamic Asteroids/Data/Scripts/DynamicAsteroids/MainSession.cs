@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DynamicAsteroids.AsteroidEntities;
+using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using SC.SUGMA;
 using VRage.Game.Components;
@@ -16,7 +17,7 @@ namespace DynamicAsteroids
 
         public Random Rand = new Random();
 
-        private List<AsteroidEntity> _asteroids;
+        private AsteroidSpawner _spawner = new AsteroidSpawner();
 
         #region Base Methods
 
@@ -27,7 +28,7 @@ namespace DynamicAsteroids
 
             try
             {
-
+                _spawner.Init();
             }
             catch (Exception ex)
             {
@@ -39,7 +40,7 @@ namespace DynamicAsteroids
         {
             try
             {
-                
+                _spawner.Close();
             }
             catch (Exception ex)
             {
@@ -54,6 +55,7 @@ namespace DynamicAsteroids
         {
             try
             {
+                _spawner.UpdateTick();
                 if (MyAPIGateway.Input.IsNewKeyPressed(MyKeys.MiddleButton))
                     AsteroidEntity.CreateAsteroid(MyAPIGateway.Session.Player?.GetPosition() ?? Vector3D.Zero, Rand.Next(50), MyAPIGateway.Session.Player?.Character?.Physics?.LinearVelocity ?? Vector3D.Zero);
             }

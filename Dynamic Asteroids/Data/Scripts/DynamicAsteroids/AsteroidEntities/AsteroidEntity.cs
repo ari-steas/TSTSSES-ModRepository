@@ -20,15 +20,18 @@ namespace DynamicAsteroids.AsteroidEntities
 {
     public class AsteroidEntity : MyEntity, IMyDestroyableObject
     {
-        private const double VelocityVariablility = 4;
+        private const double VelocityVariability = 10;
+        private const double AngularVelocityVariability = 0.1;
 
         private static readonly string[] AvailableModels = {
             @"Models\Components\Sphere.mwm"
         };
 
-        public static void CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity)
+        public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity)
         {
-            new AsteroidEntity().Init(position, size, initialVelocity);
+            var ent = new AsteroidEntity();
+            ent.Init(position, size, initialVelocity);
+            return ent;
         }
 
         public float Size = 3;
@@ -57,7 +60,7 @@ namespace DynamicAsteroids.AsteroidEntities
                     //MyFloatingObjects.Spawn(item, PositionComp.GetPosition() + RandVector*Size*4, Vector3D.Forward, Vector3D.Up);
 
                     //MyObjectBuilder_PhysicalObject newObject = MyObjectBuilderSerializerKeen.CreateNewObject(item.Id.TypeId, item.Id.SubtypeName) as MyObjectBuilder_PhysicalObject;
-                    MyFloatingObjects.Spawn(new MyPhysicalInventoryItem(1000, newObject), PositionComp.GetPosition() + RandVector*Size, Vector3D.Forward, Vector3D.Up, Physics);
+                    MyFloatingObjects.Spawn(new MyPhysicalInventoryItem(1000, newObject), PositionComp.GetPosition() + RandVector()*Size, Vector3D.Forward, Vector3D.Up, Physics);
                 }
                 Close();
                 return;
@@ -65,10 +68,12 @@ namespace DynamicAsteroids.AsteroidEntities
 
             for (int i = 0; i < splits; i++)
             {
-                CreateAsteroid(this.PositionComp.GetPosition() + RandVector*Size, newSize, this.Physics.LinearVelocity);
+                Vector3D newPos = this.PositionComp.GetPosition() + RandVector() * Size;
+                CreateAsteroid(newPos, newSize, this.Physics.GetVelocityAtPoint(newPos));
             }
             Close();
         }
+
 
         public void OnDestroy()
         {
@@ -86,12 +91,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
         public float Integrity => _integrity;
 
-        public bool UseDamageSystem { get; } = true;
-
-
-
-
-
+        public bool UseDamageSystem => true;
 
 
         private void Init(Vector3D position, float size, Vector3D initialVelocity)
@@ -118,11 +118,13 @@ namespace DynamicAsteroids.AsteroidEntities
             MyEntities.Add(this);
 
             CreatePhysics();
-            Physics.LinearVelocity = initialVelocity + RandVector * VelocityVariablility;
+            Physics.LinearVelocity = initialVelocity + RandVector() * VelocityVariability;
+            Physics.AngularVelocity = RandVector() * AngularVelocityVariability;
         }
 
         private void CreatePhysics()
         {
+            float mass = 10000 * Size * Size * Size;
             PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
                 this,
                 WorldMatrix,
@@ -130,20 +132,25 @@ namespace DynamicAsteroids.AsteroidEntities
                 linearDamping: 0,
                 angularDamping: 0,
                 collisionLayer: CollisionLayers.DefaultCollisionLayer,
-                rigidBodyFlags: RigidBodyFlag.RBF_UNLOCKED_SPEEDS,
+                //rigidBodyFlags: RigidBodyFlag.RBF_UNLOCKED_SPEEDS,
                 isPhantom: false,
-                mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), 10000, Vector3.Zero, new Matrix(48531.0f, -1320.0f, 0.0f, -1320.0f, 256608.0f, 0.0f, 0.0f, 0.0f, 211333.0f))
+                mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
             );
 
             //settings.DetectorColliderCallback += HitCallback;
             //settings.Entity.Flags |= EntityFlags.IsGamePrunningStructureObject;
             MyAPIGateway.Physics.CreateBoxPhysics(settings, PositionComp.LocalAABB.HalfExtents, 0);
-
+            
             Physics.Enabled = true;
             Physics.Activate();
         }
 
-        private Vector3D RandVector => new Vector3D(MainSession.I.Rand.NextDouble(), MainSession.I.Rand.NextDouble(),
-            MainSession.I.Rand.NextDouble());
+        private Vector3D RandVector()
+        {
+            var theta = MainSession.I.Rand.NextDouble() * 2.0 * Math.PI;
+            var phi = Math.Acos(2.0 * MainSession.I.Rand.NextDouble() - 1.0);
+            var sinPhi = Math.Sin(phi);
+            return Math.Pow(MainSession.I.Rand.NextDouble(), 1/3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
+        }
     }
 }
