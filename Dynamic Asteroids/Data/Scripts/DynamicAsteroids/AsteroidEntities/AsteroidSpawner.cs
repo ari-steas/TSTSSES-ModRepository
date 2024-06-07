@@ -23,7 +23,7 @@ namespace DynamicAsteroids.AsteroidEntities
         {
             Vector3D playerPosition = MyAPIGateway.Session?.Player?.GetPosition() ?? Vector3D.MaxValue;
 
-            if (playerPosition == Vector3D.MaxValue || !AsteroidSettings.SpawnAsteroidsAtPoint(playerPosition))
+            if (playerPosition == Vector3D.MaxValue || !AsteroidSettings.PlayerCanSeeRings(playerPosition))
                 return;
 
             foreach (var asteroid in _asteroids.ToArray())
@@ -32,6 +32,7 @@ namespace DynamicAsteroids.AsteroidEntities
                     AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius * 1.1)
                 {
                     _asteroids.Remove(asteroid);
+                    asteroid.Close();
                     continue;
                 }
             }
@@ -39,7 +40,11 @@ namespace DynamicAsteroids.AsteroidEntities
             int asteroidsSpawned = 0;
             while (_asteroids.Count < AsteroidSettings.MaxAsteroidCount && asteroidsSpawned < 10)
             {
-                _asteroids.Add(AsteroidEntity.CreateAsteroid(playerPosition + RandVector()*AsteroidSettings.AsteroidSpawnRadius, RandAsteroidSize, Vector3D.Zero));
+                Vector3D newPosition = playerPosition + RandVector()*AsteroidSettings.AsteroidSpawnRadius;
+                Vector3D newVelocity;
+                if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity))
+                    continue;
+                _asteroids.Add(AsteroidEntity.CreateAsteroid(newPosition, RandAsteroidSize, newVelocity));
 
                 asteroidsSpawned++;
             }
