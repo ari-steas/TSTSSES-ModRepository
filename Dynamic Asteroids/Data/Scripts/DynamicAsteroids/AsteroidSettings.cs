@@ -9,13 +9,12 @@ namespace DynamicAsteroids
         public static int MaxAsteroidCount = 1000;
         public static int AsteroidSpawnRadius = 10000;
         public static int AsteroidVelocityBase = 0;
-        public static double VelocityVariability = 10;
-        public static double AngularVelocityVariabilityMin = 0.05;
-        public static double AngularVelocityVariabilityMax = 0.15;
+        public static double VelocityVariability = 0; // New setting for velocity variability
+        public static double AngularVelocityVariability = 0; // New setting for angular velocity variability
 
         // Weights for asteroid type frequencies
-        public static double IceWeight = 0.45;
-        public static double StoneWeight = 0.45;
+        public static double IceWeight = 0.45; // 45%
+        public static double StoneWeight = 0.45; // 45%
         public static double IronWeight = 0.01;
         public static double NickelWeight = 0.01;
         public static double CobaltWeight = 0.01;
@@ -89,11 +88,6 @@ namespace DynamicAsteroids
             randomValue -= PlatinumWeight;
             return AsteroidType.Uraninite;
         }
-
-        public static double GetRandomAngularVelocity(Random rand)
-        {
-            return AngularVelocityVariabilityMin + (rand.NextDouble() * (AngularVelocityVariabilityMax - AngularVelocityVariabilityMin));
-        }
     }
 
     internal class SpawnableArea
@@ -109,9 +103,11 @@ namespace DynamicAsteroids
             point -= CenterPosition;
             double pointDistanceSq = point.LengthSquared();
 
+            // squared is more performant
             if (pointDistanceSq > Radius * Radius || pointDistanceSq < InnerRadius * InnerRadius)
                 return false;
 
+            // Calculate HeightFromCenter
             if (Math.Abs(Vector3D.Dot(point, Normal)) > HeightFromCenter)
                 return false;
 
