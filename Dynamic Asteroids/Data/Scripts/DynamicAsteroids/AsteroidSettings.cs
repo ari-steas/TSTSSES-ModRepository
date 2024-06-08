@@ -7,7 +7,7 @@ namespace DynamicAsteroids
     {
         public static int MaxAsteroidCount = 1000;
         public static int AsteroidSpawnRadius = 10000;
-        public static int AsteroidVelocityBase = 80;
+        public static int AsteroidVelocityBase = 0;
 
         public static SpawnableArea[] ValidSpawnLocations =
         {

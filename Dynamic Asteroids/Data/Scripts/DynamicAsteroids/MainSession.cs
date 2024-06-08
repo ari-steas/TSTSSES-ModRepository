@@ -28,6 +28,7 @@ namespace DynamicAsteroids
 
             try
             {
+                Log.Info("Loading data in MainSession");
                 _spawner.Init();
             }
             catch (Exception ex)
@@ -40,6 +41,7 @@ namespace DynamicAsteroids
         {
             try
             {
+                Log.Info("Unloading data in MainSession");
                 _spawner.Close();
             }
             catch (Exception ex)
@@ -57,13 +59,19 @@ namespace DynamicAsteroids
             {
                 _spawner.UpdateTick();
                 if (MyAPIGateway.Input.IsNewKeyPressed(MyKeys.MiddleButton))
-                    AsteroidEntity.CreateAsteroid(MyAPIGateway.Session.Player?.GetPosition() ?? Vector3D.Zero, Rand.Next(50), MyAPIGateway.Session.Player?.Character?.Physics?.LinearVelocity ?? Vector3D.Zero);
+                {
+                    var position = MyAPIGateway.Session.Player?.GetPosition() ?? Vector3D.Zero;
+                    var velocity = MyAPIGateway.Session.Player?.Character?.Physics?.LinearVelocity ?? Vector3D.Zero;
+                    AsteroidEntity.CreateAsteroid(position, Rand.Next(50), velocity);
+                    Log.Info($"Asteroid created at {position} with velocity {velocity}");
+                }
             }
             catch (Exception ex)
             {
                 Log.Exception(ex, typeof(MainSession));
             }
         }
+
 
         #endregion
     }

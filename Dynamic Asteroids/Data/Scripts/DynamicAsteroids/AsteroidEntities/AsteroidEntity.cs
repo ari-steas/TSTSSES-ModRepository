@@ -26,28 +26,27 @@ namespace DynamicAsteroids.AsteroidEntities
         private const double AngularVelocityVariability = 0.1;
 
         private static readonly string[] AvailableModels = {
-            @"Models\IceAsteroid_1.mwm",
-            @"Models\IceAsteroid_2.mwm",
-            @"Models\IceAsteroid_3.mwm",
-            @"Models\IceAsteroid_4.mwm",
-            @"Models\StoneAsteroid_1.mwm",
-            @"Models\StoneAsteroid_2.mwm",
-            @"Models\StoneAsteroid_3.mwm",
-            @"Models\StoneAsteroid_4.mwm",
-            @"Models\StoneAsteroid_5.mwm",
-            @"Models\StoneAsteroid_6.mwm",
-            @"Models\StoneAsteroid_7.mwm",
-            @"Models\StoneAsteroid_8.mwm",
-            @"Models\StoneAsteroid_9.mwm",
-            @"Models\StoneAsteroid_10.mwm",
-            @"Models\StoneAsteroid_11.mwm",
-            @"Models\StoneAsteroid_12.mwm",
-            @"Models\StoneAsteroid_13.mwm",
-            @"Models\StoneAsteroid_14.mwm",
-            @"Models\StoneAsteroid_15.mwm",
-            @"Models\StoneAsteroid_16.mwm"
-        };
-
+        @"Models\IceAsteroid_1.mwm",
+        @"Models\IceAsteroid_2.mwm",
+        @"Models\IceAsteroid_3.mwm",
+        @"Models\IceAsteroid_4.mwm",
+        @"Models\StoneAsteroid_1.mwm",
+        @"Models\StoneAsteroid_2.mwm",
+        @"Models\StoneAsteroid_3.mwm",
+        @"Models\StoneAsteroid_4.mwm",
+        @"Models\StoneAsteroid_5.mwm",
+        @"Models\StoneAsteroid_6.mwm",
+        @"Models\StoneAsteroid_7.mwm",
+        @"Models\StoneAsteroid_8.mwm",
+        @"Models\StoneAsteroid_9.mwm",
+        @"Models\StoneAsteroid_10.mwm",
+        @"Models\StoneAsteroid_11.mwm",
+        @"Models\StoneAsteroid_12.mwm",
+        @"Models\StoneAsteroid_13.mwm",
+        @"Models\StoneAsteroid_14.mwm",
+        @"Models\StoneAsteroid_15.mwm",
+        @"Models\StoneAsteroid_16.mwm"
+    };
 
         public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity)
         {
@@ -114,6 +113,7 @@ namespace DynamicAsteroids.AsteroidEntities
         {
             try
             {
+                Log.Info("Initializing asteroid entity");
                 string modPath = Path.Combine(MainSession.I.ModContext.ModPath, "");
                 ModelString = Path.Combine(modPath, AvailableModels[MainSession.I.Rand.Next(0, AvailableModels.Length)]);
                 Size = size;
@@ -136,9 +136,9 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 CreatePhysics();
                 Physics.LinearVelocity = initialVelocity + RandVector() * VelocityVariability;
-                ApplyPerturbedAngularVelocity(Physics); // Apply perturbed angular velocity
+                Physics.AngularVelocity = RandVector() * AngularVelocityVariability; // Set initial angular velocity
 
-                Log.Info($"Asteroid model {ModelString} loaded successfully.");
+                Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
             }
             catch (Exception ex)
             {
@@ -147,7 +147,6 @@ namespace DynamicAsteroids.AsteroidEntities
             }
         }
 
-
         private void CreatePhysics()
         {
             float mass = 10000 * Size * Size * Size;
@@ -155,8 +154,8 @@ namespace DynamicAsteroids.AsteroidEntities
                 this,
                 WorldMatrix,
                 Vector3.Zero,
-                linearDamping: 0.05f, // Small damping
-                angularDamping: 0.05f, // Small damping
+                linearDamping: 0f, // Remove damping
+                angularDamping: 0f, // Remove damping
                 collisionLayer: CollisionLayers.DefaultCollisionLayer,
                 isPhantom: false,
                 mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
@@ -174,19 +173,5 @@ namespace DynamicAsteroids.AsteroidEntities
             var sinPhi = Math.Sin(phi);
             return Math.Pow(MainSession.I.Rand.NextDouble(), 1 / 3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
         }
-
-        private void ApplyDampedAngularVelocity(MyPhysicsComponentBase physics)
-        {
-            Vector3D targetAngularVelocity = RandVector() * AngularVelocityVariability;
-            physics.AngularVelocity = Vector3D.Lerp(physics.AngularVelocity, targetAngularVelocity, 0.1); // Adjust the lerp factor as needed
-        }
-
-        private void ApplyPerturbedAngularVelocity(MyPhysicsComponentBase physics)
-        {
-            Vector3D perturbation = RandVector() * AngularVelocityVariability * 0.1; // Small perturbation
-            physics.AngularVelocity += perturbation;
-        }
-
-
     }
 }
