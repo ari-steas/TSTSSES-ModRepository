@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DynamicAsteroids.AsteroidEntities;
+using System;
 using VRageMath;
 
 namespace DynamicAsteroids
@@ -10,6 +11,19 @@ namespace DynamicAsteroids
         public static int AsteroidVelocityBase = 0;
         public static double VelocityVariability = 10; // New setting for velocity variability
         public static double AngularVelocityVariability = 0.1; // New setting for angular velocity variability
+
+        // Weights for asteroid type frequencies
+        public static double IceWeight = 0.45; // 45%
+        public static double StoneWeight = 0.45; // 45%
+        public static double IronWeight = 0.01;
+        public static double NickelWeight = 0.01;
+        public static double CobaltWeight = 0.01;
+        public static double MagnesiumWeight = 0.01;
+        public static double SiliconWeight = 0.01;
+        public static double SilverWeight = 0.01;
+        public static double GoldWeight = 0.01;
+        public static double PlatinumWeight = 0.01;
+        public static double UraniniteWeight = 0.01;
 
         public static SpawnableArea[] ValidSpawnLocations =
         {
@@ -44,6 +58,35 @@ namespace DynamicAsteroids
                 if (area.ContainsPoint(point))
                     return true;
             return false;
+        }
+
+        public static AsteroidType GetRandomAsteroidType(Random rand)
+        {
+            double totalWeight = IceWeight + StoneWeight + IronWeight + NickelWeight + CobaltWeight + MagnesiumWeight +
+                                 SiliconWeight + SilverWeight + GoldWeight + PlatinumWeight + UraniniteWeight;
+            double randomValue = rand.NextDouble() * totalWeight;
+
+            if (randomValue < IceWeight) return AsteroidType.Ice;
+            randomValue -= IceWeight;
+            if (randomValue < StoneWeight) return AsteroidType.Stone;
+            randomValue -= StoneWeight;
+            if (randomValue < IronWeight) return AsteroidType.Iron;
+            randomValue -= IronWeight;
+            if (randomValue < NickelWeight) return AsteroidType.Nickel;
+            randomValue -= NickelWeight;
+            if (randomValue < CobaltWeight) return AsteroidType.Cobalt;
+            randomValue -= CobaltWeight;
+            if (randomValue < MagnesiumWeight) return AsteroidType.Magnesium;
+            randomValue -= MagnesiumWeight;
+            if (randomValue < SiliconWeight) return AsteroidType.Silicon;
+            randomValue -= SiliconWeight;
+            if (randomValue < SilverWeight) return AsteroidType.Silver;
+            randomValue -= SilverWeight;
+            if (randomValue < GoldWeight) return AsteroidType.Gold;
+            randomValue -= GoldWeight;
+            if (randomValue < PlatinumWeight) return AsteroidType.Platinum;
+            randomValue -= PlatinumWeight;
+            return AsteroidType.Uraninite;
         }
     }
 

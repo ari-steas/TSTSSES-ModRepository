@@ -60,7 +60,7 @@ namespace DynamicAsteroids.AsteroidEntities
                     }
 
                     // Determine asteroid type to spawn
-                    AsteroidType type = DetermineAsteroidType();
+                    AsteroidType type = AsteroidSettings.GetRandomAsteroidType(MainSession.I.Rand);
 
                     _asteroids.Add(AsteroidEntity.CreateAsteroid(newPosition, RandAsteroidSize, newVelocity, type));
                     asteroidsSpawned++;
@@ -103,13 +103,5 @@ namespace DynamicAsteroids.AsteroidEntities
         }
 
         private float RandAsteroidSize => (float)(MainSession.I.Rand.NextDouble() * MainSession.I.Rand.NextDouble() * MainSession.I.Rand.NextDouble() * 500) + 1.5f;
-
-        // This function determines the type of asteroid to spawn
-        private AsteroidType DetermineAsteroidType()
-        {
-            // Adjust the random selection to include all asteroid types
-            int randValue = MainSession.I.Rand.Next(0, 3); // 0: Ice, 1: Stone, 2: Ore
-            return (AsteroidType)randValue;
-        }
     }
 }
