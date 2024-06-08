@@ -24,7 +24,11 @@ namespace DynamicAsteroids.AsteroidEntities
         private const double AngularVelocityVariability = 0.1;
 
         private static readonly string[] AvailableModels = {
-            @"Models\Components\Sphere.mwm"
+          //  @"Models\Components\Sphere.mwm",
+            @"Models\IceAsteroid_1.mwm"
+           // @"Models\IceAsteroid_2.mwm",
+           // @"Models\IceAsteroid_3.mwm",
+           // @"Models\IceAsteroid_4.mwm"
         };
 
         public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity)
