@@ -13,8 +13,8 @@ namespace DynamicAsteroids
         public static double AngularVelocityVariability = 0.1;
 
         // Weights for asteroid type frequencies
-        public static double IceWeight = 0.45;
-        public static double StoneWeight = 0.45;
+        public static double IceWeight = 0.80;
+        public static double StoneWeight = 0.11;
         public static double IronWeight = 0.01;
         public static double NickelWeight = 0.01;
         public static double CobaltWeight = 0.01;
@@ -26,7 +26,7 @@ namespace DynamicAsteroids
         public static double UraniniteWeight = 0.01;
 
         // New settings for base integrity and size
-        public static float BaseIntegrity = 100f;
+        public static float BaseIntegrity = 1f;
         public static float MinAsteroidSize = 1.5f;
         public static float MaxAsteroidSize = 500f;
 
