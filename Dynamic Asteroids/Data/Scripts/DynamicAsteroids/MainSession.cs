@@ -62,7 +62,8 @@ namespace DynamicAsteroids
                 {
                     var position = MyAPIGateway.Session.Player?.GetPosition() ?? Vector3D.Zero;
                     var velocity = MyAPIGateway.Session.Player?.Character?.Physics?.LinearVelocity ?? Vector3D.Zero;
-                    AsteroidEntity.CreateAsteroid(position, Rand.Next(50), velocity);
+                    AsteroidType type = DetermineAsteroidType(); // Determine the type of asteroid
+                    AsteroidEntity.CreateAsteroid(position, Rand.Next(50), velocity, type);
                     Log.Info($"Asteroid created at {position} with velocity {velocity}");
                 }
             }
@@ -72,6 +73,14 @@ namespace DynamicAsteroids
             }
         }
 
+        // This function determines the type of asteroid to spawn
+        private AsteroidType DetermineAsteroidType()
+        {
+            // Here you can add logic to determine the type of asteroid.
+            // For example, randomly selecting a type or using some other logic.
+            int randValue = Rand.Next(0, 2); // Adjust as needed for more types
+            return (AsteroidType)randValue;
+        }
 
         #endregion
     }
