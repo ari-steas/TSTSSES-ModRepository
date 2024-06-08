@@ -136,7 +136,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 CreatePhysics();
                 Physics.LinearVelocity = initialVelocity + RandVector() * VelocityVariability;
-                Physics.AngularVelocity = RandVector() * AngularVelocityVariability;
+                ApplyPerturbedAngularVelocity(Physics); // Apply perturbed angular velocity
 
                 Log.Info($"Asteroid model {ModelString} loaded successfully.");
             }
@@ -147,6 +147,7 @@ namespace DynamicAsteroids.AsteroidEntities
             }
         }
 
+
         private void CreatePhysics()
         {
             float mass = 10000 * Size * Size * Size;
@@ -154,8 +155,8 @@ namespace DynamicAsteroids.AsteroidEntities
                 this,
                 WorldMatrix,
                 Vector3.Zero,
-                linearDamping: 0,
-                angularDamping: 0,
+                linearDamping: 0.05f, // Small damping
+                angularDamping: 0.05f, // Small damping
                 collisionLayer: CollisionLayers.DefaultCollisionLayer,
                 isPhantom: false,
                 mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
@@ -173,5 +174,19 @@ namespace DynamicAsteroids.AsteroidEntities
             var sinPhi = Math.Sin(phi);
             return Math.Pow(MainSession.I.Rand.NextDouble(), 1 / 3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
         }
+
+        private void ApplyDampedAngularVelocity(MyPhysicsComponentBase physics)
+        {
+            Vector3D targetAngularVelocity = RandVector() * AngularVelocityVariability;
+            physics.AngularVelocity = Vector3D.Lerp(physics.AngularVelocity, targetAngularVelocity, 0.1); // Adjust the lerp factor as needed
+        }
+
+        private void ApplyPerturbedAngularVelocity(MyPhysicsComponentBase physics)
+        {
+            Vector3D perturbation = RandVector() * AngularVelocityVariability * 0.1; // Small perturbation
+            physics.AngularVelocity += perturbation;
+        }
+
+
     }
 }
