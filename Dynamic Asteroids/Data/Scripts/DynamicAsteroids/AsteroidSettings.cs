@@ -9,12 +9,12 @@ namespace DynamicAsteroids
         public static int MaxAsteroidCount = 1000;
         public static int AsteroidSpawnRadius = 10000;
         public static int AsteroidVelocityBase = 0;
-        public static double VelocityVariability = 10; // New setting for velocity variability
-        public static double AngularVelocityVariability = 0.1; // New setting for angular velocity variability
+        public static double VelocityVariability = 10;
+        public static double AngularVelocityVariability = 0.1;
 
         // Weights for asteroid type frequencies
-        public static double IceWeight = 0.45; // 45%
-        public static double StoneWeight = 0.45; // 45%
+        public static double IceWeight = 0.45;
+        public static double StoneWeight = 0.45;
         public static double IronWeight = 0.01;
         public static double NickelWeight = 0.01;
         public static double CobaltWeight = 0.01;
@@ -25,17 +25,22 @@ namespace DynamicAsteroids
         public static double PlatinumWeight = 0.01;
         public static double UraniniteWeight = 0.01;
 
+        // New settings for base integrity and size
+        public static float BaseIntegrity = 100f;
+        public static float MinAsteroidSize = 1.5f;
+        public static float MaxAsteroidSize = 500f;
+
         public static SpawnableArea[] ValidSpawnLocations =
         {
-            new SpawnableArea
-            {
-                CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
-                Normal = new Vector3D(1, 10, 0.5).Normalized(),
-                Radius = 60268000 * 2.5,
-                InnerRadius = 60268000 * 1.2,
-                HeightFromCenter = 1000,
-            }
-        };
+        new SpawnableArea
+        {
+            CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
+            Normal = new Vector3D(1, 10, 0.5).Normalized(),
+            Radius = 60268000 * 2.5,
+            InnerRadius = 60268000 * 1.2,
+            HeightFromCenter = 1000,
+        }
+    };
 
         public static bool CanSpawnAsteroidAtPoint(Vector3D point, out Vector3D velocity)
         {
@@ -88,8 +93,17 @@ namespace DynamicAsteroids
             randomValue -= PlatinumWeight;
             return AsteroidType.Uraninite;
         }
-    }
 
+        public static double GetRandomAngularVelocity(Random rand)
+        {
+            return AngularVelocityVariability * rand.NextDouble();
+        }
+
+        public static float GetRandomAsteroidSize(Random rand)
+        {
+            return MinAsteroidSize + (float)rand.NextDouble() * (MaxAsteroidSize - MinAsteroidSize);
+        }
+    }
     internal class SpawnableArea
     {
         public Vector3D CenterPosition;

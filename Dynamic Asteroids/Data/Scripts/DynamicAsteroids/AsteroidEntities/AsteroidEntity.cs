@@ -80,10 +80,10 @@ namespace DynamicAsteroids.AsteroidEntities
             return ent;
         }
 
-        public float Size = 3;
+        public float Size;
         public string ModelString = "";
         public AsteroidType Type;
-        private float _integrity = 1;
+        private float _integrity;
 
         public void SplitAsteroid()
         {
@@ -175,7 +175,9 @@ namespace DynamicAsteroids.AsteroidEntities
                         ModelString = Path.Combine(modPath, UraniniteAsteroidModels[MainSession.I.Rand.Next(UraniniteAsteroidModels.Length)]);
                         break;
                 }
+
                 Size = size;
+                _integrity = AsteroidSettings.BaseIntegrity * Size;
 
                 Log.Info($"Attempting to load model: {ModelString}");
 
@@ -196,7 +198,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 CreatePhysics();
                 Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
-                Physics.AngularVelocity = RandVector() * AsteroidSettings.AngularVelocityVariability; // Set initial angular velocity
+                Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand); // Set initial angular velocity
 
                 Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
             }
@@ -235,4 +237,3 @@ namespace DynamicAsteroids.AsteroidEntities
         }
     }
 }
-                                                    
