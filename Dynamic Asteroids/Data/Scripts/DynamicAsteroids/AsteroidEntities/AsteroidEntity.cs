@@ -29,9 +29,6 @@ namespace DynamicAsteroids.AsteroidEntities
 
     public class AsteroidEntity : MyEntity, IMyDestroyableObject
     {
-        private const double VelocityVariability = 10;
-        private const double AngularVelocityVariability = 0.1;
-
         private static readonly string[] IceAsteroidModels = {
             @"Models\IceAsteroid_1.mwm",
             @"Models\IceAsteroid_2.mwm",
@@ -58,17 +55,16 @@ namespace DynamicAsteroids.AsteroidEntities
             @"Models\StoneAsteroid_16.mwm"
         };
 
-        // Placeholder for Ore Asteroids
         private static readonly string[] OreAsteroidModels = {
-            // @"Models\OreAsteroid_Iron.mwm",
-            // @"Models\OreAsteroid_Nickel.mwm",
-            // @"Models\OreAsteroid_Cobalt.mwm",
-            // @"Models\OreAsteroid_Magnesium.mwm",
-            // @"Models\OreAsteroid_Silicon.mwm",
-            // @"Models\OreAsteroid_Silver.mwm",
-            // @"Models\OreAsteroid_Gold.mwm",
-            // @"Models\OreAsteroid_Platinum.mwm",
-            // @"Models\OreAsteroid_Uraninite.mwm"
+           @"Models\OreAsteroid_Iron.mwm",
+           @"Models\OreAsteroid_Nickel.mwm",
+           @"Models\OreAsteroid_Cobalt.mwm",
+           @"Models\OreAsteroid_Magnesium.mwm",
+           @"Models\OreAsteroid_Silicon.mwm",
+           @"Models\OreAsteroid_Silver.mwm",
+           @"Models\OreAsteroid_Gold.mwm",
+           @"Models\OreAsteroid_Platinum.mwm",
+           @"Models\OreAsteroid_Uraninite.mwm"
         };
 
         public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity, AsteroidType type)
@@ -146,8 +142,7 @@ namespace DynamicAsteroids.AsteroidEntities
                         ModelString = Path.Combine(modPath, StoneAsteroidModels[MainSession.I.Rand.Next(StoneAsteroidModels.Length)]);
                         break;
                     case AsteroidType.Ore:
-                        // Placeholder logic for ore asteroids, use the correct models when ready
-                        // ModelString = Path.Combine(modPath, OreAsteroidModels[MainSession.I.Rand.Next(OreAsteroidModels.Length)]);
+                        ModelString = Path.Combine(modPath, OreAsteroidModels[MainSession.I.Rand.Next(OreAsteroidModels.Length)]);
                         break;
                 }
                 Size = size;
@@ -170,8 +165,8 @@ namespace DynamicAsteroids.AsteroidEntities
                 MyEntities.Add(this);
 
                 CreatePhysics();
-                Physics.LinearVelocity = initialVelocity + RandVector() * VelocityVariability;
-                Physics.AngularVelocity = RandVector() * AngularVelocityVariability; // Set initial angular velocity
+                Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
+                Physics.AngularVelocity = RandVector() * AsteroidSettings.AngularVelocityVariability; // Set initial angular velocity
 
                 Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
             }

@@ -107,9 +107,8 @@ namespace DynamicAsteroids.AsteroidEntities
         // This function determines the type of asteroid to spawn
         private AsteroidType DetermineAsteroidType()
         {
-            // Here you can add logic to determine the type of asteroid.
-            // For example, randomly selecting a type or using some other logic.
-            int randValue = MainSession.I.Rand.Next(0, 2); // Adjust as needed for more types
+            // Adjust the random selection to include all asteroid types
+            int randValue = MainSession.I.Rand.Next(0, 3); // 0: Ice, 1: Stone, 2: Ore
             return (AsteroidType)randValue;
         }
     }
