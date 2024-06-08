@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Sandbox.ModAPI;
 using SC.SUGMA;
+using VRage.Game.ModAPI;
+using VRage.ModAPI;
 using VRageMath;
 
 namespace DynamicAsteroids.AsteroidEntities
@@ -9,6 +11,7 @@ namespace DynamicAsteroids.AsteroidEntities
     internal class AsteroidSpawner
     {
         private List<AsteroidEntity> _asteroids;
+        private const double MinDistanceFromVanillaAsteroids = 1000; // 1 km
 
         public void Init()
         {
@@ -49,13 +52,19 @@ namespace DynamicAsteroids.AsteroidEntities
                     Vector3D newVelocity;
                     if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity))
                         continue;
-                    _asteroids.Add(AsteroidEntity.CreateAsteroid(newPosition, RandAsteroidSize, newVelocity));
 
+                    if (IsNearVanillaAsteroid(newPosition))
+                    {
+                        Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
+                        continue;
+                    }
+
+                    _asteroids.Add(AsteroidEntity.CreateAsteroid(newPosition, RandAsteroidSize, newVelocity));
                     asteroidsSpawned++;
                 }
 
                 // Show a notification with the number of active asteroids
-                MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 17);
+                MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
 
                 // Log the number of active asteroids for debugging purposes
                 Log.Info($"Active Asteroids: {_asteroids.Count}");
@@ -64,6 +73,22 @@ namespace DynamicAsteroids.AsteroidEntities
             {
                 Log.Exception(ex, typeof(AsteroidSpawner));
             }
+        }
+
+        private bool IsNearVanillaAsteroid(Vector3D position)
+        {
+            List<IMyVoxelBase> voxelMaps = new List<IMyVoxelBase>();
+            MyAPIGateway.Session.VoxelMaps.GetInstances(voxelMaps, v => v is IMyVoxelMap && !v.StorageName.StartsWith("mod_"));
+
+            foreach (var voxelMap in voxelMaps)
+            {
+                if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < MinDistanceFromVanillaAsteroids * MinDistanceFromVanillaAsteroids)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private Vector3D RandVector()
