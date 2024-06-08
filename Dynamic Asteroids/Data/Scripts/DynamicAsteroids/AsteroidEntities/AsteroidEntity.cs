@@ -29,8 +29,25 @@ namespace DynamicAsteroids.AsteroidEntities
             @"Models\IceAsteroid_1.mwm",
             @"Models\IceAsteroid_2.mwm",
             @"Models\IceAsteroid_3.mwm",
-            @"Models\IceAsteroid_4.mwm"
+            @"Models\IceAsteroid_4.mwm",
+            @"Models\StoneAsteroid_1.mwm",
+            @"Models\StoneAsteroid_2.mwm",
+            @"Models\StoneAsteroid_3.mwm",
+            @"Models\StoneAsteroid_4.mwm",
+            @"Models\StoneAsteroid_5.mwm",
+            @"Models\StoneAsteroid_6.mwm",
+            @"Models\StoneAsteroid_7.mwm",
+            @"Models\StoneAsteroid_8.mwm",
+            @"Models\StoneAsteroid_9.mwm",
+            @"Models\StoneAsteroid_10.mwm",
+            @"Models\StoneAsteroid_11.mwm",
+            @"Models\StoneAsteroid_12.mwm",
+            @"Models\StoneAsteroid_13.mwm",
+            @"Models\StoneAsteroid_14.mwm",
+            @"Models\StoneAsteroid_15.mwm",
+            @"Models\StoneAsteroid_16.mwm"
         };
+
 
         public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity)
         {
