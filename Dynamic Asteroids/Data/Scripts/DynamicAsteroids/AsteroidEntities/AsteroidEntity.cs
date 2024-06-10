@@ -110,7 +110,10 @@ namespace DynamicAsteroids.AsteroidEntities
             for (int i = 0; i < splits; i++)
             {
                 Vector3D newPos = PositionComp.GetPosition() + RandVector() * Size;
-                CreateAsteroid(newPos, newSize, Physics.GetVelocityAtPoint(newPos), Type);
+                Vector3D newVelocity = RandVector() * AsteroidSettings.GetRandomSubChunkVelocity(MainSession.I.Rand);
+                Vector3D newAngularVelocity = RandVector() * AsteroidSettings.GetRandomSubChunkAngularVelocity(MainSession.I.Rand);
+                var subChunk = CreateAsteroid(newPos, newSize, newVelocity, Type);
+                subChunk.Physics.AngularVelocity = newAngularVelocity;
             }
             Close();
         }
@@ -191,10 +194,11 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 PositionComp.LocalAABB = new BoundingBox(-Vector3.Half * Size, Vector3.Half * Size);
 
-                Vector3D up = Vector3D.Up;
-                Vector3D forward = Vector3D.Normalize(Vector3D.Cross(up, Vector3D.Left));
-                Vector3D right = Vector3D.Cross(forward, up);
-                WorldMatrix = MatrixD.CreateWorld(position, forward, up);
+                // Apply random rotation
+                var randomRotation = MatrixD.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll((float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi, (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi, (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi));
+                WorldMatrix = randomRotation * MatrixD.CreateWorld(position, Vector3D.Forward, Vector3D.Up);
+                WorldMatrix.Orthogonalize(); // Normalize the matrix to prevent rotation spazzing
+
                 MyEntities.Add(this);
 
                 CreatePhysics();
