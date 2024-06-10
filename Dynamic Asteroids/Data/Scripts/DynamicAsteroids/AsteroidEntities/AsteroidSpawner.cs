@@ -15,18 +15,27 @@ namespace DynamicAsteroids.AsteroidEntities
 
         public void Init()
         {
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
             Log.Info("Initializing AsteroidSpawner");
             _asteroids = new List<AsteroidEntity>(AsteroidSettings.MaxAsteroidCount);
         }
 
         public void Close()
         {
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
             Log.Info("Closing AsteroidSpawner");
             _asteroids.Clear();
         }
 
         public void UpdateTick()
         {
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
             try
             {
                 Vector3D playerPosition = MyAPIGateway.Session?.Player?.GetPosition() ?? Vector3D.MaxValue;

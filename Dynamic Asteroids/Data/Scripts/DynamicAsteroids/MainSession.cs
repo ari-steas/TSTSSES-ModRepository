@@ -29,7 +29,10 @@ namespace DynamicAsteroids
             try
             {
                 Log.Info("Loading data in MainSession");
-                _spawner.Init();
+                if (MyAPIGateway.Session.IsServer)
+                {
+                    _spawner.Init();
+                }
             }
             catch (Exception ex)
             {
@@ -42,7 +45,10 @@ namespace DynamicAsteroids
             try
             {
                 Log.Info("Unloading data in MainSession");
-                _spawner.Close();
+                if (MyAPIGateway.Session.IsServer)
+                {
+                    _spawner.Close();
+                }
             }
             catch (Exception ex)
             {
@@ -57,7 +63,10 @@ namespace DynamicAsteroids
         {
             try
             {
-                _spawner.UpdateTick();
+                if (MyAPIGateway.Session.IsServer)
+                {
+                    _spawner.UpdateTick();
+                }
 
                 if (MyAPIGateway.Session?.Player?.Character != null)
                 {
