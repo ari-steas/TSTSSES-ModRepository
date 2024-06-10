@@ -5,6 +5,7 @@ using SC.SUGMA;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
+using ProtoBuf;
 
 namespace DynamicAsteroids.AsteroidEntities
 {
@@ -30,7 +31,6 @@ namespace DynamicAsteroids.AsteroidEntities
             Log.Info("Closing AsteroidSpawner");
             _asteroids?.Clear();
         }
-
         public void UpdateTick()
         {
             if (!MyAPIGateway.Session.IsServer)
@@ -51,7 +51,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
                     if (!AsteroidSettings.PlayerCanSeeRings(playerPosition))
                     {
-                      //  Log.Info("Player cannot see rings");
+                        //Log.Info("Player cannot see rings");
                         continue;
                     }
 
@@ -62,6 +62,12 @@ namespace DynamicAsteroids.AsteroidEntities
                         {
                             Log.Info($"Removing asteroid at {asteroid.PositionComp.GetPosition()} due to distance from player");
                             _asteroids.Remove(asteroid);
+
+                            // Send a network message to clients for removal
+                            var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true);
+                            var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
+                            MyAPIGateway.Multiplayer.SendMessageToOthers(1337, removalMessageBytes);
+
                             asteroid.Close();
                             continue;
                         }
@@ -77,7 +83,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
                         if (IsNearVanillaAsteroid(newPosition))
                         {
-                          //  Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
+                            Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
                             continue;
                         }
 
@@ -85,15 +91,21 @@ namespace DynamicAsteroids.AsteroidEntities
                         AsteroidType type = AsteroidSettings.GetRandomAsteroidType(MainSession.I.Rand);
 
                         Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
-                        _asteroids.Add(AsteroidEntity.CreateAsteroid(newPosition, RandAsteroidSize, newVelocity, type));
+                        var asteroid = AsteroidEntity.CreateAsteroid(newPosition, RandAsteroidSize, newVelocity, type);
+                        _asteroids.Add(asteroid);
                         asteroidsSpawned++;
+
+                        // Send a network message to clients
+                        var message = new AsteroidNetworkMessage(newPosition, RandAsteroidSize, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false);
+                        var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
+                        MyAPIGateway.Multiplayer.SendMessageToOthers(1337, messageBytes);
                     }
 
                     // Show a notification with the number of active asteroids
                     MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
 
                     // Log the number of active asteroids for debugging purposes
-                   // Log.Info($"Active Asteroids: {_asteroids.Count}");
+                    //Log.Info($"Active Asteroids: {_asteroids.Count}");
                 }
             }
             catch (Exception ex)
