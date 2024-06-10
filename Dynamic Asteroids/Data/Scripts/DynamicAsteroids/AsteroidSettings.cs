@@ -10,7 +10,7 @@ namespace DynamicAsteroids
         public static int AsteroidSpawnRadius = 10000;
         public static int AsteroidVelocityBase = 0;
         public static double VelocityVariability = 10;
-        public static double AngularVelocityVariability = 0.1;
+        public static double AngularVelocityVariability = 1;
 
         // Weights for asteroid type frequencies
         public static double IceWeight = 0.80;

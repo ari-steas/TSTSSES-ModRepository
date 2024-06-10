@@ -10,7 +10,7 @@ namespace DynamicAsteroids.AsteroidEntities
 {
     internal class AsteroidSpawner
     {
-        private List<AsteroidEntity> _asteroids;
+        public List<AsteroidEntity> _asteroids;
         private const double MinDistanceFromVanillaAsteroids = 1000; // 1 km
 
         public void Init()

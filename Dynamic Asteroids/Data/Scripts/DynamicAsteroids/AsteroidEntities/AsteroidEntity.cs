@@ -191,9 +191,10 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 PositionComp.LocalAABB = new BoundingBox(-Vector3.Half * Size, Vector3.Half * Size);
 
-                WorldMatrix = MatrixD.CreateWorld(position, Vector3D.Forward, Vector3D.Up);
-                WorldMatrix.Orthogonalize(); // Normalize the matrix to prevent rotation spazzing
-
+                Vector3D up = Vector3D.Up;
+                Vector3D forward = Vector3D.Normalize(Vector3D.Cross(up, Vector3D.Left));
+                Vector3D right = Vector3D.Cross(forward, up);
+                WorldMatrix = MatrixD.CreateWorld(position, forward, up);
                 MyEntities.Add(this);
 
                 CreatePhysics();
