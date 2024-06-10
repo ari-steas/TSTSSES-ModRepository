@@ -4,13 +4,14 @@ using VRageMath;
 
 namespace DynamicAsteroids
 {
-    internal static class AsteroidSettings
+    public static class AsteroidSettings
     {
         public static int MaxAsteroidCount = 1000;
         public static int AsteroidSpawnRadius = 10000;
+        //These 3 cause extreme physics load thanks to clustering, recommend leaving it at 0
         public static int AsteroidVelocityBase = 0;
-        public static double VelocityVariability = 10;
-        public static double AngularVelocityVariability = 0.1;
+        public static double VelocityVariability = 0;
+        public static double AngularVelocityVariability = 0; 
 
         // Weights for asteroid type frequencies
         public static double IceWeight = 0.80;
@@ -30,17 +31,23 @@ namespace DynamicAsteroids
         public static float MinAsteroidSize = 1.5f;
         public static float MaxAsteroidSize = 500f;
 
+        // Settings for sub-chunk velocities
+        public static double SubChunkVelocityMin = 1.0;
+        public static double SubChunkVelocityMax = 5.0;
+        public static double SubChunkAngularVelocityMin = 0.01;
+        public static double SubChunkAngularVelocityMax = 0.1;
+
         public static SpawnableArea[] ValidSpawnLocations =
         {
-        new SpawnableArea
-        {
-            CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
-            Normal = new Vector3D(1, 10, 0.5).Normalized(),
-            Radius = 60268000 * 2.5,
-            InnerRadius = 60268000 * 1.2,
-            HeightFromCenter = 1000,
-        }
-    };
+            new SpawnableArea
+            {
+                CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
+                Normal = new Vector3D(1, 10, 0.5).Normalized(),
+                Radius = 60268000 * 2.5,
+                InnerRadius = 60268000 * 1.2,
+                HeightFromCenter = 1000,
+            }
+        };
 
         public static bool CanSpawnAsteroidAtPoint(Vector3D point, out Vector3D velocity)
         {
@@ -103,8 +110,19 @@ namespace DynamicAsteroids
         {
             return MinAsteroidSize + (float)rand.NextDouble() * (MaxAsteroidSize - MinAsteroidSize);
         }
+
+        public static double GetRandomSubChunkVelocity(Random rand)
+        {
+            return SubChunkVelocityMin + rand.NextDouble() * (SubChunkVelocityMax - SubChunkVelocityMin);
+        }
+
+        public static double GetRandomSubChunkAngularVelocity(Random rand)
+        {
+            return SubChunkAngularVelocityMin + rand.NextDouble() * (SubChunkAngularVelocityMax - SubChunkAngularVelocityMin);
+        }
     }
-    internal class SpawnableArea
+
+    public class SpawnableArea
     {
         public Vector3D CenterPosition;
         public Vector3D Normal;
@@ -117,11 +135,9 @@ namespace DynamicAsteroids
             point -= CenterPosition;
             double pointDistanceSq = point.LengthSquared();
 
-            // squared is more performant
             if (pointDistanceSq > Radius * Radius || pointDistanceSq < InnerRadius * InnerRadius)
                 return false;
 
-            // Calculate HeightFromCenter
             if (Math.Abs(Vector3D.Dot(point, Normal)) > HeightFromCenter)
                 return false;
 

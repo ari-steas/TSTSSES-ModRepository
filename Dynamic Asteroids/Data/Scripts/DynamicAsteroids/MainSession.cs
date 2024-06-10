@@ -29,7 +29,10 @@ namespace DynamicAsteroids
             try
             {
                 Log.Info("Loading data in MainSession");
-                _spawner.Init();
+                if (MyAPIGateway.Session.IsServer)
+                {
+                    _spawner.Init();
+                }
             }
             catch (Exception ex)
             {
@@ -42,7 +45,10 @@ namespace DynamicAsteroids
             try
             {
                 Log.Info("Unloading data in MainSession");
-                _spawner.Close();
+                if (MyAPIGateway.Session.IsServer)
+                {
+                    _spawner.Close();
+                }
             }
             catch (Exception ex)
             {
@@ -57,7 +63,26 @@ namespace DynamicAsteroids
         {
             try
             {
-                _spawner.UpdateTick();
+                if (MyAPIGateway.Session.IsServer)
+                {
+                    _spawner.UpdateTick();
+                }
+
+                if (MyAPIGateway.Session?.Player?.Character != null)
+                {
+                    Vector3D characterPosition = MyAPIGateway.Session.Player.Character.PositionComp.GetPosition();
+                    AsteroidEntity nearestAsteroid = FindNearestAsteroid(characterPosition);
+
+                    if (nearestAsteroid != null)
+                    {
+                        Vector3D angularVelocity = nearestAsteroid.Physics.AngularVelocity;
+                        string rotationString = $"({angularVelocity.X:F2}, {angularVelocity.Y:F2}, {angularVelocity.Z:F2})";
+
+                        string message = $"Nearest Asteroid: {nearestAsteroid.EntityId} ({nearestAsteroid.Type})\nRotation: {rotationString}";
+                        MyAPIGateway.Utilities.ShowNotification(message, 1000 / 60);
+                    }
+                }
+
                 if (MyAPIGateway.Input.IsNewKeyPressed(MyKeys.MiddleButton))
                 {
                     var position = MyAPIGateway.Session.Player?.GetPosition() ?? Vector3D.Zero;
@@ -71,6 +96,24 @@ namespace DynamicAsteroids
             {
                 Log.Exception(ex, typeof(MainSession));
             }
+        }
+
+        private AsteroidEntity FindNearestAsteroid(Vector3D characterPosition)
+        {
+            AsteroidEntity nearestAsteroid = null;
+            double minDistance = double.MaxValue;
+
+            foreach (var asteroid in _spawner._asteroids)
+            {
+                double distance = Vector3D.DistanceSquared(characterPosition, asteroid.PositionComp.GetPosition());
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    nearestAsteroid = asteroid;
+                }
+            }
+
+            return nearestAsteroid;
         }
 
         // This function determines the type of asteroid to spawn

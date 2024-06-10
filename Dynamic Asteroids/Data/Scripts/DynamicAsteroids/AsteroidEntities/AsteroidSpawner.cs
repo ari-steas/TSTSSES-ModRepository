@@ -10,23 +10,32 @@ namespace DynamicAsteroids.AsteroidEntities
 {
     internal class AsteroidSpawner
     {
-        private List<AsteroidEntity> _asteroids;
+        public List<AsteroidEntity> _asteroids;
         private const double MinDistanceFromVanillaAsteroids = 1000; // 1 km
 
         public void Init()
         {
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
             Log.Info("Initializing AsteroidSpawner");
             _asteroids = new List<AsteroidEntity>(AsteroidSettings.MaxAsteroidCount);
         }
 
         public void Close()
         {
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
             Log.Info("Closing AsteroidSpawner");
             _asteroids.Clear();
         }
 
         public void UpdateTick()
         {
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
             try
             {
                 Vector3D playerPosition = MyAPIGateway.Session?.Player?.GetPosition() ?? Vector3D.MaxValue;
