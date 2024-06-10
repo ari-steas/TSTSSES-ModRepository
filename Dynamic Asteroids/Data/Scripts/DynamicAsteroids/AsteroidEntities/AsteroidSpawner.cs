@@ -28,7 +28,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 return;
 
             Log.Info("Closing AsteroidSpawner");
-            _asteroids.Clear();
+            _asteroids?.Clear();
         }
 
         public void UpdateTick()
@@ -38,48 +38,63 @@ namespace DynamicAsteroids.AsteroidEntities
 
             try
             {
-                Vector3D playerPosition = MyAPIGateway.Session?.Player?.GetPosition() ?? Vector3D.MaxValue;
+                //Log.Info("UpdateTick called in AsteroidSpawner");
 
-                if (playerPosition == Vector3D.MaxValue || !AsteroidSettings.PlayerCanSeeRings(playerPosition))
-                    return;
+                // Get all players on the server
+                List<IMyPlayer> players = new List<IMyPlayer>();
+                MyAPIGateway.Players.GetPlayers(players);
 
-                foreach (var asteroid in _asteroids.ToArray())
+                foreach (var player in players)
                 {
-                    if (Vector3D.DistanceSquared(asteroid.PositionComp.GetPosition(), playerPosition) >
-                        AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius * 1.1)
-                    {
-                        _asteroids.Remove(asteroid);
-                        asteroid.Close();
-                        continue;
-                    }
-                }
+                    Vector3D playerPosition = player.GetPosition();
+                    //Log.Info($"Player {player.DisplayName} position: {playerPosition}");
 
-                int asteroidsSpawned = 0;
-                while (_asteroids.Count < AsteroidSettings.MaxAsteroidCount && asteroidsSpawned < 10)
-                {
-                    Vector3D newPosition = playerPosition + RandVector() * AsteroidSettings.AsteroidSpawnRadius;
-                    Vector3D newVelocity;
-                    if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity))
-                        continue;
-
-                    if (IsNearVanillaAsteroid(newPosition))
+                    if (!AsteroidSettings.PlayerCanSeeRings(playerPosition))
                     {
-                        Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
+                      //  Log.Info("Player cannot see rings");
                         continue;
                     }
 
-                    // Determine asteroid type to spawn
-                    AsteroidType type = AsteroidSettings.GetRandomAsteroidType(MainSession.I.Rand);
+                    foreach (var asteroid in _asteroids.ToArray())
+                    {
+                        if (Vector3D.DistanceSquared(asteroid.PositionComp.GetPosition(), playerPosition) >
+                            AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius * 1.1)
+                        {
+                            Log.Info($"Removing asteroid at {asteroid.PositionComp.GetPosition()} due to distance from player");
+                            _asteroids.Remove(asteroid);
+                            asteroid.Close();
+                            continue;
+                        }
+                    }
 
-                    _asteroids.Add(AsteroidEntity.CreateAsteroid(newPosition, RandAsteroidSize, newVelocity, type));
-                    asteroidsSpawned++;
+                    int asteroidsSpawned = 0;
+                    while (_asteroids.Count < AsteroidSettings.MaxAsteroidCount && asteroidsSpawned < 10)
+                    {
+                        Vector3D newPosition = playerPosition + RandVector() * AsteroidSettings.AsteroidSpawnRadius;
+                        Vector3D newVelocity;
+                        if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity))
+                            continue;
+
+                        if (IsNearVanillaAsteroid(newPosition))
+                        {
+                          //  Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
+                            continue;
+                        }
+
+                        // Determine asteroid type to spawn
+                        AsteroidType type = AsteroidSettings.GetRandomAsteroidType(MainSession.I.Rand);
+
+                        Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
+                        _asteroids.Add(AsteroidEntity.CreateAsteroid(newPosition, RandAsteroidSize, newVelocity, type));
+                        asteroidsSpawned++;
+                    }
+
+                    // Show a notification with the number of active asteroids
+                    MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
+
+                    // Log the number of active asteroids for debugging purposes
+                   // Log.Info($"Active Asteroids: {_asteroids.Count}");
                 }
-
-                // Show a notification with the number of active asteroids
-                MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
-
-                // Log the number of active asteroids for debugging purposes
-                Log.Info($"Active Asteroids: {_asteroids.Count}");
             }
             catch (Exception ex)
             {
@@ -96,6 +111,7 @@ namespace DynamicAsteroids.AsteroidEntities
             {
                 if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < MinDistanceFromVanillaAsteroids * MinDistanceFromVanillaAsteroids)
                 {
+                    Log.Info($"Position {position} is near vanilla asteroid {voxelMap.StorageName}");
                     return true;
                 }
             }

@@ -68,7 +68,7 @@ namespace DynamicAsteroids
                     _spawner.UpdateTick();
                 }
 
-                if (MyAPIGateway.Session?.Player?.Character != null)
+                if (MyAPIGateway.Session?.Player?.Character != null && _spawner._asteroids != null)
                 {
                     Vector3D characterPosition = MyAPIGateway.Session.Player.Character.PositionComp.GetPosition();
                     AsteroidEntity nearestAsteroid = FindNearestAsteroid(characterPosition);
@@ -100,6 +100,8 @@ namespace DynamicAsteroids
 
         private AsteroidEntity FindNearestAsteroid(Vector3D characterPosition)
         {
+            if (_spawner._asteroids == null) return null;
+
             AsteroidEntity nearestAsteroid = null;
             double minDistance = double.MaxValue;
 
