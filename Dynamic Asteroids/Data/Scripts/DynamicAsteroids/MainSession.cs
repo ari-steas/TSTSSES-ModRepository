@@ -7,6 +7,8 @@ using SC.SUGMA;
 using VRage.Game.Components;
 using VRage.Input;
 using VRageMath;
+using ProtoBuf;
+using Sandbox.Game.Entities;
 
 namespace DynamicAsteroids
 {
@@ -33,6 +35,8 @@ namespace DynamicAsteroids
                 {
                     _spawner.Init();
                 }
+
+                MyAPIGateway.Multiplayer.RegisterMessageHandler(1337, OnMessageReceived);
             }
             catch (Exception ex)
             {
@@ -49,6 +53,8 @@ namespace DynamicAsteroids
                 {
                     _spawner.Close();
                 }
+
+                MyAPIGateway.Multiplayer.UnregisterMessageHandler(1337, OnMessageReceived);
             }
             catch (Exception ex)
             {
@@ -68,7 +74,7 @@ namespace DynamicAsteroids
                     _spawner.UpdateTick();
                 }
 
-                if (MyAPIGateway.Session?.Player?.Character != null)
+                if (MyAPIGateway.Session?.Player?.Character != null && _spawner._asteroids != null)
                 {
                     Vector3D characterPosition = MyAPIGateway.Session.Player.Character.PositionComp.GetPosition();
                     AsteroidEntity nearestAsteroid = FindNearestAsteroid(characterPosition);
@@ -97,9 +103,55 @@ namespace DynamicAsteroids
                 Log.Exception(ex, typeof(MainSession));
             }
         }
+        private void OnMessageReceived(byte[] message)
+        {
+            try
+            {
+                var asteroidMessage = MyAPIGateway.Utilities.SerializeFromBinary<AsteroidNetworkMessage>(message);
+                Log.Info($"Client: Received message to create/remove asteroid at {asteroidMessage.Position} with velocity {asteroidMessage.InitialVelocity} of type {asteroidMessage.Type}");
+
+                if (asteroidMessage.IsRemoval)
+                {
+                    // Find and remove the asteroid with the given EntityId
+                    var asteroid = MyEntities.GetEntityById(asteroidMessage.EntityId) as AsteroidEntity;
+                    if (asteroid != null)
+                    {
+                        asteroid.Close();
+                    }
+                }
+                else if (asteroidMessage.IsInitialCreation)
+                {
+                    var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
+                    asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
+                    MyEntities.Add(asteroid);
+                }
+                else
+                {
+                    if (asteroidMessage.IsSubChunk)
+                    {
+                        // Create the sub-chunk asteroid on the client
+                        var subChunk = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
+                        subChunk.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
+                    }
+                    else
+                    {
+                        // Create the regular asteroid on the client
+                        var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
+                        asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
+                        MyEntities.Add(asteroid);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Exception(ex, typeof(MainSession));
+            }
+        }
 
         private AsteroidEntity FindNearestAsteroid(Vector3D characterPosition)
         {
+            if (_spawner._asteroids == null) return null;
+
             AsteroidEntity nearestAsteroid = null;
             double minDistance = double.MaxValue;
 
@@ -119,8 +171,6 @@ namespace DynamicAsteroids
         // This function determines the type of asteroid to spawn
         private AsteroidType DetermineAsteroidType()
         {
-            // Here you can add logic to determine the type of asteroid.
-            // For example, randomly selecting a type or using some other logic.
             int randValue = Rand.Next(0, 2); // Adjust as needed for more types
             return (AsteroidType)randValue;
         }
