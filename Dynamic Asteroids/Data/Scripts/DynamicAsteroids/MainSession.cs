@@ -119,6 +119,12 @@ namespace DynamicAsteroids
                         asteroid.Close();
                     }
                 }
+                else if (asteroidMessage.IsInitialCreation)
+                {
+                    var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
+                    asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
+                    MyEntities.Add(asteroid);
+                }
                 else
                 {
                     if (asteroidMessage.IsSubChunk)
@@ -130,7 +136,9 @@ namespace DynamicAsteroids
                     else
                     {
                         // Create the regular asteroid on the client
-                        AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
+                        var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
+                        asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
+                        MyEntities.Add(asteroid);
                     }
                 }
             }

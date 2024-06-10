@@ -31,7 +31,6 @@ namespace DynamicAsteroids.AsteroidEntities
             Log.Info("Closing AsteroidSpawner");
             _asteroids?.Clear();
         }
-
         public void UpdateTick()
         {
             if (!MyAPIGateway.Session.IsServer)
@@ -39,8 +38,6 @@ namespace DynamicAsteroids.AsteroidEntities
 
             try
             {
-                //Log.Info("UpdateTick called in AsteroidSpawner");
-
                 // Get all players on the server
                 List<IMyPlayer> players = new List<IMyPlayer>();
                 MyAPIGateway.Players.GetPlayers(players);
@@ -48,11 +45,9 @@ namespace DynamicAsteroids.AsteroidEntities
                 foreach (var player in players)
                 {
                     Vector3D playerPosition = player.GetPosition();
-                    //Log.Info($"Player {player.DisplayName} position: {playerPosition}");
 
                     if (!AsteroidSettings.PlayerCanSeeRings(playerPosition))
                     {
-                        //Log.Info("Player cannot see rings");
                         continue;
                     }
 
@@ -65,7 +60,7 @@ namespace DynamicAsteroids.AsteroidEntities
                             _asteroids.Remove(asteroid);
 
                             // Send a network message to clients for removal
-                            var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true);
+                            var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true, false);
                             var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
                             MyAPIGateway.Multiplayer.SendMessageToOthers(1337, removalMessageBytes);
 
@@ -92,12 +87,12 @@ namespace DynamicAsteroids.AsteroidEntities
                         AsteroidType type = AsteroidSettings.GetRandomAsteroidType(MainSession.I.Rand);
 
                         Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
-                        var asteroid = AsteroidEntity.CreateAsteroid(newPosition, RandAsteroidSize, newVelocity, type);
+                        var asteroid = AsteroidEntity.CreateAsteroid(newPosition, AsteroidSettings.GetRandomAsteroidSize(MainSession.I.Rand), newVelocity, type);
                         _asteroids.Add(asteroid);
                         asteroidsSpawned++;
 
                         // Send a network message to clients
-                        var message = new AsteroidNetworkMessage(newPosition, RandAsteroidSize, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false);
+                        var message = new AsteroidNetworkMessage(newPosition, asteroid.Size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true);
                         var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
                         MyAPIGateway.Multiplayer.SendMessageToOthers(1337, messageBytes);
                     }

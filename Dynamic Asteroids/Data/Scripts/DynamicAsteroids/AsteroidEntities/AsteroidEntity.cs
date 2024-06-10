@@ -105,7 +105,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 }
 
                 // Send a removal message before closing
-                var removalMessage1 = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true);
+                var removalMessage1 = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
                 var removalMessageBytes1 = MyAPIGateway.Utilities.SerializeToBinary(removalMessage1);
                 MyAPIGateway.Multiplayer.SendMessageToOthers(1337, removalMessageBytes1);
 
@@ -124,13 +124,13 @@ namespace DynamicAsteroids.AsteroidEntities
                 subChunk.Physics.AngularVelocity = newAngularVelocity;
 
                 // Send a network message to clients
-                var message = new AsteroidNetworkMessage(newPos, newSize, newVelocity, newAngularVelocity, Type, true, subChunk.EntityId, false);
+                var message = new AsteroidNetworkMessage(newPos, newSize, newVelocity, newAngularVelocity, Type, true, subChunk.EntityId, false, true);
                 var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
                 MyAPIGateway.Multiplayer.SendMessageToOthers(1337, messageBytes);
             }
 
             // Send a removal message before closing
-            var removalMessage2 = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true);
+            var removalMessage2 = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
             var removalMessageBytes2 = MyAPIGateway.Utilities.SerializeToBinary(removalMessage2);
             MyAPIGateway.Multiplayer.SendMessageToOthers(1337, removalMessageBytes2);
 
@@ -225,6 +225,16 @@ namespace DynamicAsteroids.AsteroidEntities
                 Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand); // Set initial angular velocity
 
                 Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
+
+                // Ensure the entity is added to the physics world
+                if (MyAPIGateway.Session.IsServer)
+                {
+                    SyncFlag = true;
+                }
+                else
+                {
+                    CreatePhysics();
+                }
             }
             catch (Exception ex)
             {

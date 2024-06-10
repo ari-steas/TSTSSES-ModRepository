@@ -31,7 +31,10 @@ namespace DynamicAsteroids
         [ProtoMember(8)]
         public bool IsRemoval;
 
-        public AsteroidNetworkMessage(Vector3D position, float size, Vector3D initialVelocity, Vector3D angularVelocity, AsteroidType type, bool isSubChunk, long entityId, bool isRemoval)
+        [ProtoMember(9)]
+        public bool IsInitialCreation;
+
+        public AsteroidNetworkMessage(Vector3D position, float size, Vector3D initialVelocity, Vector3D angularVelocity, AsteroidType type, bool isSubChunk, long entityId, bool isRemoval, bool isInitialCreation)
         {
             Position = position;
             Size = size;
@@ -41,6 +44,7 @@ namespace DynamicAsteroids
             IsSubChunk = isSubChunk;
             EntityId = entityId;
             IsRemoval = isRemoval;
+            IsInitialCreation = isInitialCreation;
         }
     }
 }
