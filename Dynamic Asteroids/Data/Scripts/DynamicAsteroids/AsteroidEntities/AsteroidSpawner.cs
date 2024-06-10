@@ -31,6 +31,7 @@ namespace DynamicAsteroids.AsteroidEntities
             Log.Info("Closing AsteroidSpawner");
             _asteroids?.Clear();
         }
+
         public void UpdateTick()
         {
             if (!MyAPIGateway.Session.IsServer)
