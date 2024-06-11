@@ -190,14 +190,33 @@ namespace DynamicAsteroids.AsteroidEntities
 
         public void OnDestroy()
         {
-            SplitAsteroid();
+            try
+            {
+                SplitAsteroid();
+            }
+            catch (Exception ex)
+            {
+                Log.Exception(ex, typeof(AsteroidEntity), "Exception in OnDestroy:");
+                throw; // Rethrow the exception for the debugger
+            }
         }
 
         public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
             _integrity -= damage;
+            Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
+
+            if (hitInfo.HasValue)
+            {
+                var hit = hitInfo.Value;
+                Log.Info($"HitInfo - Position: {hit.Position}, Normal: {hit.Normal}, Velocity: {hit.Velocity}");
+            }
+
             if (Integrity < 0)
+            {
+                Log.Info("Integrity below 0, calling OnDestroy");
                 OnDestroy();
+            }
             return true;
         }
 
@@ -292,21 +311,25 @@ namespace DynamicAsteroids.AsteroidEntities
         private void CreatePhysics()
         {
             float mass = 10000 * Size * Size * Size;
+            float radius = Size / 2; // Assuming Size represents the diameter
+
             PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
                 this,
                 WorldMatrix,
                 Vector3.Zero,
                 linearDamping: 0f, // Remove damping
                 angularDamping: 0f, // Remove damping
-                collisionLayer: CollisionLayers.DefaultCollisionLayer,
+                rigidBodyFlags: RigidBodyFlag.RBF_DEFAULT,
+                collisionLayer: CollisionLayers.NoVoxelCollisionLayer,
                 isPhantom: false,
                 mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
             );
 
-            MyAPIGateway.Physics.CreateBoxPhysics(settings, PositionComp.LocalAABB.HalfExtents, 0);
+            MyAPIGateway.Physics.CreateSpherePhysics(settings, radius);
             Physics.Enabled = true;
             Physics.Activate();
         }
+
 
         private Vector3D RandVector()
         {
