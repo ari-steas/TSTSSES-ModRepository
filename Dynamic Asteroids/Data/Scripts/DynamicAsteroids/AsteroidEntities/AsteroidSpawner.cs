@@ -13,6 +13,8 @@ namespace DynamicAsteroids.AsteroidEntities
     {
         public List<AsteroidEntity> _asteroids;
         private const double MinDistanceFromVanillaAsteroids = 1000; // 1 km
+        private bool _canSpawnAsteroids = false;
+        private DateTime _worldLoadTime;
 
         public void Init()
         {
@@ -21,6 +23,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
             Log.Info("Initializing AsteroidSpawner");
             _asteroids = new List<AsteroidEntity>(AsteroidSettings.MaxAsteroidCount);
+            _worldLoadTime = DateTime.UtcNow;
         }
 
         public void Close()
@@ -31,10 +34,21 @@ namespace DynamicAsteroids.AsteroidEntities
             Log.Info("Closing AsteroidSpawner");
             _asteroids?.Clear();
         }
+
         public void UpdateTick()
         {
             if (!MyAPIGateway.Session.IsServer)
                 return;
+
+            // Check if 10 seconds have passed since the world loaded
+            if (!_canSpawnAsteroids)
+            {
+                if ((DateTime.UtcNow - _worldLoadTime).TotalSeconds < 10)
+                {
+                    return;
+                }
+                _canSpawnAsteroids = true;
+            }
 
             try
             {
@@ -128,6 +142,6 @@ namespace DynamicAsteroids.AsteroidEntities
             return Math.Pow(MainSession.I.Rand.NextDouble(), 1 / 3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
         }
 
-        private float RandAsteroidSize => (float)(MainSession.I.Rand.NextDouble() * MainSession.I.Rand.NextDouble() * MainSession.I.Rand.NextDouble() * 500) + 1.5f;
+        private float RandAsteroidSize => (float)(MainSession.I.Rand.NextDouble() * MainSession.I.Rand.NextDouble() * MainSession.I.Rand.NextDouble() * (AsteroidSettings.MaxAsteroidSize - AsteroidSettings.MinAsteroidSize)) + AsteroidSettings.MinAsteroidSize;
     }
 }

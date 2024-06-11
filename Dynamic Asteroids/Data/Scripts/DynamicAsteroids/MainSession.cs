@@ -36,7 +36,7 @@ namespace DynamicAsteroids
                     _spawner.Init();
                 }
 
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(1337, OnMessageReceived);
+                MyAPIGateway.Multiplayer.RegisterMessageHandler(32000, OnMessageReceived);
             }
             catch (Exception ex)
             {
@@ -54,7 +54,7 @@ namespace DynamicAsteroids
                     _spawner.Close();
                 }
 
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(1337, OnMessageReceived);
+                MyAPIGateway.Multiplayer.UnregisterMessageHandler(32000, OnMessageReceived);
             }
             catch (Exception ex)
             {
