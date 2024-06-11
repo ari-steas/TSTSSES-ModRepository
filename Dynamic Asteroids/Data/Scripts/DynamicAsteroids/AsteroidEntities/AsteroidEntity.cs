@@ -311,21 +311,25 @@ namespace DynamicAsteroids.AsteroidEntities
         private void CreatePhysics()
         {
             float mass = 10000 * Size * Size * Size;
+            float radius = Size / 2; // Assuming Size represents the diameter
+
             PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
                 this,
                 WorldMatrix,
                 Vector3.Zero,
                 linearDamping: 0f, // Remove damping
                 angularDamping: 0f, // Remove damping
-                collisionLayer: CollisionLayers.DefaultCollisionLayer,
+                rigidBodyFlags: RigidBodyFlag.RBF_KINEMATIC,
+                collisionLayer: CollisionLayers.CharacterCollisionLayer,
                 isPhantom: false,
                 mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
             );
 
-            MyAPIGateway.Physics.CreateBoxPhysics(settings, PositionComp.LocalAABB.HalfExtents, 0);
+            MyAPIGateway.Physics.CreateSpherePhysics(settings, radius);
             Physics.Enabled = true;
             Physics.Activate();
         }
+
 
         private Vector3D RandVector()
         {
