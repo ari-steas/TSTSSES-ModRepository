@@ -25,8 +25,8 @@ namespace DynamicAsteroids
         public static double UraniniteWeight = 0.01;
 
         public static float BaseIntegrity = 1f;
-        public static float MinAsteroidSize = 1.5f;
-        public static float MaxAsteroidSize = 10f;
+        public static float MinAsteroidSize = 50f;
+        public static float MaxAsteroidSize = 250f;
 
         public static double SubChunkVelocityMin = 1.0;
         public static double SubChunkVelocityMax = 5.0;

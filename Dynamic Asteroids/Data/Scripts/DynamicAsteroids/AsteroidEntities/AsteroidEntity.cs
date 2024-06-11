@@ -103,9 +103,13 @@ namespace DynamicAsteroids.AsteroidEntities
                     MyFloatingObjects.Spawn(new MyPhysicalInventoryItem(1000, newObject), PositionComp.GetPosition() + RandVector() * Size, Vector3D.Forward, Vector3D.Up, Physics);
                 }
 
-                var removalMessage1 = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
-                var removalMessageBytes1 = MyAPIGateway.Utilities.SerializeToBinary(removalMessage1);
-                MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes1);
+                // Send a removal message before closing
+                if (MyAPIGateway.Utilities.IsDedicated || !MyAPIGateway.Session.IsServer)
+                {
+                    var removalMessage = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
+                    var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
+                    MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
+                }
 
                 Close();
                 return;
@@ -120,14 +124,22 @@ namespace DynamicAsteroids.AsteroidEntities
                 var subChunk = CreateAsteroid(newPos, newSize, newVelocity, Type);
                 subChunk.Physics.AngularVelocity = newAngularVelocity;
 
-                var message = new AsteroidNetworkMessage(newPos, newSize, newVelocity, newAngularVelocity, Type, true, subChunk.EntityId, false, true);
-                var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
-                MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
+                // Send a network message to clients
+                if (MyAPIGateway.Utilities.IsDedicated || !MyAPIGateway.Session.IsServer)
+                {
+                    var message = new AsteroidNetworkMessage(newPos, newSize, newVelocity, newAngularVelocity, Type, true, subChunk.EntityId, false, true);
+                    var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
+                    MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
+                }
             }
 
-            var removalMessage2 = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
-            var removalMessageBytes2 = MyAPIGateway.Utilities.SerializeToBinary(removalMessage2);
-            MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes2);
+            // Send a removal message before closing
+            if (MyAPIGateway.Utilities.IsDedicated || !MyAPIGateway.Session.IsServer)
+            {
+                var removalMessage = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
+                var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
+                MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
+            }
 
             Close();
         }
@@ -221,14 +233,9 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
 
-                // Ensure the entity is added to the physics world
                 if (MyAPIGateway.Session.IsServer)
                 {
                     SyncFlag = true;
-                }
-                else
-                {
-                    CreatePhysics();
                 }
             }
             catch (Exception ex)
