@@ -93,9 +93,8 @@ namespace DynamicAsteroids.AsteroidEntities
                 splits = (int)Math.Ceiling(Size);
 
             float newSize = Size / splits;
-            // MyAPIGateway.Utilities.ShowNotification($"NS: {newSize}"); // Commented out for less frequent logging
 
-            if (newSize <= 1)
+            if (newSize <= AsteroidSettings.MinAsteroidSize)
             {
                 MyPhysicalItemDefinition item = MyDefinitionManager.Static.GetPhysicalItemDefinition(new MyDefinitionId(typeof(MyObjectBuilder_Ore), Type.ToString()));
                 var newObject = MyObjectBuilderSerializer.CreateNewObject(item.Id.TypeId, item.Id.SubtypeId.ToString()) as MyObjectBuilder_PhysicalObject;
@@ -104,10 +103,9 @@ namespace DynamicAsteroids.AsteroidEntities
                     MyFloatingObjects.Spawn(new MyPhysicalInventoryItem(1000, newObject), PositionComp.GetPosition() + RandVector() * Size, Vector3D.Forward, Vector3D.Up, Physics);
                 }
 
-                // Send a removal message before closing
                 var removalMessage1 = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
                 var removalMessageBytes1 = MyAPIGateway.Utilities.SerializeToBinary(removalMessage1);
-                MyAPIGateway.Multiplayer.SendMessageToOthers(1337, removalMessageBytes1);
+                MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes1);
 
                 Close();
                 return;
@@ -119,20 +117,17 @@ namespace DynamicAsteroids.AsteroidEntities
                 Vector3D newVelocity = RandVector() * AsteroidSettings.GetRandomSubChunkVelocity(MainSession.I.Rand);
                 Vector3D newAngularVelocity = RandVector() * AsteroidSettings.GetRandomSubChunkAngularVelocity(MainSession.I.Rand);
 
-                // Create the sub-chunk asteroid on the server
                 var subChunk = CreateAsteroid(newPos, newSize, newVelocity, Type);
                 subChunk.Physics.AngularVelocity = newAngularVelocity;
 
-                // Send a network message to clients
                 var message = new AsteroidNetworkMessage(newPos, newSize, newVelocity, newAngularVelocity, Type, true, subChunk.EntityId, false, true);
                 var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
-                MyAPIGateway.Multiplayer.SendMessageToOthers(1337, messageBytes);
+                MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
             }
 
-            // Send a removal message before closing
             var removalMessage2 = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
             var removalMessageBytes2 = MyAPIGateway.Utilities.SerializeToBinary(removalMessage2);
-            MyAPIGateway.Multiplayer.SendMessageToOthers(1337, removalMessageBytes2);
+            MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes2);
 
             Close();
         }

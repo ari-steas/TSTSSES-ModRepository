@@ -8,12 +8,10 @@ namespace DynamicAsteroids
     {
         public static int MaxAsteroidCount = 1000;
         public static int AsteroidSpawnRadius = 10000;
-        //These 3 cause extreme physics load thanks to clustering, recommend leaving it at 0
         public static int AsteroidVelocityBase = 0;
         public static double VelocityVariability = 0;
-        public static double AngularVelocityVariability = 0; 
+        public static double AngularVelocityVariability = 0;
 
-        // Weights for asteroid type frequencies
         public static double IceWeight = 0.80;
         public static double StoneWeight = 0.11;
         public static double IronWeight = 0.01;
@@ -26,12 +24,10 @@ namespace DynamicAsteroids
         public static double PlatinumWeight = 0.01;
         public static double UraniniteWeight = 0.01;
 
-        // New settings for base integrity and size
         public static float BaseIntegrity = 1f;
         public static float MinAsteroidSize = 1.5f;
-        public static float MaxAsteroidSize = 500f;
+        public static float MaxAsteroidSize = 10f;
 
-        // Settings for sub-chunk velocities
         public static double SubChunkVelocityMin = 1.0;
         public static double SubChunkVelocityMax = 5.0;
         public static double SubChunkAngularVelocityMin = 0.01;
@@ -39,15 +35,15 @@ namespace DynamicAsteroids
 
         public static SpawnableArea[] ValidSpawnLocations =
         {
-            new SpawnableArea
-            {
-                CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
-                Normal = new Vector3D(1, 10, 0.5).Normalized(),
-                Radius = 60268000 * 2.5,
-                InnerRadius = 60268000 * 1.2,
-                HeightFromCenter = 1000,
-            }
-        };
+        new SpawnableArea
+        {
+            CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
+            Normal = new Vector3D(1, 10, 0.5).Normalized(),
+            Radius = 60268000 * 2.5,
+            InnerRadius = 60268000 * 1.2,
+            HeightFromCenter = 1000,
+        }
+    };
 
         public static bool CanSpawnAsteroidAtPoint(Vector3D point, out Vector3D velocity)
         {
