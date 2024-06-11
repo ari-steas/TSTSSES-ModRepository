@@ -203,6 +203,16 @@ namespace DynamicAsteroids.AsteroidEntities
 
         public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
+            // Define the explosion damage type
+            var explosionDamageType = MyStringHash.GetOrCompute("Explosion");
+
+            // Check if the damage source is explosion
+            if (damageSource == explosionDamageType)
+            {
+                Log.Info($"Ignoring explosion damage for asteroid. Damage source: {damageSource.String}");
+                return false; // Ignore the damage
+            }
+
             _integrity -= damage;
             Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
 
@@ -269,7 +279,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 }
 
                 Size = size;
-                _integrity = AsteroidSettings.BaseIntegrity * Size;
+                _integrity = AsteroidSettings.BaseIntegrity + Size;
 
                 Log.Info($"Attempting to load model: {ModelString}");
 
