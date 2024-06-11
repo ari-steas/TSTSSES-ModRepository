@@ -5,7 +5,6 @@ using SC.SUGMA;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
-using ProtoBuf;
 
 namespace DynamicAsteroids.AsteroidEntities
 {
@@ -13,6 +12,7 @@ namespace DynamicAsteroids.AsteroidEntities
     {
         public List<AsteroidEntity> _asteroids;
         private const double MinDistanceFromVanillaAsteroids = 1000; // 1 km
+        private const double MinDistanceFromPlayer = 3000; // Minimum distance from the player to spawn new asteroids
         private bool _canSpawnAsteroids = false;
         private DateTime _worldLoadTime;
 
@@ -84,7 +84,12 @@ namespace DynamicAsteroids.AsteroidEntities
                     int asteroidsSpawned = 0;
                     while (_asteroids.Count < AsteroidSettings.MaxAsteroidCount && asteroidsSpawned < 10)
                     {
-                        Vector3D newPosition = playerPosition + RandVector() * AsteroidSettings.AsteroidSpawnRadius;
+                        Vector3D newPosition;
+                        do
+                        {
+                            newPosition = playerPosition + RandVector() * AsteroidSettings.AsteroidSpawnRadius;
+                        } while (Vector3D.DistanceSquared(newPosition, playerPosition) < MinDistanceFromPlayer * MinDistanceFromPlayer);
+
                         Vector3D newVelocity;
                         if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity))
                             continue;
