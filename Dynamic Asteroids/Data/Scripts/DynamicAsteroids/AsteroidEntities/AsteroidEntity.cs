@@ -123,6 +123,9 @@ namespace DynamicAsteroids.AsteroidEntities
                     MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
                 }
 
+                // Remove from asteroid list
+                MainSession.I._spawner._asteroids.Remove(this);
+
                 Close();
                 return;
             }
@@ -135,6 +138,9 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 var subChunk = CreateAsteroid(newPos, newSize, newVelocity, Type);
                 subChunk.Physics.AngularVelocity = newAngularVelocity;
+
+                // Add sub-chunks to the asteroid list
+                MainSession.I._spawner._asteroids.Add(subChunk);
 
                 // Send a network message to clients
                 if (MyAPIGateway.Utilities.IsDedicated || !MyAPIGateway.Session.IsServer)
@@ -153,9 +159,11 @@ namespace DynamicAsteroids.AsteroidEntities
                 MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
             }
 
+            // Remove from asteroid list
+            MainSession.I._spawner._asteroids.Remove(this);
+
             Close();
         }
-
 
         private int GetRandomDropAmount(AsteroidType type)
         {

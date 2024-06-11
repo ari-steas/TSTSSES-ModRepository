@@ -8,7 +8,7 @@ using VRageMath;
 
 namespace DynamicAsteroids.AsteroidEntities
 {
-    internal class AsteroidSpawner
+    public class AsteroidSpawner
     {
         public List<AsteroidEntity> _asteroids;
         private const double MinDistanceFromVanillaAsteroids = 1000; // 1 km
