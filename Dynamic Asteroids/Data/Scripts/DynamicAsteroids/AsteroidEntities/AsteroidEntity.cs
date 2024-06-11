@@ -100,7 +100,8 @@ namespace DynamicAsteroids.AsteroidEntities
                 var newObject = MyObjectBuilderSerializer.CreateNewObject(item.Id.TypeId, item.Id.SubtypeId.ToString()) as MyObjectBuilder_PhysicalObject;
                 for (int i = 0; i < splits; i++)
                 {
-                    MyFloatingObjects.Spawn(new MyPhysicalInventoryItem(1000, newObject), PositionComp.GetPosition() + RandVector() * Size, Vector3D.Forward, Vector3D.Up, Physics);
+                    int dropAmount = GetRandomDropAmount(Type);
+                    MyFloatingObjects.Spawn(new MyPhysicalInventoryItem(dropAmount, newObject), PositionComp.GetPosition() + RandVector() * Size, Vector3D.Forward, Vector3D.Up, Physics);
                 }
 
                 // Send a removal message before closing
@@ -142,6 +143,38 @@ namespace DynamicAsteroids.AsteroidEntities
             }
 
             Close();
+        }
+
+
+        private int GetRandomDropAmount(AsteroidType type)
+        {
+            switch (type)
+            {
+                case AsteroidType.Ice:
+                    return MainSession.I.Rand.Next(AsteroidSettings.IceDropRange[0], AsteroidSettings.IceDropRange[1]);
+                case AsteroidType.Stone:
+                    return MainSession.I.Rand.Next(AsteroidSettings.StoneDropRange[0], AsteroidSettings.StoneDropRange[1]);
+                case AsteroidType.Iron:
+                    return MainSession.I.Rand.Next(AsteroidSettings.IronDropRange[0], AsteroidSettings.IronDropRange[1]);
+                case AsteroidType.Nickel:
+                    return MainSession.I.Rand.Next(AsteroidSettings.NickelDropRange[0], AsteroidSettings.NickelDropRange[1]);
+                case AsteroidType.Cobalt:
+                    return MainSession.I.Rand.Next(AsteroidSettings.CobaltDropRange[0], AsteroidSettings.CobaltDropRange[1]);
+                case AsteroidType.Magnesium:
+                    return MainSession.I.Rand.Next(AsteroidSettings.MagnesiumDropRange[0], AsteroidSettings.MagnesiumDropRange[1]);
+                case AsteroidType.Silicon:
+                    return MainSession.I.Rand.Next(AsteroidSettings.SiliconDropRange[0], AsteroidSettings.SiliconDropRange[1]);
+                case AsteroidType.Silver:
+                    return MainSession.I.Rand.Next(AsteroidSettings.SilverDropRange[0], AsteroidSettings.SilverDropRange[1]);
+                case AsteroidType.Gold:
+                    return MainSession.I.Rand.Next(AsteroidSettings.GoldDropRange[0], AsteroidSettings.GoldDropRange[1]);
+                case AsteroidType.Platinum:
+                    return MainSession.I.Rand.Next(AsteroidSettings.PlatinumDropRange[0], AsteroidSettings.PlatinumDropRange[1]);
+                case AsteroidType.Uraninite:
+                    return MainSession.I.Rand.Next(AsteroidSettings.UraniniteDropRange[0], AsteroidSettings.UraniniteDropRange[1]);
+                default:
+                    return 0;
+            }
         }
 
         public void OnDestroy()
