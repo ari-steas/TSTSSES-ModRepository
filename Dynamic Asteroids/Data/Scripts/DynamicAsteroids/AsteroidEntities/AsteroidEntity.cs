@@ -77,7 +77,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
         private void CreateEffects(Vector3D position)
         {
-            MyVisualScriptLogicProvider.CreateParticleEffectAtPosition("MetalFoamSmoke", position);
+            MyVisualScriptLogicProvider.CreateParticleEffectAtPosition("roidbreakparticle1", position);
             MyVisualScriptLogicProvider.PlaySingleSoundAtPosition("roidbreak", position);
         }
 
