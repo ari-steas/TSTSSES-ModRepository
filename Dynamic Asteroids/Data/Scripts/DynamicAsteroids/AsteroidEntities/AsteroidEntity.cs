@@ -311,30 +311,7 @@ namespace DynamicAsteroids.AsteroidEntities
         private void CreatePhysics()
         {
             float mass = 10000 * Size * Size * Size;
-
-            // Retrieve the bounding box of the model
-            var localAABB = PositionComp.LocalAABB;
-            Vector3 halfExtents = localAABB.HalfExtents;
-            Vector3 center = localAABB.Center;
-
-            // Calculate the radius and vertices for the capsule
-            float radius = Math.Min(halfExtents.X, halfExtents.Z); // Use the smaller of the X and Z extents for the radius
-            Vector3 vertexA = center - new Vector3(0, halfExtents.Y, 0);
-            Vector3 vertexB = center + new Vector3(0, halfExtents.Y, 0);
-
-            // Align the capsule along the longer axis of the bounding box for better fit
-            if (halfExtents.X > halfExtents.Y && halfExtents.X > halfExtents.Z)
-            {
-                radius = Math.Min(halfExtents.Y, halfExtents.Z);
-                vertexA = center - new Vector3(halfExtents.X, 0, 0);
-                vertexB = center + new Vector3(halfExtents.X, 0, 0);
-            }
-            else if (halfExtents.Z > halfExtents.Y && halfExtents.Z > halfExtents.X)
-            {
-                radius = Math.Min(halfExtents.X, halfExtents.Y);
-                vertexA = center - new Vector3(0, 0, halfExtents.Z);
-                vertexB = center + new Vector3(0, 0, halfExtents.Z);
-            }
+            float radius = Size / 2; // Assuming Size represents the diameter
 
             PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
                 this,
@@ -345,14 +322,15 @@ namespace DynamicAsteroids.AsteroidEntities
                 rigidBodyFlags: RigidBodyFlag.RBF_KINEMATIC,
                 collisionLayer: CollisionLayers.CharacterCollisionLayer,
                 isPhantom: false,
-                mass: new ModAPIMass(localAABB.Volume(), mass, Vector3.Zero, mass * localAABB.Height * localAABB.Height / 6 * Matrix.Identity)
+                mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
             );
 
-            MyAPIGateway.Physics.CreateCapsulePhysics(settings, vertexA, vertexB, radius);
+            MyAPIGateway.Physics.CreateSpherePhysics(settings, radius);
             Physics.Enabled = true;
             Physics.Activate();
         }
-        
+
+
         private Vector3D RandVector()
         {
             var theta = MainSession.I.Rand.NextDouble() * 2.0 * Math.PI;
