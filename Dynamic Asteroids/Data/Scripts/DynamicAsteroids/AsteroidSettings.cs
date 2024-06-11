@@ -11,6 +11,7 @@ namespace DynamicAsteroids
         public static int AsteroidVelocityBase = 0;
         public static double VelocityVariability = 0;
         public static double AngularVelocityVariability = 0;
+        //TODO: DespawnRangeFromPlayer
 
         public static double IceWeight = 0.80;
         public static double StoneWeight = 0.11;

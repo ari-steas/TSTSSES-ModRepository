@@ -19,7 +19,7 @@ namespace DynamicAsteroids
 
         public Random Rand = new Random();
 
-        private AsteroidSpawner _spawner = new AsteroidSpawner();
+        public AsteroidSpawner _spawner = new AsteroidSpawner();
 
         #region Base Methods
 

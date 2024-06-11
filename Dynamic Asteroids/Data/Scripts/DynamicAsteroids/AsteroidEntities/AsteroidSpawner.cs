@@ -8,7 +8,7 @@ using VRageMath;
 
 namespace DynamicAsteroids.AsteroidEntities
 {
-    internal class AsteroidSpawner
+    public class AsteroidSpawner
     {
         public List<AsteroidEntity> _asteroids;
         private const double MinDistanceFromVanillaAsteroids = 1000; // 1 km
@@ -59,15 +59,12 @@ namespace DynamicAsteroids.AsteroidEntities
                 {
                     Vector3D playerPosition = player.GetPosition();
 
-                    if (!AsteroidSettings.PlayerCanSeeRings(playerPosition))
-                    {
-                        continue;
-                    }
-
                     foreach (var asteroid in _asteroids.ToArray())
                     {
-                        if (Vector3D.DistanceSquared(asteroid.PositionComp.GetPosition(), playerPosition) >
-                            AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius * 1.1)
+                        double distanceSquared = Vector3D.DistanceSquared(asteroid.PositionComp.GetPosition(), playerPosition);
+
+                        // Remove asteroids that are outside the spherical spawn radius
+                        if (distanceSquared > AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius)
                         {
                             Log.Info($"Removing asteroid at {asteroid.PositionComp.GetPosition()} due to distance from player");
                             _asteroids.Remove(asteroid);
@@ -82,13 +79,26 @@ namespace DynamicAsteroids.AsteroidEntities
                     }
 
                     int asteroidsSpawned = 0;
+                    int spawnAttempts = 0;
+                    int maxAttempts = 50; // Limit the number of attempts to find valid positions
+
                     while (_asteroids.Count < AsteroidSettings.MaxAsteroidCount && asteroidsSpawned < 10)
                     {
+                        if (spawnAttempts >= maxAttempts)
+                        {
+                            Log.Info("Reached maximum spawn attempts, breaking out of loop to prevent freeze");
+                            break;
+                        }
+
                         Vector3D newPosition;
                         do
                         {
                             newPosition = playerPosition + RandVector() * AsteroidSettings.AsteroidSpawnRadius;
-                        } while (Vector3D.DistanceSquared(newPosition, playerPosition) < MinDistanceFromPlayer * MinDistanceFromPlayer);
+                            spawnAttempts++;
+                        } while (Vector3D.DistanceSquared(newPosition, playerPosition) < MinDistanceFromPlayer * MinDistanceFromPlayer && spawnAttempts < maxAttempts);
+
+                        if (spawnAttempts >= maxAttempts)
+                            break;
 
                         Vector3D newVelocity;
                         if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity))

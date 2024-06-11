@@ -123,6 +123,9 @@ namespace DynamicAsteroids.AsteroidEntities
                     MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
                 }
 
+                // Remove from asteroid list
+                MainSession.I._spawner._asteroids.Remove(this);
+
                 Close();
                 return;
             }
@@ -135,6 +138,9 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 var subChunk = CreateAsteroid(newPos, newSize, newVelocity, Type);
                 subChunk.Physics.AngularVelocity = newAngularVelocity;
+
+                // Add sub-chunks to the asteroid list
+                MainSession.I._spawner._asteroids.Add(subChunk);
 
                 // Send a network message to clients
                 if (MyAPIGateway.Utilities.IsDedicated || !MyAPIGateway.Session.IsServer)
@@ -153,9 +159,11 @@ namespace DynamicAsteroids.AsteroidEntities
                 MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
             }
 
+            // Remove from asteroid list
+            MainSession.I._spawner._asteroids.Remove(this);
+
             Close();
         }
-
 
         private int GetRandomDropAmount(AsteroidType type)
         {
@@ -203,6 +211,16 @@ namespace DynamicAsteroids.AsteroidEntities
 
         public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
+            // Define the explosion damage type
+            var explosionDamageType = MyStringHash.GetOrCompute("Explosion");
+
+            // Check if the damage source is explosion
+           //if (damageSource == explosionDamageType)
+           //{
+           //    Log.Info($"Ignoring explosion damage for asteroid. Damage source: {damageSource.String}");
+           //    return false; // Ignore the damage
+           //}
+
             _integrity -= damage;
             Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
 
@@ -269,7 +287,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 }
 
                 Size = size;
-                _integrity = AsteroidSettings.BaseIntegrity * Size;
+                _integrity = AsteroidSettings.BaseIntegrity + Size;
 
                 Log.Info($"Attempting to load model: {ModelString}");
 
@@ -329,8 +347,7 @@ namespace DynamicAsteroids.AsteroidEntities
             Physics.Enabled = true;
             Physics.Activate();
         }
-
-
+        
         private Vector3D RandVector()
         {
             var theta = MainSession.I.Rand.NextDouble() * 2.0 * Math.PI;
