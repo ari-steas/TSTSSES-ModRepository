@@ -2,6 +2,7 @@
 using System.IO;
 using Sandbox.Definitions;
 using Sandbox.Engine.Physics;
+using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using SC.SUGMA;
@@ -73,6 +74,14 @@ namespace DynamicAsteroids.AsteroidEntities
         private static readonly string[] PlatinumAsteroidModels = { @"Models\OreAsteroid_Platinum.mwm" };
         private static readonly string[] UraniniteAsteroidModels = { @"Models\OreAsteroid_Uraninite.mwm" };
 
+
+        private void CreateEffects(Vector3D position)
+        {
+            MyVisualScriptLogicProvider.CreateParticleEffectAtPosition("roidbreakparticle1", position);
+            MyVisualScriptLogicProvider.PlaySingleSoundAtPosition("roidbreak", position);
+        }
+
+
         public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity, AsteroidType type)
         {
             var ent = new AsteroidEntity();
@@ -93,21 +102,26 @@ namespace DynamicAsteroids.AsteroidEntities
                 splits = (int)Math.Ceiling(Size);
 
             float newSize = Size / splits;
-            // MyAPIGateway.Utilities.ShowNotification($"NS: {newSize}"); // Commented out for less frequent logging
 
-            if (newSize <= 1)
+            CreateEffects(PositionComp.GetPosition());
+
+            if (newSize <= AsteroidSettings.MinSubChunkSize)
             {
                 MyPhysicalItemDefinition item = MyDefinitionManager.Static.GetPhysicalItemDefinition(new MyDefinitionId(typeof(MyObjectBuilder_Ore), Type.ToString()));
                 var newObject = MyObjectBuilderSerializer.CreateNewObject(item.Id.TypeId, item.Id.SubtypeId.ToString()) as MyObjectBuilder_PhysicalObject;
                 for (int i = 0; i < splits; i++)
                 {
-                    MyFloatingObjects.Spawn(new MyPhysicalInventoryItem(1000, newObject), PositionComp.GetPosition() + RandVector() * Size, Vector3D.Forward, Vector3D.Up, Physics);
+                    int dropAmount = GetRandomDropAmount(Type);
+                    MyFloatingObjects.Spawn(new MyPhysicalInventoryItem(dropAmount, newObject), PositionComp.GetPosition() + RandVector() * Size, Vector3D.Forward, Vector3D.Up, Physics);
                 }
 
                 // Send a removal message before closing
-                var removalMessage1 = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
-                var removalMessageBytes1 = MyAPIGateway.Utilities.SerializeToBinary(removalMessage1);
-                MyAPIGateway.Multiplayer.SendMessageToOthers(1337, removalMessageBytes1);
+                if (MyAPIGateway.Utilities.IsDedicated || !MyAPIGateway.Session.IsServer)
+                {
+                    var removalMessage = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
+                    var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
+                    MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
+                }
 
                 Close();
                 return;
@@ -119,22 +133,59 @@ namespace DynamicAsteroids.AsteroidEntities
                 Vector3D newVelocity = RandVector() * AsteroidSettings.GetRandomSubChunkVelocity(MainSession.I.Rand);
                 Vector3D newAngularVelocity = RandVector() * AsteroidSettings.GetRandomSubChunkAngularVelocity(MainSession.I.Rand);
 
-                // Create the sub-chunk asteroid on the server
                 var subChunk = CreateAsteroid(newPos, newSize, newVelocity, Type);
                 subChunk.Physics.AngularVelocity = newAngularVelocity;
 
                 // Send a network message to clients
-                var message = new AsteroidNetworkMessage(newPos, newSize, newVelocity, newAngularVelocity, Type, true, subChunk.EntityId, false, true);
-                var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
-                MyAPIGateway.Multiplayer.SendMessageToOthers(1337, messageBytes);
+                if (MyAPIGateway.Utilities.IsDedicated || !MyAPIGateway.Session.IsServer)
+                {
+                    var message = new AsteroidNetworkMessage(newPos, newSize, newVelocity, newAngularVelocity, Type, true, subChunk.EntityId, false, true);
+                    var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
+                    MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
+                }
             }
 
             // Send a removal message before closing
-            var removalMessage2 = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
-            var removalMessageBytes2 = MyAPIGateway.Utilities.SerializeToBinary(removalMessage2);
-            MyAPIGateway.Multiplayer.SendMessageToOthers(1337, removalMessageBytes2);
+            if (MyAPIGateway.Utilities.IsDedicated || !MyAPIGateway.Session.IsServer)
+            {
+                var removalMessage = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false);
+                var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
+                MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
+            }
 
             Close();
+        }
+
+
+        private int GetRandomDropAmount(AsteroidType type)
+        {
+            switch (type)
+            {
+                case AsteroidType.Ice:
+                    return MainSession.I.Rand.Next(AsteroidSettings.IceDropRange[0], AsteroidSettings.IceDropRange[1]);
+                case AsteroidType.Stone:
+                    return MainSession.I.Rand.Next(AsteroidSettings.StoneDropRange[0], AsteroidSettings.StoneDropRange[1]);
+                case AsteroidType.Iron:
+                    return MainSession.I.Rand.Next(AsteroidSettings.IronDropRange[0], AsteroidSettings.IronDropRange[1]);
+                case AsteroidType.Nickel:
+                    return MainSession.I.Rand.Next(AsteroidSettings.NickelDropRange[0], AsteroidSettings.NickelDropRange[1]);
+                case AsteroidType.Cobalt:
+                    return MainSession.I.Rand.Next(AsteroidSettings.CobaltDropRange[0], AsteroidSettings.CobaltDropRange[1]);
+                case AsteroidType.Magnesium:
+                    return MainSession.I.Rand.Next(AsteroidSettings.MagnesiumDropRange[0], AsteroidSettings.MagnesiumDropRange[1]);
+                case AsteroidType.Silicon:
+                    return MainSession.I.Rand.Next(AsteroidSettings.SiliconDropRange[0], AsteroidSettings.SiliconDropRange[1]);
+                case AsteroidType.Silver:
+                    return MainSession.I.Rand.Next(AsteroidSettings.SilverDropRange[0], AsteroidSettings.SilverDropRange[1]);
+                case AsteroidType.Gold:
+                    return MainSession.I.Rand.Next(AsteroidSettings.GoldDropRange[0], AsteroidSettings.GoldDropRange[1]);
+                case AsteroidType.Platinum:
+                    return MainSession.I.Rand.Next(AsteroidSettings.PlatinumDropRange[0], AsteroidSettings.PlatinumDropRange[1]);
+                case AsteroidType.Uraninite:
+                    return MainSession.I.Rand.Next(AsteroidSettings.UraniniteDropRange[0], AsteroidSettings.UraniniteDropRange[1]);
+                default:
+                    return 0;
+            }
         }
 
         public void OnDestroy()
@@ -226,14 +277,9 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
 
-                // Ensure the entity is added to the physics world
                 if (MyAPIGateway.Session.IsServer)
                 {
                     SyncFlag = true;
-                }
-                else
-                {
-                    CreatePhysics();
                 }
             }
             catch (Exception ex)
