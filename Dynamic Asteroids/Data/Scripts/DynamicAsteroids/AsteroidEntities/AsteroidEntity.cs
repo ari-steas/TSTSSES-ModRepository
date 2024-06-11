@@ -2,6 +2,7 @@
 using System.IO;
 using Sandbox.Definitions;
 using Sandbox.Engine.Physics;
+using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using SC.SUGMA;
@@ -73,6 +74,14 @@ namespace DynamicAsteroids.AsteroidEntities
         private static readonly string[] PlatinumAsteroidModels = { @"Models\OreAsteroid_Platinum.mwm" };
         private static readonly string[] UraniniteAsteroidModels = { @"Models\OreAsteroid_Uraninite.mwm" };
 
+
+        private void CreateEffects(Vector3D position)
+        {
+            MyVisualScriptLogicProvider.CreateParticleEffectAtPosition("MetalFoamSmoke", position);
+            MyVisualScriptLogicProvider.PlaySingleSoundAtPosition("roidbreak", position);
+        }
+
+
         public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity, AsteroidType type)
         {
             var ent = new AsteroidEntity();
@@ -93,6 +102,8 @@ namespace DynamicAsteroids.AsteroidEntities
                 splits = (int)Math.Ceiling(Size);
 
             float newSize = Size / splits;
+
+            CreateEffects(PositionComp.GetPosition());
 
             if (newSize <= AsteroidSettings.MinSubChunkSize)
             {

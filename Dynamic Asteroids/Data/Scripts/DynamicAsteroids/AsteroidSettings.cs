@@ -27,24 +27,24 @@ namespace DynamicAsteroids
         public static float BaseIntegrity = 1f;
         public static float MinAsteroidSize = 50f;
         public static float MaxAsteroidSize = 250f;
-        public static float MinSubChunkSize = 2f;
+        public static float MinSubChunkSize = 5f;
 
         public static double SubChunkVelocityMin = 1.0;
         public static double SubChunkVelocityMax = 5.0;
         public static double SubChunkAngularVelocityMin = 0.01;
         public static double SubChunkAngularVelocityMax = 0.1;
 
-        public static int[] IceDropRange = { 10, 50 };
-        public static int[] StoneDropRange = { 10, 50 };
-        public static int[] IronDropRange = { 5, 25 };
-        public static int[] NickelDropRange = { 5, 25 };
-        public static int[] CobaltDropRange = { 5, 25 };
-        public static int[] MagnesiumDropRange = { 5, 25 };
-        public static int[] SiliconDropRange = { 5, 25 };
-        public static int[] SilverDropRange = { 5, 25 };
-        public static int[] GoldDropRange = { 5, 25 };
-        public static int[] PlatinumDropRange = { 5, 25 };
-        public static int[] UraniniteDropRange = { 5, 25 };
+        public static int[] IceDropRange = { 1000, 10000 };
+        public static int[] StoneDropRange = { 1000, 10000 };
+        public static int[] IronDropRange = { 500, 2500 };
+        public static int[] NickelDropRange = { 500, 2500 };
+        public static int[] CobaltDropRange = { 500, 2500 };
+        public static int[] MagnesiumDropRange = { 500, 2500 };
+        public static int[] SiliconDropRange = { 500, 2500 };
+        public static int[] SilverDropRange = { 500, 2500 };
+        public static int[] GoldDropRange = { 500, 2500 };
+        public static int[] PlatinumDropRange = { 500, 2500 };
+        public static int[] UraniniteDropRange = { 500, 2500 };
 
         public static SpawnableArea[] ValidSpawnLocations =
         {
