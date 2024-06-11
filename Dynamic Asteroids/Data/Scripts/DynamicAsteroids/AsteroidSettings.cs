@@ -11,6 +11,7 @@ namespace DynamicAsteroids
         public static int AsteroidVelocityBase = 0;
         public static double VelocityVariability = 0;
         public static double AngularVelocityVariability = 0;
+        //TODO: DespawnRangeFromPlayer
 
         public static double IceWeight = 0.80;
         public static double StoneWeight = 0.11;
@@ -24,7 +25,7 @@ namespace DynamicAsteroids
         public static double PlatinumWeight = 0.01;
         public static double UraniniteWeight = 0.01;
 
-        public static float BaseIntegrity = 1000f;
+        public static float BaseIntegrity = 1f;
         public static float MinAsteroidSize = 50f;
         public static float MaxAsteroidSize = 250f;
         public static float MinSubChunkSize = 5f;

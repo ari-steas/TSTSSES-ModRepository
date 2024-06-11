@@ -207,11 +207,11 @@ namespace DynamicAsteroids.AsteroidEntities
             var explosionDamageType = MyStringHash.GetOrCompute("Explosion");
 
             // Check if the damage source is explosion
-            if (damageSource == explosionDamageType)
-            {
-                Log.Info($"Ignoring explosion damage for asteroid. Damage source: {damageSource.String}");
-                return false; // Ignore the damage
-            }
+           //if (damageSource == explosionDamageType)
+           //{
+           //    Log.Info($"Ignoring explosion damage for asteroid. Damage source: {damageSource.String}");
+           //    return false; // Ignore the damage
+           //}
 
             _integrity -= damage;
             Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
@@ -339,8 +339,7 @@ namespace DynamicAsteroids.AsteroidEntities
             Physics.Enabled = true;
             Physics.Activate();
         }
-
-
+        
         private Vector3D RandVector()
         {
             var theta = MainSession.I.Rand.NextDouble() * 2.0 * Math.PI;
