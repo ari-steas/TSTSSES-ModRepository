@@ -319,8 +319,8 @@ namespace DynamicAsteroids.AsteroidEntities
                 Vector3.Zero,
                 linearDamping: 0f, // Remove damping
                 angularDamping: 0f, // Remove damping
-                rigidBodyFlags: RigidBodyFlag.RBF_KINEMATIC,
-                collisionLayer: CollisionLayers.CharacterCollisionLayer,
+                rigidBodyFlags: RigidBodyFlag.RBF_DEFAULT,
+                collisionLayer: CollisionLayers.NoVoxelCollisionLayer,
                 isPhantom: false,
                 mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
             );
