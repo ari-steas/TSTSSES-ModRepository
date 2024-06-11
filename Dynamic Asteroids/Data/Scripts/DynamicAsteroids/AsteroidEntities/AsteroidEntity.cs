@@ -190,14 +190,33 @@ namespace DynamicAsteroids.AsteroidEntities
 
         public void OnDestroy()
         {
-            SplitAsteroid();
+            try
+            {
+                SplitAsteroid();
+            }
+            catch (Exception ex)
+            {
+                Log.Exception(ex, typeof(AsteroidEntity), "Exception in OnDestroy:");
+                throw; // Rethrow the exception for the debugger
+            }
         }
 
         public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
             _integrity -= damage;
+            Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
+
+            if (hitInfo.HasValue)
+            {
+                var hit = hitInfo.Value;
+                Log.Info($"HitInfo - Position: {hit.Position}, Normal: {hit.Normal}, Velocity: {hit.Velocity}");
+            }
+
             if (Integrity < 0)
+            {
+                Log.Info("Integrity below 0, calling OnDestroy");
                 OnDestroy();
+            }
             return true;
         }
 
