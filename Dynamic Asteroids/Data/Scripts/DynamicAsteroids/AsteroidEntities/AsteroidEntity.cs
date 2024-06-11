@@ -94,7 +94,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
             float newSize = Size / splits;
 
-            if (newSize <= AsteroidSettings.MinAsteroidSize)
+            if (newSize <= AsteroidSettings.MinSubChunkSize)
             {
                 MyPhysicalItemDefinition item = MyDefinitionManager.Static.GetPhysicalItemDefinition(new MyDefinitionId(typeof(MyObjectBuilder_Ore), Type.ToString()));
                 var newObject = MyObjectBuilderSerializer.CreateNewObject(item.Id.TypeId, item.Id.SubtypeId.ToString()) as MyObjectBuilder_PhysicalObject;

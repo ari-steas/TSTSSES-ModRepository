@@ -27,6 +27,7 @@ namespace DynamicAsteroids
         public static float BaseIntegrity = 1f;
         public static float MinAsteroidSize = 50f;
         public static float MaxAsteroidSize = 250f;
+        public static float MinSubChunkSize = 2f;
 
         public static double SubChunkVelocityMin = 1.0;
         public static double SubChunkVelocityMax = 5.0;
