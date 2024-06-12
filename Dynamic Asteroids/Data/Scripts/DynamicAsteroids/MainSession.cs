@@ -35,7 +35,10 @@ namespace DynamicAsteroids
                     AsteroidSettings.Seed = seed;
                     Rand = new Random(seed);
                     _spawner.Init(seed);
-                    _spawner.LoadAsteroidState(); // Load asteroid states
+                    if (AsteroidSettings.EnablePersistence) // Add this line
+                    {
+                        _spawner.LoadAsteroidState(); // Load asteroid states
+                    }
                 }
 
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(32000, OnMessageReceived);
@@ -53,7 +56,10 @@ namespace DynamicAsteroids
                 Log.Info("Unloading data in MainSession");
                 if (MyAPIGateway.Session.IsServer)
                 {
-                    _spawner.SaveAsteroidState(); // Save asteroid states
+                    if (AsteroidSettings.EnablePersistence) // Add this line
+                    {
+                        _spawner.SaveAsteroidState(); // Save asteroid states
+                    }
                     _spawner.Close();
                 }
 

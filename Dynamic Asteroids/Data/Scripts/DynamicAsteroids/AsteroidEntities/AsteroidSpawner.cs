@@ -32,7 +32,7 @@ public class AsteroidSpawner
 
     public void SaveAsteroidState()
     {
-        if (!MyAPIGateway.Session.IsServer)
+        if (!MyAPIGateway.Session.IsServer || !AsteroidSettings.EnablePersistence) // Add check for persistence
             return;
 
         var asteroidStates = _asteroids.Select(asteroid => new AsteroidState
@@ -53,7 +53,7 @@ public class AsteroidSpawner
 
     public void LoadAsteroidState()
     {
-        if (!MyAPIGateway.Session.IsServer)
+        if (!MyAPIGateway.Session.IsServer || !AsteroidSettings.EnablePersistence) // Add check for persistence
             return;
 
         _asteroids.Clear(); // Clear existing asteroids to avoid double loading
