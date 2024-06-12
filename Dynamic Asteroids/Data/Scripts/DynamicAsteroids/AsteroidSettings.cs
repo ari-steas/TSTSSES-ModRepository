@@ -6,10 +6,14 @@ namespace DynamicAsteroids
 {
     public static class AsteroidSettings
     {
-        public static bool EnableLogging = false;
+        public static bool EnableLogging = true;
         public static bool EnablePersistence = false; //barely works, don't touch this
         public static bool EnableMiddleMouseAsteroidSpawn = false;  //debug
 
+        public static int SaveStateInterval = 600; // Default: 600 ticks (10 seconds)
+        public static int NetworkMessageInterval = 120; // Default: 120 ticks (2 seconds)
+        public static int SpawnInterval = 1; // Default: 600 ticks (10 seconds)
+        public static int UpdateInterval = 120; // Default: 120 ticks (2 seconds)
 
         public static int MaxAsteroidCount = 1000;
         public static int AsteroidSpawnRadius = 10000;
@@ -59,15 +63,15 @@ namespace DynamicAsteroids
 
         public static SpawnableArea[] ValidSpawnLocations =
         {
-        new SpawnableArea
-        {
-            CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
-            Normal = new Vector3D(1, 10, 0.5).Normalized(),
-            Radius = 60268000 * 2.5,
-            InnerRadius = 60268000 * 1.2,
-            HeightFromCenter = 1000,
-        }
-    };
+    new SpawnableArea
+    {
+        CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
+        Normal = new Vector3D(1, 10, 0.5).Normalized(),
+        Radius = 60268000 * 2.5,
+        InnerRadius = 60268000 * 1.2,
+        HeightFromCenter = 1000,
+    }
+};
 
         public static bool CanSpawnAsteroidAtPoint(Vector3D point, out Vector3D velocity)
         {
