@@ -39,30 +39,30 @@ namespace DynamicAsteroids.AsteroidEntities
     public class AsteroidEntity : MyEntity, IMyDestroyableObject
     {
         private static readonly string[] IceAsteroidModels = {
-            @"Models\IceAsteroid_1.mwm",
-            @"Models\IceAsteroid_2.mwm",
-            @"Models\IceAsteroid_3.mwm",
-            @"Models\IceAsteroid_4.mwm"
-        };
+        @"Models\IceAsteroid_1.mwm",
+        @"Models\IceAsteroid_2.mwm",
+        @"Models\IceAsteroid_3.mwm",
+        @"Models\IceAsteroid_4.mwm"
+    };
 
         private static readonly string[] StoneAsteroidModels = {
-            @"Models\StoneAsteroid_1.mwm",
-            @"Models\StoneAsteroid_2.mwm",
-            @"Models\StoneAsteroid_3.mwm",
-            @"Models\StoneAsteroid_4.mwm",
-            @"Models\StoneAsteroid_5.mwm",
-            @"Models\StoneAsteroid_6.mwm",
-            @"Models\StoneAsteroid_7.mwm",
-            @"Models\StoneAsteroid_8.mwm",
-            @"Models\StoneAsteroid_9.mwm",
-            @"Models\StoneAsteroid_10.mwm",
-            @"Models\StoneAsteroid_11.mwm",
-            @"Models\StoneAsteroid_12.mwm",
-            @"Models\StoneAsteroid_13.mwm",
-            @"Models\StoneAsteroid_14.mwm",
-            @"Models\StoneAsteroid_15.mwm",
-            @"Models\StoneAsteroid_16.mwm"
-        };
+        @"Models\StoneAsteroid_1.mwm",
+        @"Models\StoneAsteroid_2.mwm",
+        @"Models\StoneAsteroid_3.mwm",
+        @"Models\StoneAsteroid_4.mwm",
+        @"Models\StoneAsteroid_5.mwm",
+        @"Models\StoneAsteroid_6.mwm",
+        @"Models\StoneAsteroid_7.mwm",
+        @"Models\StoneAsteroid_8.mwm",
+        @"Models\StoneAsteroid_9.mwm",
+        @"Models\StoneAsteroid_10.mwm",
+        @"Models\StoneAsteroid_11.mwm",
+        @"Models\StoneAsteroid_12.mwm",
+        @"Models\StoneAsteroid_13.mwm",
+        @"Models\StoneAsteroid_14.mwm",
+        @"Models\StoneAsteroid_15.mwm",
+        @"Models\StoneAsteroid_16.mwm"
+    };
 
         private static readonly string[] IronAsteroidModels = { @"Models\OreAsteroid_Iron.mwm" };
         private static readonly string[] NickelAsteroidModels = { @"Models\OreAsteroid_Nickel.mwm" };
@@ -74,13 +74,11 @@ namespace DynamicAsteroids.AsteroidEntities
         private static readonly string[] PlatinumAsteroidModels = { @"Models\OreAsteroid_Platinum.mwm" };
         private static readonly string[] UraniniteAsteroidModels = { @"Models\OreAsteroid_Uraninite.mwm" };
 
-
         private void CreateEffects(Vector3D position)
         {
             MyVisualScriptLogicProvider.CreateParticleEffectAtPosition("roidbreakparticle1", position);
             MyVisualScriptLogicProvider.PlaySingleSoundAtPosition("roidbreak", position);
         }
-
 
         public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity, AsteroidType type)
         {
@@ -211,16 +209,6 @@ namespace DynamicAsteroids.AsteroidEntities
 
         public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
-            // Define the explosion damage type
-            var explosionDamageType = MyStringHash.GetOrCompute("Explosion");
-
-            // Check if the damage source is explosion
-           //if (damageSource == explosionDamageType)
-           //{
-           //    Log.Info($"Ignoring explosion damage for asteroid. Damage source: {damageSource.String}");
-           //    return false; // Ignore the damage
-           //}
-
             _integrity -= damage;
             Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
 

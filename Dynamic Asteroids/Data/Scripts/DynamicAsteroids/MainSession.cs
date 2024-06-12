@@ -17,12 +17,10 @@ namespace DynamicAsteroids
     {
         public static MainSession I;
 
-        public Random Rand = new Random();
+        public Random Rand;
         private int seed;
 
         public AsteroidSpawner _spawner = new AsteroidSpawner();
-
-        #region Base Methods
 
         public override void LoadData()
         {
@@ -179,6 +177,5 @@ namespace DynamicAsteroids
             return (AsteroidType)randValue;
         }
 
-        #endregion
     }
 }

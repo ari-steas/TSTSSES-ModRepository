@@ -85,8 +85,10 @@ namespace DynamicAsteroids
             return false;
         }
 
-        public static AsteroidType GetRandomAsteroidType(Random rand)
+        public static AsteroidType GetAsteroidType(Vector3D position, Random rand)
         {
+            rand = new Random(Seed + position.GetHashCode());
+
             double totalWeight = IceWeight + StoneWeight + IronWeight + NickelWeight + CobaltWeight + MagnesiumWeight +
                                  SiliconWeight + SilverWeight + GoldWeight + PlatinumWeight + UraniniteWeight;
             double randomValue = rand.NextDouble() * totalWeight;
@@ -114,14 +116,15 @@ namespace DynamicAsteroids
             return AsteroidType.Uraninite;
         }
 
+        public static float GetAsteroidSize(Vector3D position, Random rand)
+        {
+            rand = new Random(Seed + position.GetHashCode());
+            return MinAsteroidSize + (float)rand.NextDouble() * (MaxAsteroidSize - MinAsteroidSize);
+        }
+
         public static double GetRandomAngularVelocity(Random rand)
         {
             return AngularVelocityVariability * rand.NextDouble();
-        }
-
-        public static float GetRandomAsteroidSize(Random rand)
-        {
-            return MinAsteroidSize + (float)rand.NextDouble() * (MaxAsteroidSize - MinAsteroidSize);
         }
 
         public static double GetRandomSubChunkVelocity(Random rand)
