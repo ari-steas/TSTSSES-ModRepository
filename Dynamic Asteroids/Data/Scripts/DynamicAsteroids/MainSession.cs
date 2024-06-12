@@ -16,12 +16,10 @@ namespace DynamicAsteroids
     public class MainSession : MySessionComponentBase
     {
         public static MainSession I;
-
-        public Random Rand = new Random();
-
+        public Random Rand;
+        private int seed;
         public AsteroidSpawner _spawner = new AsteroidSpawner();
-
-        #region Base Methods
+        private int _saveStateTimer;
 
         public override void LoadData()
         {
@@ -33,7 +31,11 @@ namespace DynamicAsteroids
                 Log.Info("Loading data in MainSession");
                 if (MyAPIGateway.Session.IsServer)
                 {
-                    _spawner.Init();
+                    seed = (int)DateTime.UtcNow.Ticks; // Example seed based on current time
+                    AsteroidSettings.Seed = seed;
+                    Rand = new Random(seed);
+                    _spawner.Init(seed);
+                    _spawner.LoadAsteroidState(); // Load asteroid states
                 }
 
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(32000, OnMessageReceived);
@@ -51,6 +53,7 @@ namespace DynamicAsteroids
                 Log.Info("Unloading data in MainSession");
                 if (MyAPIGateway.Session.IsServer)
                 {
+                    _spawner.SaveAsteroidState(); // Save asteroid states
                     _spawner.Close();
                 }
 
@@ -72,6 +75,17 @@ namespace DynamicAsteroids
                 if (MyAPIGateway.Session.IsServer)
                 {
                     _spawner.UpdateTick();
+
+                    // Save asteroid states periodically
+                    if (_saveStateTimer > 0)
+                    {
+                        _saveStateTimer--;
+                    }
+                    else
+                    {
+                        _spawner.SaveAsteroidState();
+                        _saveStateTimer = 600; // Set to save every 10 seconds (600 ticks)
+                    }
                 }
 
                 if (MyAPIGateway.Session?.Player?.Character != null && _spawner._asteroids != null)
@@ -103,6 +117,7 @@ namespace DynamicAsteroids
                 Log.Exception(ex, typeof(MainSession));
             }
         }
+
         private void OnMessageReceived(byte[] message)
         {
             try
@@ -175,6 +190,5 @@ namespace DynamicAsteroids
             return (AsteroidType)randValue;
         }
 
-        #endregion
     }
 }

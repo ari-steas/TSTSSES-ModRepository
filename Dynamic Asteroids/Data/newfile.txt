@@ -61,17 +61,21 @@ namespace DynamicAsteroids
         public static double VelocityVariability = 0;
         public static double AngularVelocityVariability = 0;
 
-        public static double IceWeight = 0.80;
-        public static double StoneWeight = 0.11;
-        public static double IronWeight = 0.01;
-        public static double NickelWeight = 0.01;
-        public static double CobaltWeight = 0.01;
-        public static double MagnesiumWeight = 0.01;
-        public static double SiliconWeight = 0.01;
-        public static double SilverWeight = 0.01;
-        public static double GoldWeight = 0.01;
-        public static double PlatinumWeight = 0.01;
-        public static double UraniniteWeight = 0.01;
+        public static double MinDistanceFromVanillaAsteroids = 1000; // 1 km
+        public static double MinDistanceFromPlayer = 1; // Minimum distance from the player to spawn new asteroids
+        public static int Seed = 69420; // Default seed, can be set dynamically
+
+        public static double IceWeight = 99;
+        public static double StoneWeight = 0.5;  // Represents silicate materials
+        public static double IronWeight = 0.25;
+        public static double NickelWeight = 0.05;
+        public static double CobaltWeight = 0.05;
+        public static double MagnesiumWeight = 0.05;
+        public static double SiliconWeight = 0.05;
+        public static double SilverWeight = 0.05;
+        public static double GoldWeight = 0.05;
+        public static double PlatinumWeight = 0.05;
+        public static double UraniniteWeight = 0.05;
 
         public static float BaseIntegrity = 1f;
         public static float MinAsteroidSize = 50f;
@@ -130,8 +134,10 @@ namespace DynamicAsteroids
             return false;
         }
 
-        public static AsteroidType GetRandomAsteroidType(Random rand)
+        public static AsteroidType GetAsteroidType(Vector3D position)
         {
+            Random rand = new Random(Seed + position.GetHashCode());
+
             double totalWeight = IceWeight + StoneWeight + IronWeight + NickelWeight + CobaltWeight + MagnesiumWeight +
                                  SiliconWeight + SilverWeight + GoldWeight + PlatinumWeight + UraniniteWeight;
             double randomValue = rand.NextDouble() * totalWeight;
@@ -155,18 +161,18 @@ namespace DynamicAsteroids
             if (randomValue < GoldWeight) return AsteroidType.Gold;
             randomValue -= GoldWeight;
             if (randomValue < PlatinumWeight) return AsteroidType.Platinum;
-            randomValue -= PlatinumWeight;
             return AsteroidType.Uraninite;
+        }
+
+        public static float GetAsteroidSize(Vector3D position)
+        {
+            Random rand = new Random(Seed + position.GetHashCode());
+            return MinAsteroidSize + (float)rand.NextDouble() * (MaxAsteroidSize - MinAsteroidSize);
         }
 
         public static double GetRandomAngularVelocity(Random rand)
         {
             return AngularVelocityVariability * rand.NextDouble();
-        }
-
-        public static float GetRandomAsteroidSize(Random rand)
-        {
-            return MinAsteroidSize + (float)rand.NextDouble() * (MaxAsteroidSize - MinAsteroidSize);
         }
 
         public static double GetRandomSubChunkVelocity(Random rand)
@@ -294,12 +300,10 @@ namespace DynamicAsteroids
     {
         public static MainSession I;
 
-        public Random Rand = new Random();
+        public Random Rand;
+        private int seed;
 
-        private AsteroidSpawner _spawner = new AsteroidSpawner();
-
-        #region Base Methods
-
+        public AsteroidSpawner _spawner = new AsteroidSpawner();
         public override void LoadData()
         {
             I = this;
@@ -310,7 +314,11 @@ namespace DynamicAsteroids
                 Log.Info("Loading data in MainSession");
                 if (MyAPIGateway.Session.IsServer)
                 {
-                    _spawner.Init();
+                    // Use a fixed seed for testing or a seed based on a consistent source
+                    seed = (int)DateTime.UtcNow.Ticks; // Example seed based on current time
+                    AsteroidSettings.Seed = seed;
+                    Rand = new Random(seed);
+                    _spawner.Init(seed);
                 }
 
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(32000, OnMessageReceived);
@@ -452,7 +460,6 @@ namespace DynamicAsteroids
             return (AsteroidType)randValue;
         }
 
-        #endregion
     }
 }
 ﻿using System;
@@ -496,30 +503,30 @@ namespace DynamicAsteroids.AsteroidEntities
     public class AsteroidEntity : MyEntity, IMyDestroyableObject
     {
         private static readonly string[] IceAsteroidModels = {
-            @"Models\IceAsteroid_1.mwm",
-            @"Models\IceAsteroid_2.mwm",
-            @"Models\IceAsteroid_3.mwm",
-            @"Models\IceAsteroid_4.mwm"
-        };
+        @"Models\IceAsteroid_1.mwm",
+        @"Models\IceAsteroid_2.mwm",
+        @"Models\IceAsteroid_3.mwm",
+        @"Models\IceAsteroid_4.mwm"
+    };
 
         private static readonly string[] StoneAsteroidModels = {
-            @"Models\StoneAsteroid_1.mwm",
-            @"Models\StoneAsteroid_2.mwm",
-            @"Models\StoneAsteroid_3.mwm",
-            @"Models\StoneAsteroid_4.mwm",
-            @"Models\StoneAsteroid_5.mwm",
-            @"Models\StoneAsteroid_6.mwm",
-            @"Models\StoneAsteroid_7.mwm",
-            @"Models\StoneAsteroid_8.mwm",
-            @"Models\StoneAsteroid_9.mwm",
-            @"Models\StoneAsteroid_10.mwm",
-            @"Models\StoneAsteroid_11.mwm",
-            @"Models\StoneAsteroid_12.mwm",
-            @"Models\StoneAsteroid_13.mwm",
-            @"Models\StoneAsteroid_14.mwm",
-            @"Models\StoneAsteroid_15.mwm",
-            @"Models\StoneAsteroid_16.mwm"
-        };
+        @"Models\StoneAsteroid_1.mwm",
+        @"Models\StoneAsteroid_2.mwm",
+        @"Models\StoneAsteroid_3.mwm",
+        @"Models\StoneAsteroid_4.mwm",
+        @"Models\StoneAsteroid_5.mwm",
+        @"Models\StoneAsteroid_6.mwm",
+        @"Models\StoneAsteroid_7.mwm",
+        @"Models\StoneAsteroid_8.mwm",
+        @"Models\StoneAsteroid_9.mwm",
+        @"Models\StoneAsteroid_10.mwm",
+        @"Models\StoneAsteroid_11.mwm",
+        @"Models\StoneAsteroid_12.mwm",
+        @"Models\StoneAsteroid_13.mwm",
+        @"Models\StoneAsteroid_14.mwm",
+        @"Models\StoneAsteroid_15.mwm",
+        @"Models\StoneAsteroid_16.mwm"
+    };
 
         private static readonly string[] IronAsteroidModels = { @"Models\OreAsteroid_Iron.mwm" };
         private static readonly string[] NickelAsteroidModels = { @"Models\OreAsteroid_Nickel.mwm" };
@@ -531,13 +538,11 @@ namespace DynamicAsteroids.AsteroidEntities
         private static readonly string[] PlatinumAsteroidModels = { @"Models\OreAsteroid_Platinum.mwm" };
         private static readonly string[] UraniniteAsteroidModels = { @"Models\OreAsteroid_Uraninite.mwm" };
 
-
         private void CreateEffects(Vector3D position)
         {
             MyVisualScriptLogicProvider.CreateParticleEffectAtPosition("roidbreakparticle1", position);
             MyVisualScriptLogicProvider.PlaySingleSoundAtPosition("roidbreak", position);
         }
-
 
         public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity, AsteroidType type)
         {
@@ -580,6 +585,9 @@ namespace DynamicAsteroids.AsteroidEntities
                     MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
                 }
 
+                // Remove from asteroid list
+                MainSession.I._spawner._asteroids.Remove(this);
+
                 Close();
                 return;
             }
@@ -592,6 +600,9 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 var subChunk = CreateAsteroid(newPos, newSize, newVelocity, Type);
                 subChunk.Physics.AngularVelocity = newAngularVelocity;
+
+                // Add sub-chunks to the asteroid list
+                MainSession.I._spawner._asteroids.Add(subChunk);
 
                 // Send a network message to clients
                 if (MyAPIGateway.Utilities.IsDedicated || !MyAPIGateway.Session.IsServer)
@@ -610,9 +621,11 @@ namespace DynamicAsteroids.AsteroidEntities
                 MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
             }
 
+            // Remove from asteroid list
+            MainSession.I._spawner._asteroids.Remove(this);
+
             Close();
         }
-
 
         private int GetRandomDropAmount(AsteroidType type)
         {
@@ -647,14 +660,33 @@ namespace DynamicAsteroids.AsteroidEntities
 
         public void OnDestroy()
         {
-            SplitAsteroid();
+            try
+            {
+                SplitAsteroid();
+            }
+            catch (Exception ex)
+            {
+                Log.Exception(ex, typeof(AsteroidEntity), "Exception in OnDestroy:");
+                throw; // Rethrow the exception for the debugger
+            }
         }
 
         public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
             _integrity -= damage;
+            Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
+
+            if (hitInfo.HasValue)
+            {
+                var hit = hitInfo.Value;
+                Log.Info($"HitInfo - Position: {hit.Position}, Normal: {hit.Normal}, Velocity: {hit.Velocity}");
+            }
+
             if (Integrity < 0)
+            {
+                Log.Info("Integrity below 0, calling OnDestroy");
                 OnDestroy();
+            }
             return true;
         }
 
@@ -707,7 +739,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 }
 
                 Size = size;
-                _integrity = AsteroidSettings.BaseIntegrity * Size;
+                _integrity = AsteroidSettings.BaseIntegrity + Size;
 
                 Log.Info($"Attempting to load model: {ModelString}");
 
@@ -749,18 +781,21 @@ namespace DynamicAsteroids.AsteroidEntities
         private void CreatePhysics()
         {
             float mass = 10000 * Size * Size * Size;
+            float radius = Size / 2; // Assuming Size represents the diameter
+
             PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
                 this,
                 WorldMatrix,
                 Vector3.Zero,
                 linearDamping: 0f, // Remove damping
                 angularDamping: 0f, // Remove damping
-                collisionLayer: CollisionLayers.DefaultCollisionLayer,
+                rigidBodyFlags: RigidBodyFlag.RBF_DEFAULT,
+                collisionLayer: CollisionLayers.NoVoxelCollisionLayer,
                 isPhantom: false,
                 mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
             );
 
-            MyAPIGateway.Physics.CreateBoxPhysics(settings, PositionComp.LocalAABB.HalfExtents, 0);
+            MyAPIGateway.Physics.CreateSpherePhysics(settings, radius);
             Physics.Enabled = true;
             Physics.Activate();
         }
@@ -774,155 +809,163 @@ namespace DynamicAsteroids.AsteroidEntities
         }
     }
 }
-﻿using System;
-using System.Collections.Generic;
+﻿using DynamicAsteroids.AsteroidEntities;
+using DynamicAsteroids;
 using Sandbox.ModAPI;
 using SC.SUGMA;
+using System.Collections.Generic;
+using System;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
 
-namespace DynamicAsteroids.AsteroidEntities
+public class AsteroidSpawner
 {
-    internal class AsteroidSpawner
+    public List<AsteroidEntity> _asteroids;
+    private bool _canSpawnAsteroids = false;
+    private DateTime _worldLoadTime;
+    private Random rand;
+
+    public void Init(int seed)
     {
-        public List<AsteroidEntity> _asteroids;
-        private const double MinDistanceFromVanillaAsteroids = 1000; // 1 km
-        private const double MinDistanceFromPlayer = 3000; // Minimum distance from the player to spawn new asteroids
-        private bool _canSpawnAsteroids = false;
-        private DateTime _worldLoadTime;
+        if (!MyAPIGateway.Session.IsServer)
+            return;
 
-        public void Init()
+        Log.Info("Initializing AsteroidSpawner");
+        _asteroids = new List<AsteroidEntity>(AsteroidSettings.MaxAsteroidCount);
+        _worldLoadTime = DateTime.UtcNow;
+        rand = new Random(seed);
+        AsteroidSettings.Seed = seed;
+    }
+
+    public void Close()
+    {
+        if (!MyAPIGateway.Session.IsServer)
+            return;
+
+        Log.Info("Closing AsteroidSpawner");
+        _asteroids?.Clear();
+    }
+
+    public void UpdateTick()
+    {
+        if (!MyAPIGateway.Session.IsServer)
+            return;
+
+        // Check if 10 seconds have passed since the world loaded
+        if (!_canSpawnAsteroids)
         {
-            if (!MyAPIGateway.Session.IsServer)
-                return;
-
-            Log.Info("Initializing AsteroidSpawner");
-            _asteroids = new List<AsteroidEntity>(AsteroidSettings.MaxAsteroidCount);
-            _worldLoadTime = DateTime.UtcNow;
-        }
-
-        public void Close()
-        {
-            if (!MyAPIGateway.Session.IsServer)
-                return;
-
-            Log.Info("Closing AsteroidSpawner");
-            _asteroids?.Clear();
-        }
-
-        public void UpdateTick()
-        {
-            if (!MyAPIGateway.Session.IsServer)
-                return;
-
-            // Check if 10 seconds have passed since the world loaded
-            if (!_canSpawnAsteroids)
+            if ((DateTime.UtcNow - _worldLoadTime).TotalSeconds < 10)
             {
-                if ((DateTime.UtcNow - _worldLoadTime).TotalSeconds < 10)
-                {
-                    return;
-                }
-                _canSpawnAsteroids = true;
+                return;
             }
+            _canSpawnAsteroids = true;
+        }
 
-            try
+        try
+        {
+            List<IMyPlayer> players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players);
+
+            foreach (var player in players)
             {
-                List<IMyPlayer> players = new List<IMyPlayer>();
-                MyAPIGateway.Players.GetPlayers(players);
+                Vector3D playerPosition = player.GetPosition();
 
-                foreach (var player in players)
+                foreach (var asteroid in _asteroids.ToArray())
                 {
-                    Vector3D playerPosition = player.GetPosition();
+                    double distanceSquared = Vector3D.DistanceSquared(asteroid.PositionComp.GetPosition(), playerPosition);
 
-                    if (!AsteroidSettings.PlayerCanSeeRings(playerPosition))
+                    // Remove asteroids that are outside the spherical spawn radius
+                    if (distanceSquared > AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius)
                     {
+                        Log.Info($"Removing asteroid at {asteroid.PositionComp.GetPosition()} due to distance from player");
+                        _asteroids.Remove(asteroid);
+
+                        var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true, false);
+                        var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
+                        MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
+
+                        asteroid.Close();
+                        continue;
+                    }
+                }
+
+                int asteroidsSpawned = 0;
+                int spawnAttempts = 0;
+                int maxAttempts = 50; // Limit the number of attempts to find valid positions
+
+                while (_asteroids.Count < AsteroidSettings.MaxAsteroidCount && asteroidsSpawned < 10)
+                {
+                    if (spawnAttempts >= maxAttempts)
+                    {
+                        Log.Info("Reached maximum spawn attempts, breaking out of loop to prevent freeze");
+                        break;
+                    }
+
+                    Vector3D newPosition;
+                    do
+                    {
+                        newPosition = playerPosition + RandVector() * AsteroidSettings.AsteroidSpawnRadius;
+                        spawnAttempts++;
+                    } while (Vector3D.DistanceSquared(newPosition, playerPosition) < AsteroidSettings.MinDistanceFromPlayer * AsteroidSettings.MinDistanceFromPlayer && spawnAttempts < maxAttempts);
+
+                    if (spawnAttempts >= maxAttempts)
+                        break;
+
+                    Vector3D newVelocity;
+                    if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity))
+                        continue;
+
+                    if (IsNearVanillaAsteroid(newPosition))
+                    {
+                        Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
                         continue;
                     }
 
-                    foreach (var asteroid in _asteroids.ToArray())
-                    {
-                        if (Vector3D.DistanceSquared(asteroid.PositionComp.GetPosition(), playerPosition) >
-                            AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius * 1.1)
-                        {
-                            Log.Info($"Removing asteroid at {asteroid.PositionComp.GetPosition()} due to distance from player");
-                            _asteroids.Remove(asteroid);
+                    AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition);
+                    float size = AsteroidSettings.GetAsteroidSize(newPosition);
 
-                            var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true, false);
-                            var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
-                            MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
+                    Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
+                    var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type);
+                    _asteroids.Add(asteroid);
 
-                            asteroid.Close();
-                            continue;
-                        }
-                    }
-
-                    int asteroidsSpawned = 0;
-                    while (_asteroids.Count < AsteroidSettings.MaxAsteroidCount && asteroidsSpawned < 10)
-                    {
-                        Vector3D newPosition;
-                        do
-                        {
-                            newPosition = playerPosition + RandVector() * AsteroidSettings.AsteroidSpawnRadius;
-                        } while (Vector3D.DistanceSquared(newPosition, playerPosition) < MinDistanceFromPlayer * MinDistanceFromPlayer);
-
-                        Vector3D newVelocity;
-                        if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity))
-                            continue;
-
-                        if (IsNearVanillaAsteroid(newPosition))
-                        {
-                            Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
-                            continue;
-                        }
-
-                        AsteroidType type = AsteroidSettings.GetRandomAsteroidType(MainSession.I.Rand);
-                        float size = AsteroidSettings.GetRandomAsteroidSize(MainSession.I.Rand);
-
-                        Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
-                        var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type);
-                        _asteroids.Add(asteroid);
-                        asteroidsSpawned++;
-
-                        var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true);
-                        var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
-                        MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
-                    }
-
-                    MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
+                    var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true);
+                    var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
+                    MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Exception(ex, typeof(AsteroidSpawner));
+
+                MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
             }
         }
-
-        private bool IsNearVanillaAsteroid(Vector3D position)
+        catch (Exception ex)
         {
-            List<IMyVoxelBase> voxelMaps = new List<IMyVoxelBase>();
-            MyAPIGateway.Session.VoxelMaps.GetInstances(voxelMaps, v => v is IMyVoxelMap && !v.StorageName.StartsWith("mod_"));
-
-            foreach (var voxelMap in voxelMaps)
-            {
-                if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < MinDistanceFromVanillaAsteroids * MinDistanceFromVanillaAsteroids)
-                {
-                    Log.Info($"Position {position} is near vanilla asteroid {voxelMap.StorageName}");
-                    return true;
-                }
-            }
-
-            return false;
+            Log.Exception(ex, typeof(AsteroidSpawner));
         }
+    }
 
-        private Vector3D RandVector()
+    private bool IsNearVanillaAsteroid(Vector3D position)
+    {
+        List<IMyVoxelBase> voxelMaps = new List<IMyVoxelBase>();
+        MyAPIGateway.Session.VoxelMaps.GetInstances(voxelMaps, v => v is IMyVoxelMap && !v.StorageName.StartsWith("mod_"));
+
+        foreach (var voxelMap in voxelMaps)
         {
-            var theta = MainSession.I.Rand.NextDouble() * 2.0 * Math.PI;
-            var phi = Math.Acos(2.0 * MainSession.I.Rand.NextDouble() - 1.0);
-            var sinPhi = Math.Sin(phi);
-            return Math.Pow(MainSession.I.Rand.NextDouble(), 1 / 3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
+            if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < AsteroidSettings.MinDistanceFromVanillaAsteroids * AsteroidSettings.MinDistanceFromVanillaAsteroids)
+            {
+                Log.Info($"Position {position} is near vanilla asteroid {voxelMap.StorageName}");
+                return true;
+            }
         }
 
-        private float RandAsteroidSize => (float)(MainSession.I.Rand.NextDouble() * MainSession.I.Rand.NextDouble() * MainSession.I.Rand.NextDouble() * (AsteroidSettings.MaxAsteroidSize - AsteroidSettings.MinAsteroidSize)) + AsteroidSettings.MinAsteroidSize;
+        return false;
+    }
+
+    private Vector3D RandVector()
+    {
+        var theta = rand.NextDouble() * 2.0 * Math.PI;
+        var phi = Math.Acos(2.0 * rand.NextDouble() - 1.0);
+        var sinPhi = Math.Sin(phi);
+        return Math.Pow(rand.NextDouble(), 1 / 3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
     }
 }
+
