@@ -59,6 +59,14 @@ public class AsteroidSpawner
 
         _asteroids.Clear();
 
+        // Clear existing untracked asteroids
+        var existingAsteroids = MyEntities.GetEntities().OfType<AsteroidEntity>().ToList();
+        foreach (var existingAsteroid in existingAsteroids)
+        {
+            existingAsteroid.Close();
+            MyEntities.Remove(existingAsteroid);
+        }
+
         if (MyAPIGateway.Utilities.FileExistsInLocalStorage("asteroid_states.dat", typeof(AsteroidSpawner)))
         {
             byte[] stateBytes;
@@ -113,6 +121,24 @@ public class AsteroidSpawner
 
                 _despawnedAsteroids.Remove(state);
             }
+        }
+    }
+
+    private void RemoveExcessAsteroids(Vector3D playerPosition)
+    {
+        if (_asteroids.Count <= AsteroidSettings.MaxAsteroidCount)
+            return;
+
+        // Sort asteroids by distance from the player
+        var sortedAsteroids = _asteroids.OrderByDescending(a => Vector3D.DistanceSquared(a.PositionComp.GetPosition(), playerPosition)).ToList();
+
+        // Remove the furthest asteroids until we are within the limit
+        while (_asteroids.Count > AsteroidSettings.MaxAsteroidCount)
+        {
+            var asteroid = sortedAsteroids.First();
+            Log.Info($"Removing excess asteroid at {asteroid.PositionComp.GetPosition()} to maintain the limit");
+            RemoveAsteroid(asteroid);
+            sortedAsteroids.RemoveAt(0);
         }
     }
 
@@ -209,6 +235,9 @@ public class AsteroidSpawner
                     MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
                 }
 
+                // Ensure the asteroid count does not exceed the maximum limit
+                RemoveExcessAsteroids(playerPosition);
+
                 MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
             }
         }
@@ -220,7 +249,7 @@ public class AsteroidSpawner
 
     private void RemoveAsteroid(AsteroidEntity asteroid)
     {
-        if (_asteroids.Any(a => a.EntityId == asteroid.EntityId))
+        if (_asteroids.Contains(asteroid))
         {
             _despawnedAsteroids.Add(new AsteroidState
             {
