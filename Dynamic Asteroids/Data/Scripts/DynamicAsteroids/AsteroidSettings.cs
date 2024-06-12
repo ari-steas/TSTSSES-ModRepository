@@ -96,14 +96,18 @@ namespace DynamicAsteroids
             return false;
         }
 
+        private static Random rand = new Random(Seed);
+
         public static AsteroidType GetAsteroidType(Vector3D position)
         {
-            Random rand = new Random(Seed + position.GetHashCode());
+            // Calculate the total weight
+            double totalWeight = IceWeight + StoneWeight + IronWeight + NickelWeight + CobaltWeight +
+                                 MagnesiumWeight + SiliconWeight + SilverWeight + GoldWeight + PlatinumWeight + UraniniteWeight;
 
-            double totalWeight = IceWeight + StoneWeight + IronWeight + NickelWeight + CobaltWeight + MagnesiumWeight +
-                                 SiliconWeight + SilverWeight + GoldWeight + PlatinumWeight + UraniniteWeight;
+            // Generate a random value between 0 and totalWeight
             double randomValue = rand.NextDouble() * totalWeight;
 
+            // Determine the asteroid type based on the random value and weights
             if (randomValue < IceWeight) return AsteroidType.Ice;
             randomValue -= IceWeight;
             if (randomValue < StoneWeight) return AsteroidType.Stone;
@@ -125,7 +129,6 @@ namespace DynamicAsteroids
             if (randomValue < PlatinumWeight) return AsteroidType.Platinum;
             return AsteroidType.Uraninite;
         }
-
         public static float GetAsteroidSize(Vector3D position)
         {
             Random rand = new Random(Seed + position.GetHashCode());
