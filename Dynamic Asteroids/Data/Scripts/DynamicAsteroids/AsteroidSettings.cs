@@ -6,7 +6,7 @@ namespace DynamicAsteroids
 {
     public static class AsteroidSettings
     {
-        public static bool EnablePersistence = true; // Add this line
+        public static bool EnablePersistence = false; //barely works, don't touch this
 
         public static int MaxAsteroidCount = 1000;
         public static int AsteroidSpawnRadius = 10000;
