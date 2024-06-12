@@ -12,7 +12,7 @@ namespace DynamicAsteroids
 
         public static int SaveStateInterval = 600; // Default: 600 ticks (10 seconds)
         public static int NetworkMessageInterval = 120; // Default: 120 ticks (2 seconds)
-        public static int SpawnInterval = 1; // Default: 600 ticks (10 seconds)
+        public static int SpawnInterval = 6; // Default: 600 ticks (10 seconds)
         public static int UpdateInterval = 120; // Default: 120 ticks (2 seconds)
 
         public static int MaxAsteroidCount = 1000;
