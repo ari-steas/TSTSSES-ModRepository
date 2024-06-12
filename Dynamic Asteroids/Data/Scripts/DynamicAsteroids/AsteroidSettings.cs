@@ -14,19 +14,19 @@ namespace DynamicAsteroids
 
         public static double MinDistanceFromVanillaAsteroids = 1000; // 1 km
         public static double MinDistanceFromPlayer = 1; // Minimum distance from the player to spawn new asteroids
-        public static int Seed = 12345; // Default seed, can be set dynamically
+        public static int Seed = 69420; // Default seed, can be set dynamically
 
-        public static double IceWeight = 0.80;
-        public static double StoneWeight = 0.11;
-        public static double IronWeight = 0.01;
-        public static double NickelWeight = 0.01;
-        public static double CobaltWeight = 0.01;
-        public static double MagnesiumWeight = 0.01;
-        public static double SiliconWeight = 0.01;
-        public static double SilverWeight = 0.01;
-        public static double GoldWeight = 0.01;
-        public static double PlatinumWeight = 0.01;
-        public static double UraniniteWeight = 0.01;
+        public static double IceWeight = 99;
+        public static double StoneWeight = 0.5;  // Represents silicate materials
+        public static double IronWeight = 0.25;
+        public static double NickelWeight = 0.05;
+        public static double CobaltWeight = 0.05;
+        public static double MagnesiumWeight = 0.05;
+        public static double SiliconWeight = 0.05;
+        public static double SilverWeight = 0.05;
+        public static double GoldWeight = 0.05;
+        public static double PlatinumWeight = 0.05;
+        public static double UraniniteWeight = 0.05;
 
         public static float BaseIntegrity = 1f;
         public static float MinAsteroidSize = 50f;
@@ -85,9 +85,9 @@ namespace DynamicAsteroids
             return false;
         }
 
-        public static AsteroidType GetAsteroidType(Vector3D position, Random rand)
+        public static AsteroidType GetAsteroidType(Vector3D position)
         {
-            rand = new Random(Seed + position.GetHashCode());
+            Random rand = new Random(Seed + position.GetHashCode());
 
             double totalWeight = IceWeight + StoneWeight + IronWeight + NickelWeight + CobaltWeight + MagnesiumWeight +
                                  SiliconWeight + SilverWeight + GoldWeight + PlatinumWeight + UraniniteWeight;
@@ -112,13 +112,12 @@ namespace DynamicAsteroids
             if (randomValue < GoldWeight) return AsteroidType.Gold;
             randomValue -= GoldWeight;
             if (randomValue < PlatinumWeight) return AsteroidType.Platinum;
-            randomValue -= PlatinumWeight;
             return AsteroidType.Uraninite;
         }
 
-        public static float GetAsteroidSize(Vector3D position, Random rand)
+        public static float GetAsteroidSize(Vector3D position)
         {
-            rand = new Random(Seed + position.GetHashCode());
+            Random rand = new Random(Seed + position.GetHashCode());
             return MinAsteroidSize + (float)rand.NextDouble() * (MaxAsteroidSize - MinAsteroidSize);
         }
 

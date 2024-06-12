@@ -16,10 +16,8 @@ namespace DynamicAsteroids
     public class MainSession : MySessionComponentBase
     {
         public static MainSession I;
-
         public Random Rand;
         private int seed;
-
         public AsteroidSpawner _spawner = new AsteroidSpawner();
 
         public override void LoadData()
@@ -36,6 +34,7 @@ namespace DynamicAsteroids
                     AsteroidSettings.Seed = seed;
                     Rand = new Random(seed);
                     _spawner.Init(seed);
+                    _spawner.LoadAsteroidState(); // Load asteroid states
                 }
 
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(32000, OnMessageReceived);
@@ -53,6 +52,7 @@ namespace DynamicAsteroids
                 Log.Info("Unloading data in MainSession");
                 if (MyAPIGateway.Session.IsServer)
                 {
+                    _spawner.SaveAsteroidState(); // Save asteroid states
                     _spawner.Close();
                 }
 

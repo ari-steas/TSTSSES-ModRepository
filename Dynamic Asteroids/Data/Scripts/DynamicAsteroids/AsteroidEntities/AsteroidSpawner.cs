@@ -7,6 +7,7 @@ using System;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
+using System.Linq;
 
 public class AsteroidSpawner
 {
@@ -14,7 +15,6 @@ public class AsteroidSpawner
     private bool _canSpawnAsteroids = false;
     private DateTime _worldLoadTime;
     private Random rand;
-
     public void Init(int seed)
     {
         if (!MyAPIGateway.Session.IsServer)
@@ -24,13 +24,56 @@ public class AsteroidSpawner
         _asteroids = new List<AsteroidEntity>(AsteroidSettings.MaxAsteroidCount);
         _worldLoadTime = DateTime.UtcNow;
         rand = new Random(seed);
+        AsteroidSettings.Seed = seed;
     }
 
+    public void SaveAsteroidState()
+    {
+        if (!MyAPIGateway.Session.IsServer)
+            return;
+
+        var asteroidStates = _asteroids.Select(asteroid => new AsteroidState
+        {
+            Position = asteroid.PositionComp.GetPosition(),
+            Size = asteroid.Size,
+            Type = asteroid.Type
+        }).ToList();
+
+        var stateBytes = MyAPIGateway.Utilities.SerializeToBinary(asteroidStates);
+        using (var writer = MyAPIGateway.Utilities.WriteBinaryFileInLocalStorage("asteroid_states.dat", typeof(AsteroidSpawner)))
+        {
+            writer.Write(stateBytes, 0, stateBytes.Length);
+        }
+    }
+
+    public void LoadAsteroidState()
+    {
+        if (!MyAPIGateway.Session.IsServer)
+            return;
+
+        if (MyAPIGateway.Utilities.FileExistsInLocalStorage("asteroid_states.dat", typeof(AsteroidSpawner)))
+        {
+            byte[] stateBytes;
+            using (var reader = MyAPIGateway.Utilities.ReadBinaryFileInLocalStorage("asteroid_states.dat", typeof(AsteroidSpawner)))
+            {
+                stateBytes = reader.ReadBytes((int)reader.BaseStream.Length);
+            }
+
+            var asteroidStates = MyAPIGateway.Utilities.SerializeFromBinary<List<AsteroidState>>(stateBytes);
+
+            foreach (var state in asteroidStates)
+            {
+                var asteroid = AsteroidEntity.CreateAsteroid(state.Position, state.Size, Vector3D.Zero, state.Type);
+                _asteroids.Add(asteroid);
+            }
+        }
+    }
     public void Close()
     {
         if (!MyAPIGateway.Session.IsServer)
             return;
 
+        SaveAsteroidState();
         Log.Info("Closing AsteroidSpawner");
         _asteroids?.Clear();
     }
@@ -110,13 +153,12 @@ public class AsteroidSpawner
                         continue;
                     }
 
-                    AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition, rand);
-                    float size = AsteroidSettings.GetAsteroidSize(newPosition, rand);
+                    AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition);
+                    float size = AsteroidSettings.GetAsteroidSize(newPosition);
 
                     Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
                     var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type);
                     _asteroids.Add(asteroid);
-                    asteroidsSpawned++;
 
                     var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true);
                     var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
@@ -156,5 +198,6 @@ public class AsteroidSpawner
         var sinPhi = Math.Sin(phi);
         return Math.Pow(rand.NextDouble(), 1 / 3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
     }
+
 }
 
