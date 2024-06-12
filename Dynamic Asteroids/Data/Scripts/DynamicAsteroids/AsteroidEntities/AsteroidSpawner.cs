@@ -209,7 +209,8 @@ public class AsteroidSpawner
                     MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
                 }
 
-                MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
+                if (AsteroidSettings.EnableLogging)
+                    MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
             }
         }
         catch (Exception ex)

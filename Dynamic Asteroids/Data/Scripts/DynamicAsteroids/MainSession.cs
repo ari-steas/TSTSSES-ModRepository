@@ -105,18 +105,22 @@ namespace DynamicAsteroids
                         string rotationString = $"({angularVelocity.X:F2}, {angularVelocity.Y:F2}, {angularVelocity.Z:F2})";
 
                         string message = $"Nearest Asteroid: {nearestAsteroid.EntityId} ({nearestAsteroid.Type})\nRotation: {rotationString}";
-                        MyAPIGateway.Utilities.ShowNotification(message, 1000 / 60);
+                        if (AsteroidSettings.EnableLogging)
+                            MyAPIGateway.Utilities.ShowNotification(message, 1000 / 60);
                     }
                 }
 
-               //if (MyAPIGateway.Input.IsNewKeyPressed(MyKeys.MiddleButton))
-               //{
-               //    var position = MyAPIGateway.Session.Player?.GetPosition() ?? Vector3D.Zero;
-               //    var velocity = MyAPIGateway.Session.Player?.Character?.Physics?.LinearVelocity ?? Vector3D.Zero;
-               //    AsteroidType type = DetermineAsteroidType(); // Determine the type of asteroid
-               //    AsteroidEntity.CreateAsteroid(position, Rand.Next(50), velocity, type);
-               //    Log.Info($"Asteroid created at {position} with velocity {velocity}");
-               //}
+                if (AsteroidSettings.EnableMiddleMouseAsteroidSpawn && MyAPIGateway.Input.IsNewKeyPressed(MyKeys.MiddleButton))
+                {
+                    if (MyAPIGateway.Session != null)
+                    {
+                        var position = MyAPIGateway.Session.Player?.GetPosition() ?? Vector3D.Zero;
+                        var velocity = MyAPIGateway.Session.Player?.Character?.Physics?.LinearVelocity ?? Vector3D.Zero;
+                        AsteroidType type = DetermineAsteroidType(); // Determine the type of asteroid
+                        AsteroidEntity.CreateAsteroid(position, Rand.Next(50), velocity, type);
+                        Log.Info($"Asteroid created at {position} with velocity {velocity}");
+                    }
+                }
             }
             catch (Exception ex)
             {
