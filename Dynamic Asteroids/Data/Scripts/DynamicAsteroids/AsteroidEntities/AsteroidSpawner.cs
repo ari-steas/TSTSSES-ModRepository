@@ -8,6 +8,7 @@ using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
 using System.Linq;
+using Sandbox.Game.Entities;
 
 public class AsteroidSpawner
 {
@@ -65,9 +66,11 @@ public class AsteroidSpawner
             {
                 var asteroid = AsteroidEntity.CreateAsteroid(state.Position, state.Size, Vector3D.Zero, state.Type);
                 _asteroids.Add(asteroid);
+                MyEntities.Add(asteroid); // Ensure the asteroid is added to the game world
             }
         }
     }
+
     public void Close()
     {
         if (!MyAPIGateway.Session.IsServer)
