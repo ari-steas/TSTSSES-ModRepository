@@ -56,6 +56,8 @@ public class AsteroidSpawner
         if (!MyAPIGateway.Session.IsServer)
             return;
 
+        _asteroids.Clear(); // Clear existing asteroids to avoid double loading
+
         if (MyAPIGateway.Utilities.FileExistsInLocalStorage("asteroid_states.dat", typeof(AsteroidSpawner)))
         {
             byte[] stateBytes;
@@ -80,8 +82,17 @@ public class AsteroidSpawner
         foreach (var state in _despawnedAsteroids.ToArray())
         {
             double distanceSquared = Vector3D.DistanceSquared(state.Position, playerPosition);
+
             if (distanceSquared < AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius)
             {
+                bool tooClose = _asteroids.Any(a => Vector3D.DistanceSquared(a.PositionComp.GetPosition(), state.Position) < AsteroidSettings.MinDistanceFromPlayer * AsteroidSettings.MinDistanceFromPlayer);
+
+                if (tooClose)
+                {
+                    Log.Info($"Skipping respawn of asteroid at {state.Position} due to proximity to other asteroids");
+                    continue;
+                }
+
                 Log.Info($"Respawning asteroid at {state.Position} due to player re-entering range");
                 var asteroid = AsteroidEntity.CreateAsteroid(state.Position, state.Size, Vector3D.Zero, state.Type);
                 _asteroids.Add(asteroid);
@@ -94,7 +105,6 @@ public class AsteroidSpawner
             }
         }
     }
-
 
     public void Close()
     {
@@ -237,4 +247,3 @@ public class AsteroidSpawner
     }
 
 }
-
