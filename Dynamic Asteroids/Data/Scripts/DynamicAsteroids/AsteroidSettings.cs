@@ -8,6 +8,8 @@ namespace DynamicAsteroids
     {
         public static int MaxAsteroidCount = 1000;
         public static int AsteroidSpawnRadius = 10000;
+        //TODO: make these velocities only affect a % of asteroids with an option
+        //note: these are absolutely awful for performance, thousands of moving entities etc.
         public static int AsteroidVelocityBase = 0;
         public static double VelocityVariability = 0;
         public static double AngularVelocityVariability = 0;
