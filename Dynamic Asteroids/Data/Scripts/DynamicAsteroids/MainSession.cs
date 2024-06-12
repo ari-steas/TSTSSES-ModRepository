@@ -18,6 +18,7 @@ namespace DynamicAsteroids
         public static MainSession I;
 
         public Random Rand = new Random();
+        private int seed;
 
         public AsteroidSpawner _spawner = new AsteroidSpawner();
 
@@ -33,7 +34,10 @@ namespace DynamicAsteroids
                 Log.Info("Loading data in MainSession");
                 if (MyAPIGateway.Session.IsServer)
                 {
-                    _spawner.Init();
+                    seed = (int)DateTime.UtcNow.Ticks; // Example seed based on current time
+                    AsteroidSettings.Seed = seed;
+                    Rand = new Random(seed);
+                    _spawner.Init(seed);
                 }
 
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(32000, OnMessageReceived);

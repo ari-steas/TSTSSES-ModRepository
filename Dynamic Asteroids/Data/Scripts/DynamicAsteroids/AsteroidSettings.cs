@@ -11,7 +11,10 @@ namespace DynamicAsteroids
         public static int AsteroidVelocityBase = 0;
         public static double VelocityVariability = 0;
         public static double AngularVelocityVariability = 0;
-        //TODO: DespawnRangeFromPlayer
+
+        public static double MinDistanceFromVanillaAsteroids = 1000; // 1 km
+        public static double MinDistanceFromPlayer = 1; // Minimum distance from the player to spawn new asteroids
+        public static int Seed = 12345; // Default seed, can be set dynamically
 
         public static double IceWeight = 0.80;
         public static double StoneWeight = 0.11;

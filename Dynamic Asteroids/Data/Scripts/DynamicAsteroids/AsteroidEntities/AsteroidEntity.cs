@@ -347,7 +347,7 @@ namespace DynamicAsteroids.AsteroidEntities
             Physics.Enabled = true;
             Physics.Activate();
         }
-        
+
         private Vector3D RandVector()
         {
             var theta = MainSession.I.Rand.NextDouble() * 2.0 * Math.PI;

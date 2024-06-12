@@ -11,12 +11,11 @@ namespace DynamicAsteroids.AsteroidEntities
     public class AsteroidSpawner
     {
         public List<AsteroidEntity> _asteroids;
-        private const double MinDistanceFromVanillaAsteroids = 1000; // 1 km
-        private const double MinDistanceFromPlayer = 3000; // Minimum distance from the player to spawn new asteroids
         private bool _canSpawnAsteroids = false;
         private DateTime _worldLoadTime;
+        private Random rand;
 
-        public void Init()
+        public void Init(int seed)
         {
             if (!MyAPIGateway.Session.IsServer)
                 return;
@@ -24,6 +23,7 @@ namespace DynamicAsteroids.AsteroidEntities
             Log.Info("Initializing AsteroidSpawner");
             _asteroids = new List<AsteroidEntity>(AsteroidSettings.MaxAsteroidCount);
             _worldLoadTime = DateTime.UtcNow;
+            rand = new Random(seed);
         }
 
         public void Close()
@@ -95,7 +95,7 @@ namespace DynamicAsteroids.AsteroidEntities
                         {
                             newPosition = playerPosition + RandVector() * AsteroidSettings.AsteroidSpawnRadius;
                             spawnAttempts++;
-                        } while (Vector3D.DistanceSquared(newPosition, playerPosition) < MinDistanceFromPlayer * MinDistanceFromPlayer && spawnAttempts < maxAttempts);
+                        } while (Vector3D.DistanceSquared(newPosition, playerPosition) < AsteroidSettings.MinDistanceFromPlayer * AsteroidSettings.MinDistanceFromPlayer && spawnAttempts < maxAttempts);
 
                         if (spawnAttempts >= maxAttempts)
                             break;
@@ -110,8 +110,8 @@ namespace DynamicAsteroids.AsteroidEntities
                             continue;
                         }
 
-                        AsteroidType type = AsteroidSettings.GetRandomAsteroidType(MainSession.I.Rand);
-                        float size = AsteroidSettings.GetRandomAsteroidSize(MainSession.I.Rand);
+                        AsteroidType type = AsteroidSettings.GetRandomAsteroidType(rand);
+                        float size = AsteroidSettings.GetRandomAsteroidSize(rand);
 
                         Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
                         var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type);
@@ -139,7 +139,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
             foreach (var voxelMap in voxelMaps)
             {
-                if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < MinDistanceFromVanillaAsteroids * MinDistanceFromVanillaAsteroids)
+                if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < AsteroidSettings.MinDistanceFromVanillaAsteroids * AsteroidSettings.MinDistanceFromVanillaAsteroids)
                 {
                     Log.Info($"Position {position} is near vanilla asteroid {voxelMap.StorageName}");
                     return true;
@@ -151,12 +151,11 @@ namespace DynamicAsteroids.AsteroidEntities
 
         private Vector3D RandVector()
         {
-            var theta = MainSession.I.Rand.NextDouble() * 2.0 * Math.PI;
-            var phi = Math.Acos(2.0 * MainSession.I.Rand.NextDouble() - 1.0);
+            var theta = rand.NextDouble() * 2.0 * Math.PI;
+            var phi = Math.Acos(2.0 * rand.NextDouble() - 1.0);
             var sinPhi = Math.Sin(phi);
-            return Math.Pow(MainSession.I.Rand.NextDouble(), 1 / 3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
+            return Math.Pow(rand.NextDouble(), 1 / 3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
         }
-
-        private float RandAsteroidSize => (float)(MainSession.I.Rand.NextDouble() * MainSession.I.Rand.NextDouble() * MainSession.I.Rand.NextDouble() * (AsteroidSettings.MaxAsteroidSize - AsteroidSettings.MinAsteroidSize)) + AsteroidSettings.MinAsteroidSize;
     }
+
 }
