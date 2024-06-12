@@ -19,6 +19,7 @@ namespace DynamicAsteroids
         public Random Rand;
         private int seed;
         public AsteroidSpawner _spawner = new AsteroidSpawner();
+        private int _saveStateTimer;
 
         public override void LoadData()
         {
@@ -74,6 +75,17 @@ namespace DynamicAsteroids
                 if (MyAPIGateway.Session.IsServer)
                 {
                     _spawner.UpdateTick();
+
+                    // Save asteroid states periodically
+                    if (_saveStateTimer > 0)
+                    {
+                        _saveStateTimer--;
+                    }
+                    else
+                    {
+                        _spawner.SaveAsteroidState();
+                        _saveStateTimer = 600; // Set to save every 10 seconds (600 ticks)
+                    }
                 }
 
                 if (MyAPIGateway.Session?.Player?.Character != null && _spawner._asteroids != null)
@@ -105,6 +117,7 @@ namespace DynamicAsteroids
                 Log.Exception(ex, typeof(MainSession));
             }
         }
+
         private void OnMessageReceived(byte[] message)
         {
             try

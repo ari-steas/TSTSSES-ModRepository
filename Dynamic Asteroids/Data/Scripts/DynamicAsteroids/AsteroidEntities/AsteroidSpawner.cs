@@ -16,6 +16,8 @@ public class AsteroidSpawner
     private bool _canSpawnAsteroids = false;
     private DateTime _worldLoadTime;
     private Random rand;
+    private List<AsteroidState> _despawnedAsteroids = new List<AsteroidState>();
+
     public void Init(int seed)
     {
         if (!MyAPIGateway.Session.IsServer)
@@ -39,6 +41,8 @@ public class AsteroidSpawner
             Size = asteroid.Size,
             Type = asteroid.Type
         }).ToList();
+
+        asteroidStates.AddRange(_despawnedAsteroids); // Include despawned asteroids
 
         var stateBytes = MyAPIGateway.Utilities.SerializeToBinary(asteroidStates);
         using (var writer = MyAPIGateway.Utilities.WriteBinaryFileInLocalStorage("asteroid_states.dat", typeof(AsteroidSpawner)))
@@ -70,6 +74,27 @@ public class AsteroidSpawner
             }
         }
     }
+
+    private void LoadAsteroidsInRange(Vector3D playerPosition)
+    {
+        foreach (var state in _despawnedAsteroids.ToArray())
+        {
+            double distanceSquared = Vector3D.DistanceSquared(state.Position, playerPosition);
+            if (distanceSquared < AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius)
+            {
+                Log.Info($"Respawning asteroid at {state.Position} due to player re-entering range");
+                var asteroid = AsteroidEntity.CreateAsteroid(state.Position, state.Size, Vector3D.Zero, state.Type);
+                _asteroids.Add(asteroid);
+
+                var message = new AsteroidNetworkMessage(state.Position, state.Size, Vector3D.Zero, Vector3D.Zero, state.Type, false, asteroid.EntityId, false, true);
+                var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
+                MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
+
+                _despawnedAsteroids.Remove(state);
+            }
+        }
+    }
+
 
     public void Close()
     {
@@ -105,6 +130,9 @@ public class AsteroidSpawner
             {
                 Vector3D playerPosition = player.GetPosition();
 
+                // Load asteroids in range
+                LoadAsteroidsInRange(playerPosition);
+
                 foreach (var asteroid in _asteroids.ToArray())
                 {
                     double distanceSquared = Vector3D.DistanceSquared(asteroid.PositionComp.GetPosition(), playerPosition);
@@ -113,6 +141,12 @@ public class AsteroidSpawner
                     if (distanceSquared > AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius)
                     {
                         Log.Info($"Removing asteroid at {asteroid.PositionComp.GetPosition()} due to distance from player");
+                        _despawnedAsteroids.Add(new AsteroidState
+                        {
+                            Position = asteroid.PositionComp.GetPosition(),
+                            Size = asteroid.Size,
+                            Type = asteroid.Type
+                        });
                         _asteroids.Remove(asteroid);
 
                         var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true, false);
