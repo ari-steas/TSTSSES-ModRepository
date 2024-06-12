@@ -151,20 +151,7 @@ public class AsteroidSpawner
                     if (distanceSquared > AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius)
                     {
                         Log.Info($"Removing asteroid at {asteroid.PositionComp.GetPosition()} due to distance from player");
-                        _despawnedAsteroids.Add(new AsteroidState
-                        {
-                            Position = asteroid.PositionComp.GetPosition(),
-                            Size = asteroid.Size,
-                            Type = asteroid.Type
-                        });
-                        _asteroids.Remove(asteroid);
-
-                        var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true, false);
-                        var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
-                        MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
-
-                        asteroid.Close();
-                        continue;
+                        RemoveAsteroid(asteroid);
                     }
                 }
 
@@ -221,6 +208,24 @@ public class AsteroidSpawner
         }
     }
 
+    private void RemoveAsteroid(AsteroidEntity asteroid)
+    {
+        _despawnedAsteroids.Add(new AsteroidState
+        {
+            Position = asteroid.PositionComp.GetPosition(),
+            Size = asteroid.Size,
+            Type = asteroid.Type
+        });
+
+        var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true, false);
+        var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
+        MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
+
+        _asteroids.Remove(asteroid);
+        asteroid.Close();
+        MyEntities.Remove(asteroid);
+    }
+
     private bool IsNearVanillaAsteroid(Vector3D position)
     {
         List<IMyVoxelBase> voxelMaps = new List<IMyVoxelBase>();
@@ -245,5 +250,4 @@ public class AsteroidSpawner
         var sinPhi = Math.Sin(phi);
         return Math.Pow(rand.NextDouble(), 1 / 3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
     }
-
 }

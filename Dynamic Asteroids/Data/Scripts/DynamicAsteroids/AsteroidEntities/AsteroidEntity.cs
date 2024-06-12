@@ -343,5 +343,6 @@ namespace DynamicAsteroids.AsteroidEntities
             var sinPhi = Math.Sin(phi);
             return Math.Pow(MainSession.I.Rand.NextDouble(), 1 / 3d) * new Vector3D(sinPhi * Math.Cos(theta), sinPhi * Math.Sin(theta), Math.Cos(phi));
         }
+
     }
 }
