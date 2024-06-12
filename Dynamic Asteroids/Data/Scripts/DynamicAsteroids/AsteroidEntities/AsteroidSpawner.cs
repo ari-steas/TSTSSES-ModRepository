@@ -32,17 +32,18 @@ public class AsteroidSpawner
 
     public void SaveAsteroidState()
     {
-        if (!MyAPIGateway.Session.IsServer || !AsteroidSettings.EnablePersistence) // Add check for persistence
+        if (!MyAPIGateway.Session.IsServer || !AsteroidSettings.EnablePersistence)
             return;
 
         var asteroidStates = _asteroids.Select(asteroid => new AsteroidState
         {
             Position = asteroid.PositionComp.GetPosition(),
             Size = asteroid.Size,
-            Type = asteroid.Type
+            Type = asteroid.Type,
+            EntityId = asteroid.EntityId // Save unique ID
         }).ToList();
 
-        asteroidStates.AddRange(_despawnedAsteroids); // Include despawned asteroids
+        asteroidStates.AddRange(_despawnedAsteroids);
 
         var stateBytes = MyAPIGateway.Utilities.SerializeToBinary(asteroidStates);
         using (var writer = MyAPIGateway.Utilities.WriteBinaryFileInLocalStorage("asteroid_states.dat", typeof(AsteroidSpawner)))
@@ -53,10 +54,10 @@ public class AsteroidSpawner
 
     public void LoadAsteroidState()
     {
-        if (!MyAPIGateway.Session.IsServer || !AsteroidSettings.EnablePersistence) // Add check for persistence
+        if (!MyAPIGateway.Session.IsServer || !AsteroidSettings.EnablePersistence)
             return;
 
-        _asteroids.Clear(); // Clear existing asteroids to avoid double loading
+        _asteroids.Clear();
 
         if (MyAPIGateway.Utilities.FileExistsInLocalStorage("asteroid_states.dat", typeof(AsteroidSpawner)))
         {
@@ -70,9 +71,16 @@ public class AsteroidSpawner
 
             foreach (var state in asteroidStates)
             {
+                if (_asteroids.Any(a => a.EntityId == state.EntityId))
+                {
+                    Log.Info($"Skipping duplicate asteroid with ID {state.EntityId}");
+                    continue; // Skip duplicates
+                }
+
                 var asteroid = AsteroidEntity.CreateAsteroid(state.Position, state.Size, Vector3D.Zero, state.Type);
+                asteroid.EntityId = state.EntityId; // Assign the saved ID
                 _asteroids.Add(asteroid);
-                MyEntities.Add(asteroid); // Ensure the asteroid is added to the game world
+                MyEntities.Add(asteroid);
             }
         }
     }
@@ -86,15 +94,17 @@ public class AsteroidSpawner
             if (distanceSquared < AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius)
             {
                 bool tooClose = _asteroids.Any(a => Vector3D.DistanceSquared(a.PositionComp.GetPosition(), state.Position) < AsteroidSettings.MinDistanceFromPlayer * AsteroidSettings.MinDistanceFromPlayer);
+                bool exists = _asteroids.Any(a => a.EntityId == state.EntityId); // Check for existing IDs
 
-                if (tooClose)
+                if (tooClose || exists)
                 {
-                    Log.Info($"Skipping respawn of asteroid at {state.Position} due to proximity to other asteroids");
+                    Log.Info($"Skipping respawn of asteroid at {state.Position} due to proximity to other asteroids or duplicate ID");
                     continue;
                 }
 
                 Log.Info($"Respawning asteroid at {state.Position} due to player re-entering range");
                 var asteroid = AsteroidEntity.CreateAsteroid(state.Position, state.Size, Vector3D.Zero, state.Type);
+                asteroid.EntityId = state.EntityId; // Assign the saved ID
                 _asteroids.Add(asteroid);
 
                 var message = new AsteroidNetworkMessage(state.Position, state.Size, Vector3D.Zero, Vector3D.Zero, state.Type, false, asteroid.EntityId, false, true);
@@ -210,20 +220,24 @@ public class AsteroidSpawner
 
     private void RemoveAsteroid(AsteroidEntity asteroid)
     {
-        _despawnedAsteroids.Add(new AsteroidState
+        if (_asteroids.Any(a => a.EntityId == asteroid.EntityId))
         {
-            Position = asteroid.PositionComp.GetPosition(),
-            Size = asteroid.Size,
-            Type = asteroid.Type
-        });
+            _despawnedAsteroids.Add(new AsteroidState
+            {
+                Position = asteroid.PositionComp.GetPosition(),
+                Size = asteroid.Size,
+                Type = asteroid.Type,
+                EntityId = asteroid.EntityId
+            });
 
-        var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true, false);
-        var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
-        MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
+            var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true, false);
+            var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
+            MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
 
-        _asteroids.Remove(asteroid);
-        asteroid.Close();
-        MyEntities.Remove(asteroid);
+            _asteroids.Remove(asteroid);
+            asteroid.Close();
+            MyEntities.Remove(asteroid);
+        }
     }
 
     private bool IsNearVanillaAsteroid(Vector3D position)

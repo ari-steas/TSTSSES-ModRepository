@@ -84,6 +84,7 @@ namespace DynamicAsteroids.AsteroidEntities
         {
             var ent = new AsteroidEntity();
             ent.Init(position, size, initialVelocity, type);
+            ent.EntityId = ent.EntityId; // EntityId is already assigned by the game
             return ent;
         }
 

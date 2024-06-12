@@ -109,14 +109,14 @@ namespace DynamicAsteroids
                     }
                 }
 
-                if (MyAPIGateway.Input.IsNewKeyPressed(MyKeys.MiddleButton))
-                {
-                    var position = MyAPIGateway.Session.Player?.GetPosition() ?? Vector3D.Zero;
-                    var velocity = MyAPIGateway.Session.Player?.Character?.Physics?.LinearVelocity ?? Vector3D.Zero;
-                    AsteroidType type = DetermineAsteroidType(); // Determine the type of asteroid
-                    AsteroidEntity.CreateAsteroid(position, Rand.Next(50), velocity, type);
-                    Log.Info($"Asteroid created at {position} with velocity {velocity}");
-                }
+               //if (MyAPIGateway.Input.IsNewKeyPressed(MyKeys.MiddleButton))
+               //{
+               //    var position = MyAPIGateway.Session.Player?.GetPosition() ?? Vector3D.Zero;
+               //    var velocity = MyAPIGateway.Session.Player?.Character?.Physics?.LinearVelocity ?? Vector3D.Zero;
+               //    AsteroidType type = DetermineAsteroidType(); // Determine the type of asteroid
+               //    AsteroidEntity.CreateAsteroid(position, Rand.Next(50), velocity, type);
+               //    Log.Info($"Asteroid created at {position} with velocity {velocity}");
+               //}
             }
             catch (Exception ex)
             {
