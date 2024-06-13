@@ -93,8 +93,21 @@ namespace DynamicAsteroids.AsteroidEntities
             try
             {
                 Log.Info("Initializing asteroid entity");
+                if (MainSession.I == null)
+                {
+                    Log.Exception(new Exception("MainSession.I is null"), typeof(AsteroidEntity), "Failed to initialize asteroid entity");
+                    return;
+                }
+
+                if (MainSession.I.ModContext == null)
+                {
+                    Log.Exception(new Exception("MainSession.I.ModContext is null"), typeof(AsteroidEntity), "Failed to initialize asteroid entity");
+                    return;
+                }
+
                 string modPath = Path.Combine(MainSession.I.ModContext.ModPath, "");
                 Type = type;
+                Log.Info($"Asteroid Type: {type}");
 
                 switch (type)
                 {
@@ -136,6 +149,8 @@ namespace DynamicAsteroids.AsteroidEntities
                         ModelString = "";
                         break;
                 }
+
+                Log.Info($"ModelString: {ModelString}");
 
                 if (string.IsNullOrEmpty(ModelString))
                 {
