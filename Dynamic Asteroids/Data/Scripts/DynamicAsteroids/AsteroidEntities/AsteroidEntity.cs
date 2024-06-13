@@ -95,6 +95,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 Log.Info("Initializing asteroid entity");
                 string modPath = Path.Combine(MainSession.I.ModContext.ModPath, "");
                 Type = type;
+
                 switch (type)
                 {
                     case AsteroidType.Ice:
@@ -130,6 +131,16 @@ namespace DynamicAsteroids.AsteroidEntities
                     case AsteroidType.Uraninite:
                         ModelString = Path.Combine(modPath, UraniniteAsteroidModels[MainSession.I.Rand.Next(UraniniteAsteroidModels.Length)]);
                         break;
+                    default:
+                        Log.Info("Invalid AsteroidType, setting ModelString to empty.");
+                        ModelString = "";
+                        break;
+                }
+
+                if (string.IsNullOrEmpty(ModelString))
+                {
+                    Log.Exception(new Exception("ModelString is null or empty"), typeof(AsteroidEntity), "Failed to initialize asteroid entity");
+                    return; // Early exit if ModelString is not set
                 }
 
                 Size = size;
@@ -139,25 +150,24 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 Init(null, ModelString, null, Size);
 
-                if (string.IsNullOrEmpty(ModelString))
-                    Flags &= ~EntityFlags.Visible;
-
                 Save = false;
                 NeedsWorldMatrix = true;
-
                 PositionComp.LocalAABB = new BoundingBox(-Vector3.Half * Size, Vector3.Half * Size);
 
-                // Apply random rotation
-                var randomRotation = MatrixD.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll((float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi, (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi, (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi));
+                var randomRotation = MatrixD.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll(
+                    (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi,
+                    (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi,
+                    (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi));
+
                 WorldMatrix = randomRotation * MatrixD.CreateWorld(position, Vector3D.Forward, Vector3D.Up);
-                WorldMatrix.Orthogonalize(); // Normalize the matrix to prevent rotation spazzing
+                WorldMatrix.Orthogonalize();
 
                 MyEntities.Add(this);
                 Log.Info($"{(MyAPIGateway.Session.IsServer ? "Server" : "Client")}: Added asteroid entity with ID {EntityId} to MyEntities");
 
                 CreatePhysics();
                 Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
-                Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand); // Set initial angular velocity
+                Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand);
 
                 Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
 
