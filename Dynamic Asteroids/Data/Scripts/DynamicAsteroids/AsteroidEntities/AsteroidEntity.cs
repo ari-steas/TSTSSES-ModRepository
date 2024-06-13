@@ -93,19 +93,29 @@ namespace DynamicAsteroids.AsteroidEntities
             try
             {
                 Log.Info("Initializing asteroid entity");
+
+                // Check if MainSession.I is null
                 if (MainSession.I == null)
                 {
-                    Log.Exception(new Exception("MainSession.I is null"), typeof(AsteroidEntity), "Failed to initialize asteroid entity");
+                    Log.Exception(new Exception("MainSession.I is null"), typeof(AsteroidEntity), "MainSession.I is not initialized.");
                     return;
                 }
 
+                // Check if ModContext is null
                 if (MainSession.I.ModContext == null)
                 {
-                    Log.Exception(new Exception("MainSession.I.ModContext is null"), typeof(AsteroidEntity), "Failed to initialize asteroid entity");
+                    Log.Exception(new Exception("MainSession.I.ModContext is null"), typeof(AsteroidEntity), "MainSession.I.ModContext is not initialized.");
                     return;
                 }
 
-                string modPath = Path.Combine(MainSession.I.ModContext.ModPath, "");
+                // Check if ModPath is null or empty
+                string modPath = MainSession.I.ModContext.ModPath;
+                if (string.IsNullOrEmpty(modPath))
+                {
+                    Log.Exception(new Exception("MainSession.I.ModContext.ModPath is null or empty"), typeof(AsteroidEntity), "MainSession.I.ModContext.ModPath is not initialized.");
+                    return;
+                }
+
                 Type = type;
                 Log.Info($"Asteroid Type: {type}");
 
@@ -162,6 +172,13 @@ namespace DynamicAsteroids.AsteroidEntities
                 _integrity = AsteroidSettings.BaseIntegrity + Size;
 
                 Log.Info($"Attempting to load model: {ModelString}");
+
+                // Check if Init method parameters are valid
+                if (string.IsNullOrEmpty(ModelString))
+                {
+                    Log.Exception(new Exception("ModelString is null or empty"), typeof(AsteroidEntity), "ModelString is not set.");
+                    return;
+                }
 
                 Init(null, ModelString, null, Size);
 
