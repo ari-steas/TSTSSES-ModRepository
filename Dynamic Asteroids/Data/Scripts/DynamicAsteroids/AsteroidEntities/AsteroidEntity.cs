@@ -90,16 +90,16 @@ namespace DynamicAsteroids.AsteroidEntities
 
         private void Init(Vector3D position, float size, Vector3D initialVelocity, AsteroidType type)
         {
+            Log.Info($"AsteroidEntity.Init called with position: {position}, size: {size}, initialVelocity: {initialVelocity}, type: {type}");
             try
             {
-                Log.Info("Initializing asteroid entity");
-
                 // Check if MainSession.I is null
                 if (MainSession.I == null)
                 {
                     Log.Exception(new Exception("MainSession.I is null"), typeof(AsteroidEntity), "MainSession.I is not initialized.");
                     return;
                 }
+                Log.Info("MainSession.I is initialized.");
 
                 // Check if ModContext is null
                 if (MainSession.I.ModContext == null)
@@ -107,6 +107,7 @@ namespace DynamicAsteroids.AsteroidEntities
                     Log.Exception(new Exception("MainSession.I.ModContext is null"), typeof(AsteroidEntity), "MainSession.I.ModContext is not initialized.");
                     return;
                 }
+                Log.Info("MainSession.I.ModContext is initialized.");
 
                 // Check if ModPath is null or empty
                 string modPath = MainSession.I.ModContext.ModPath;
@@ -115,6 +116,7 @@ namespace DynamicAsteroids.AsteroidEntities
                     Log.Exception(new Exception("MainSession.I.ModContext.ModPath is null or empty"), typeof(AsteroidEntity), "MainSession.I.ModContext.ModPath is not initialized.");
                     return;
                 }
+                Log.Info($"ModPath: {modPath}");
 
                 Type = type;
                 Log.Info($"Asteroid Type: {type}");
@@ -186,6 +188,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 NeedsWorldMatrix = true;
                 PositionComp.LocalAABB = new BoundingBox(-Vector3.Half * Size, Vector3.Half * Size);
 
+                Log.Info("Setting WorldMatrix");
                 var randomRotation = MatrixD.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll(
                     (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi,
                     (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi,
@@ -194,9 +197,11 @@ namespace DynamicAsteroids.AsteroidEntities
                 WorldMatrix = randomRotation * MatrixD.CreateWorld(position, Vector3D.Forward, Vector3D.Up);
                 WorldMatrix.Orthogonalize();
 
+                Log.Info("Adding entity to MyEntities");
                 MyEntities.Add(this);
                 Log.Info($"{(MyAPIGateway.Session.IsServer ? "Server" : "Client")}: Added asteroid entity with ID {EntityId} to MyEntities");
 
+                Log.Info("Creating physics");
                 CreatePhysics();
                 Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
                 Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand);
@@ -210,6 +215,15 @@ namespace DynamicAsteroids.AsteroidEntities
             }
             catch (Exception ex)
             {
+                Log.Info($"Exception Type: {ex.GetType()}");
+                Log.Info($"Exception Message: {ex.Message}");
+                Log.Info($"Exception Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Log.Info($"Inner Exception Type: {ex.InnerException.GetType()}");
+                    Log.Info($"Inner Exception Message: {ex.InnerException.Message}");
+                    Log.Info($"Inner Exception Stack Trace: {ex.InnerException.StackTrace}");
+                }
                 Log.Exception(ex, typeof(AsteroidEntity), $"Failed to load model: {ModelString}");
                 Flags &= ~EntityFlags.Visible;
             }
