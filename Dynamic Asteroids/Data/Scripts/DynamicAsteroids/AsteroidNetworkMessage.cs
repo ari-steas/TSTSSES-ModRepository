@@ -5,6 +5,21 @@ using ProtoBuf;
 namespace DynamicAsteroids
 {
     [ProtoContract]
+    public class AsteroidNetworkMessageContainer
+    {
+        [ProtoMember(1)]
+        public AsteroidNetworkMessage[] Messages { get; set; }
+
+        public AsteroidNetworkMessageContainer() { }
+
+        public AsteroidNetworkMessageContainer(AsteroidNetworkMessage[] messages)
+        {
+            Messages = messages;
+        }
+    }
+
+
+    [ProtoContract]
     public struct AsteroidNetworkMessage
     {
         [ProtoMember(1)]

@@ -50,7 +50,6 @@ namespace DynamicAsteroids
             }
         }
 
-
         protected override void UnloadData()
         {
             try
@@ -147,8 +146,9 @@ namespace DynamicAsteroids
             try
             {
                 Log.Info($"Client: Received message of {message.Length} bytes");
-                var asteroidMessages = MyAPIGateway.Utilities.SerializeFromBinary<List<AsteroidNetworkMessage>>(message);
-                Log.Info($"Client: Deserialized {asteroidMessages.Count} asteroid messages");
+                var container = MyAPIGateway.Utilities.SerializeFromBinary<AsteroidNetworkMessageContainer>(message);
+                var asteroidMessages = container.Messages;
+                Log.Info($"Client: Deserialized {asteroidMessages.Length} asteroid messages");
 
                 foreach (var asteroidMessage in asteroidMessages)
                 {

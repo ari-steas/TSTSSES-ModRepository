@@ -1,13 +1,13 @@
 ﻿using DynamicAsteroids.AsteroidEntities;
-using DynamicAsteroids;
 using Sandbox.ModAPI;
 using SC.SUGMA;
 using System.Collections.Generic;
-using System;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
 using System.Linq;
+using System;
+using DynamicAsteroids;
 using Sandbox.Game.Entities;
 
 public class AsteroidSpawner
@@ -18,7 +18,6 @@ public class AsteroidSpawner
     private Random rand;
     private List<AsteroidState> _despawnedAsteroids = new List<AsteroidState>();
     private List<AsteroidNetworkMessage> _networkMessages = new List<AsteroidNetworkMessage>();
-
 
     public void Init(int seed)
     {
@@ -260,7 +259,8 @@ public class AsteroidSpawner
         try
         {
             Log.Info($"Server: Preparing to send {_networkMessages.Count} network messages");
-            var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(_networkMessages);
+            var container = new AsteroidNetworkMessageContainer(_networkMessages.ToArray());
+            var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(container);
             Log.Info($"Server: Serialized message size: {messageBytes.Length} bytes");
             MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
             Log.Info($"Server: Sent {_networkMessages.Count} network messages");
@@ -271,7 +271,6 @@ public class AsteroidSpawner
             Log.Exception(ex, typeof(AsteroidSpawner), "Failed to send network messages");
         }
     }
-
 
     private void RemoveAsteroid(AsteroidEntity asteroid)
     {
