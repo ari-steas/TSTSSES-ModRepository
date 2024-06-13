@@ -1,6 +1,7 @@
 ﻿using DynamicAsteroids.AsteroidEntities;
 using VRageMath;
 using ProtoBuf;
+using System.Collections.Generic;
 
 namespace DynamicAsteroids
 {
@@ -45,6 +46,13 @@ namespace DynamicAsteroids
             EntityId = entityId;
             IsRemoval = isRemoval;
             IsInitialCreation = isInitialCreation;
+        }
+
+        [ProtoContract]
+        public class AsteroidNetworkMessageWrapper
+        {
+            [ProtoMember(1)]
+            public List<AsteroidNetworkMessage> Messages { get; set; }
         }
     }
 }

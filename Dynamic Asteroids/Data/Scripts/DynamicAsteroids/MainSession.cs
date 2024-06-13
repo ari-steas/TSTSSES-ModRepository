@@ -102,8 +102,9 @@ namespace DynamicAsteroids
                     }
                     else
                     {
+                        Log.Info($"Server: Sending network messages, asteroid count: {_spawner._asteroids.Count}");
                         _spawner.SendNetworkMessages();
-                        _networkMessageTimer = AsteroidSettings.NetworkMessageInterval; // Use setting
+                        _networkMessageTimer = AsteroidSettings.NetworkMessageInterval;
                     }
                 }
 
@@ -145,9 +146,9 @@ namespace DynamicAsteroids
         {
             try
             {
+                Log.Info($"Client: Received message of {message.Length} bytes");
                 var asteroidMessages = MyAPIGateway.Utilities.SerializeFromBinary<List<AsteroidNetworkMessage>>(message);
-
-                foreach (var asteroidMessage in asteroidMessages)
+                Log.Info($"Client: Deserialized {asteroidMessages.Count} asteroid messages"); foreach (var asteroidMessage in asteroidMessages)
                 {
                     Log.Info($"Client: Received message to create/remove asteroid at {asteroidMessage.Position} with velocity {asteroidMessage.InitialVelocity} of type {asteroidMessage.Type}");
 
@@ -158,6 +159,7 @@ namespace DynamicAsteroids
                         if (asteroid != null)
                         {
                             asteroid.Close();
+                            Log.Info($"Client: Removed asteroid with ID {asteroidMessage.EntityId}");
                         }
                     }
                     else if (asteroidMessage.IsInitialCreation)
@@ -165,6 +167,7 @@ namespace DynamicAsteroids
                         var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
                         asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
                         MyEntities.Add(asteroid);
+                        Log.Info($"Client: Created initial asteroid with ID {asteroid.EntityId}");
                     }
                     else
                     {
@@ -173,6 +176,7 @@ namespace DynamicAsteroids
                             // Create the sub-chunk asteroid on the client
                             var subChunk = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
                             subChunk.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
+                            Log.Info($"Client: Created sub-chunk asteroid with ID {subChunk.EntityId}");
                         }
                         else
                         {
@@ -180,6 +184,7 @@ namespace DynamicAsteroids
                             var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
                             asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
                             MyEntities.Add(asteroid);
+                            Log.Info($"Client: Created asteroid with ID {asteroid.EntityId}");
                         }
                     }
                 }

@@ -153,6 +153,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 WorldMatrix.Orthogonalize(); // Normalize the matrix to prevent rotation spazzing
 
                 MyEntities.Add(this);
+                Log.Info($"{(MyAPIGateway.Session.IsServer ? "Server" : "Client")}: Added asteroid entity with ID {EntityId} to MyEntities");
 
                 CreatePhysics();
                 Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
