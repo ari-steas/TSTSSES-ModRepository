@@ -84,6 +84,7 @@ namespace DynamicAsteroids.AsteroidEntities
         {
             var ent = new AsteroidEntity();
             ent.Init(position, size, initialVelocity, type);
+            ent.EntityId = ent.EntityId; // EntityId is already assigned by the game
             return ent;
         }
 
@@ -92,8 +93,32 @@ namespace DynamicAsteroids.AsteroidEntities
             try
             {
                 Log.Info("Initializing asteroid entity");
-                string modPath = Path.Combine(MainSession.I.ModContext.ModPath, "");
+
+                // Check if MainSession.I is null
+                if (MainSession.I == null)
+                {
+                    Log.Exception(new Exception("MainSession.I is null"), typeof(AsteroidEntity), "MainSession.I is not initialized.");
+                    return;
+                }
+
+                // Check if ModContext is null
+                if (MainSession.I.ModContext == null)
+                {
+                    Log.Exception(new Exception("MainSession.I.ModContext is null"), typeof(AsteroidEntity), "MainSession.I.ModContext is not initialized.");
+                    return;
+                }
+
+                // Check if ModPath is null or empty
+                string modPath = MainSession.I.ModContext.ModPath;
+                if (string.IsNullOrEmpty(modPath))
+                {
+                    Log.Exception(new Exception("MainSession.I.ModContext.ModPath is null or empty"), typeof(AsteroidEntity), "MainSession.I.ModContext.ModPath is not initialized.");
+                    return;
+                }
+
                 Type = type;
+                Log.Info($"Asteroid Type: {type}");
+
                 switch (type)
                 {
                     case AsteroidType.Ice:
@@ -129,6 +154,18 @@ namespace DynamicAsteroids.AsteroidEntities
                     case AsteroidType.Uraninite:
                         ModelString = Path.Combine(modPath, UraniniteAsteroidModels[MainSession.I.Rand.Next(UraniniteAsteroidModels.Length)]);
                         break;
+                    default:
+                        Log.Info("Invalid AsteroidType, setting ModelString to empty.");
+                        ModelString = "";
+                        break;
+                }
+
+                Log.Info($"ModelString: {ModelString}");
+
+                if (string.IsNullOrEmpty(ModelString))
+                {
+                    Log.Exception(new Exception("ModelString is null or empty"), typeof(AsteroidEntity), "Failed to initialize asteroid entity");
+                    return; // Early exit if ModelString is not set
                 }
 
                 Size = size;
@@ -136,26 +173,33 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 Log.Info($"Attempting to load model: {ModelString}");
 
-                Init(null, ModelString, null, Size);
-
+                // Check if Init method parameters are valid
                 if (string.IsNullOrEmpty(ModelString))
-                    Flags &= ~EntityFlags.Visible;
+                {
+                    Log.Exception(new Exception("ModelString is null or empty"), typeof(AsteroidEntity), "ModelString is not set.");
+                    return;
+                }
+
+                Init(null, ModelString, null, Size);
 
                 Save = false;
                 NeedsWorldMatrix = true;
-
                 PositionComp.LocalAABB = new BoundingBox(-Vector3.Half * Size, Vector3.Half * Size);
 
-                // Apply random rotation
-                var randomRotation = MatrixD.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll((float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi, (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi, (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi));
+                var randomRotation = MatrixD.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll(
+                    (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi,
+                    (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi,
+                    (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi));
+
                 WorldMatrix = randomRotation * MatrixD.CreateWorld(position, Vector3D.Forward, Vector3D.Up);
-                WorldMatrix.Orthogonalize(); // Normalize the matrix to prevent rotation spazzing
+                WorldMatrix.Orthogonalize();
 
                 MyEntities.Add(this);
+                Log.Info($"{(MyAPIGateway.Session.IsServer ? "Server" : "Client")}: Added asteroid entity with ID {EntityId} to MyEntities");
 
                 CreatePhysics();
                 Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
-                Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand); // Set initial angular velocity
+                Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand);
 
                 Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
 
@@ -293,6 +337,16 @@ namespace DynamicAsteroids.AsteroidEntities
 
         public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
+            //Disabling explosion damage is an awful way to fix this weird rocket bug, but it's okay we'll be using weaponcore :)
+            var explosionDamageType = MyStringHash.GetOrCompute("Explosion");
+
+            // Check if the damage source is explosion
+            if (damageSource == explosionDamageType)
+            {
+                Log.Info($"Ignoring explosion damage for asteroid. Damage source: {damageSource.String}");
+                return false; // Ignore the damage
+            }
+
             _integrity -= damage;
             Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
 

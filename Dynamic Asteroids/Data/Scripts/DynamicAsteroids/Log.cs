@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using DynamicAsteroids;
 using Sandbox.ModAPI;
 
 namespace SC.SUGMA
@@ -22,12 +23,14 @@ namespace SC.SUGMA
 
         public static void Info(string message)
         {
-            I._Log(message);
+            if (AsteroidSettings.EnableLogging)
+                I._Log(message);
         }
 
         public static void Exception(Exception ex, Type callingType, string prefix = "")
         {
-            I._LogException(ex, callingType, prefix);
+            if (AsteroidSettings.EnableLogging)
+                I._LogException(ex, callingType, prefix);
         }
 
         public static void Init()

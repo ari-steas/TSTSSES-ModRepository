@@ -6,8 +6,19 @@ namespace DynamicAsteroids
 {
     public static class AsteroidSettings
     {
+        public static bool EnableLogging = true;
+        public static bool EnablePersistence = false; //barely works, don't touch this
+        public static bool EnableMiddleMouseAsteroidSpawn = true;  //debug
+
+        public static int SaveStateInterval = 600; // Default: 600 ticks (10 seconds)
+        public static int NetworkMessageInterval = 120; // Default: 120 ticks (2 seconds)
+        public static int SpawnInterval = 6; // Default: 600 ticks (10 seconds)
+        public static int UpdateInterval = 120; // Default: 120 ticks (2 seconds)
+
         public static int MaxAsteroidCount = 1000;
         public static int AsteroidSpawnRadius = 10000;
+        //TODO: make these velocities only affect a % of asteroids with an option
+        //note: these are absolutely awful for performance, thousands of moving entities etc.
         public static int AsteroidVelocityBase = 0;
         public static double VelocityVariability = 0;
         public static double AngularVelocityVariability = 0;
@@ -52,15 +63,15 @@ namespace DynamicAsteroids
 
         public static SpawnableArea[] ValidSpawnLocations =
         {
-        new SpawnableArea
-        {
-            CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
-            Normal = new Vector3D(1, 10, 0.5).Normalized(),
-            Radius = 60268000 * 2.5,
-            InnerRadius = 60268000 * 1.2,
-            HeightFromCenter = 1000,
-        }
-    };
+    new SpawnableArea
+    {
+        CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
+        Normal = new Vector3D(1, 10, 0.5).Normalized(),
+        Radius = 60268000 * 2.5,
+        InnerRadius = 60268000 * 1.2,
+        HeightFromCenter = 1000,
+    }
+};
 
         public static bool CanSpawnAsteroidAtPoint(Vector3D point, out Vector3D velocity)
         {
@@ -85,14 +96,18 @@ namespace DynamicAsteroids
             return false;
         }
 
+        private static Random rand = new Random(Seed);
+
         public static AsteroidType GetAsteroidType(Vector3D position)
         {
-            Random rand = new Random(Seed + position.GetHashCode());
+            // Calculate the total weight
+            double totalWeight = IceWeight + StoneWeight + IronWeight + NickelWeight + CobaltWeight +
+                                 MagnesiumWeight + SiliconWeight + SilverWeight + GoldWeight + PlatinumWeight + UraniniteWeight;
 
-            double totalWeight = IceWeight + StoneWeight + IronWeight + NickelWeight + CobaltWeight + MagnesiumWeight +
-                                 SiliconWeight + SilverWeight + GoldWeight + PlatinumWeight + UraniniteWeight;
+            // Generate a random value between 0 and totalWeight
             double randomValue = rand.NextDouble() * totalWeight;
 
+            // Determine the asteroid type based on the random value and weights
             if (randomValue < IceWeight) return AsteroidType.Ice;
             randomValue -= IceWeight;
             if (randomValue < StoneWeight) return AsteroidType.Stone;
@@ -114,7 +129,6 @@ namespace DynamicAsteroids
             if (randomValue < PlatinumWeight) return AsteroidType.Platinum;
             return AsteroidType.Uraninite;
         }
-
         public static float GetAsteroidSize(Vector3D position)
         {
             Random rand = new Random(Seed + position.GetHashCode());
