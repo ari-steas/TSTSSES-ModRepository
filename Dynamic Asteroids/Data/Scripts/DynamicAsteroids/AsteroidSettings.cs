@@ -8,7 +8,7 @@ namespace DynamicAsteroids
     {
         public static bool EnableLogging = true;
         public static bool EnablePersistence = false; //barely works, don't touch this
-        public static bool EnableMiddleMouseAsteroidSpawn = false;  //debug
+        public static bool EnableMiddleMouseAsteroidSpawn = true;  //debug
 
         public static int SaveStateInterval = 600; // Default: 600 ticks (10 seconds)
         public static int NetworkMessageInterval = 120; // Default: 120 ticks (2 seconds)
