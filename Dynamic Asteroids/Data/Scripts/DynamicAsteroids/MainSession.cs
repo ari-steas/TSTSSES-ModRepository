@@ -167,12 +167,18 @@ namespace DynamicAsteroids
                     var asteroid = MyEntities.GetEntityById(asteroidMessage.EntityId) as AsteroidEntity;
                     if (asteroid != null)
                     {
+                        Log.Info($"Client: Removing asteroid with ID {asteroidMessage.EntityId}");
                         asteroid.Close();
+                        MyEntities.Remove(asteroid);  // Ensure the entity is removed from MyEntities
                         Log.Info($"Client: Removed asteroid with ID {asteroidMessage.EntityId}");
                     }
                     else
                     {
                         Log.Info($"Client: Failed to find asteroid with ID {asteroidMessage.EntityId} for removal");
+                        foreach (var entity in MyEntities.GetEntities())
+                        {
+                            Log.Info($"Client: Existing Entity ID: {entity.EntityId}");
+                        }
                     }
                 }
                 else if (asteroidMessage.IsInitialCreation)
@@ -183,7 +189,8 @@ namespace DynamicAsteroids
                         asteroidMessage.Size,
                         asteroidMessage.GetVelocity(),
                         asteroidMessage.GetType(),
-                        asteroidMessage.GetRotation());
+                        asteroidMessage.GetRotation(),
+                        asteroidMessage.EntityId);
                     asteroid.Physics.AngularVelocity = asteroidMessage.GetAngularVelocity();
                     MyEntities.Add(asteroid);
                     Log.Info($"Client: Created initial asteroid with ID {asteroid.EntityId}");
@@ -196,7 +203,8 @@ namespace DynamicAsteroids
                         asteroidMessage.Size,
                         asteroidMessage.GetVelocity(),
                         asteroidMessage.GetType(),
-                        asteroidMessage.GetRotation());
+                        asteroidMessage.GetRotation(),
+                        asteroidMessage.EntityId);
                     if (asteroid == null)
                     {
                         Log.Info("Failed to create asteroid, skipping");
@@ -212,6 +220,7 @@ namespace DynamicAsteroids
                 Log.Exception(ex, typeof(MainSession));
             }
         }
+
         private AsteroidEntity FindNearestAsteroid(Vector3D characterPosition)
         {
             if (_spawner._asteroids == null) return null;

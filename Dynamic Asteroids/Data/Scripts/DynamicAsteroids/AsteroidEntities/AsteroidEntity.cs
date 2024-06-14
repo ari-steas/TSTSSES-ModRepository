@@ -80,10 +80,15 @@ namespace DynamicAsteroids.AsteroidEntities
             MyVisualScriptLogicProvider.PlaySingleSoundAtPosition("roidbreak", position);
         }
 
-        public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity, AsteroidType type, Quaternion? rotation = null)
+        public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity, AsteroidType type, Quaternion? rotation = null, long? entityId = null)
         {
             var ent = new AsteroidEntity();
             Log.Info($"Creating AsteroidEntity at Position: {position}, Size: {size}, InitialVelocity: {initialVelocity}, Type: {type}");
+
+            if (entityId.HasValue)
+            {
+                ent.EntityId = entityId.Value;
+            }
 
             try
             {
