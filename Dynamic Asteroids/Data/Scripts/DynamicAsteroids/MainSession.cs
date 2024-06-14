@@ -162,6 +162,14 @@ namespace DynamicAsteroids
                 Log.Info($"IsInitialCreation: {asteroidMessage.IsInitialCreation}");
                 Log.Info($"Rotation: {asteroidMessage.GetRotation()}");
 
+                // Check if asteroid already exists
+                var existingAsteroid = MyEntities.GetEntityById(asteroidMessage.EntityId) as AsteroidEntity;
+                if (existingAsteroid != null)
+                {
+                    Log.Info($"Client: Asteroid with ID {asteroidMessage.EntityId} already exists. Skipping creation.");
+                    return;
+                }
+
                 if (asteroidMessage.IsRemoval)
                 {
                     var asteroid = MyEntities.GetEntityById(asteroidMessage.EntityId) as AsteroidEntity;
