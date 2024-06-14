@@ -83,6 +83,7 @@ namespace DynamicAsteroids.AsteroidEntities
         public static AsteroidEntity CreateAsteroid(Vector3D position, float size, Vector3D initialVelocity, AsteroidType type)
         {
             var ent = new AsteroidEntity();
+            Log.Info($"Creating AsteroidEntity at Position: {position}, Size: {size}, InitialVelocity: {initialVelocity}, Type: {type}");
             ent.Init(position, size, initialVelocity, type);
             ent.EntityId = ent.EntityId; // EntityId is already assigned by the game
             return ent;
@@ -93,7 +94,6 @@ namespace DynamicAsteroids.AsteroidEntities
             Log.Info($"AsteroidEntity.Init called with position: {position}, size: {size}, initialVelocity: {initialVelocity}, type: {type}");
             try
             {
-                // Check if MainSession.I is null
                 if (MainSession.I == null)
                 {
                     Log.Exception(new Exception("MainSession.I is null"), typeof(AsteroidEntity), "MainSession.I is not initialized.");
@@ -101,7 +101,6 @@ namespace DynamicAsteroids.AsteroidEntities
                 }
                 Log.Info("MainSession.I is initialized.");
 
-                // Check if ModContext is null
                 if (MainSession.I.ModContext == null)
                 {
                     Log.Exception(new Exception("MainSession.I.ModContext is null"), typeof(AsteroidEntity), "MainSession.I.ModContext is not initialized.");
@@ -109,7 +108,6 @@ namespace DynamicAsteroids.AsteroidEntities
                 }
                 Log.Info("MainSession.I.ModContext is initialized.");
 
-                // Check if ModPath is null or empty
                 string modPath = MainSession.I.ModContext.ModPath;
                 if (string.IsNullOrEmpty(modPath))
                 {
@@ -172,10 +170,10 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 Size = size;
                 _integrity = AsteroidSettings.BaseIntegrity + Size;
+                Log.Info($"Base Integrity: {AsteroidSettings.BaseIntegrity}, Size: {Size}, Total Integrity: {_integrity}");
 
                 Log.Info($"Attempting to load model: {ModelString}");
 
-                // Check if Init method parameters are valid
                 if (string.IsNullOrEmpty(ModelString))
                 {
                     Log.Exception(new Exception("ModelString is null or empty"), typeof(AsteroidEntity), "ModelString is not set.");
@@ -187,6 +185,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 Save = false;
                 NeedsWorldMatrix = true;
                 PositionComp.LocalAABB = new BoundingBox(-Vector3.Half * Size, Vector3.Half * Size);
+                Log.Info($"LocalAABB: {PositionComp.LocalAABB}");
 
                 Log.Info("Setting WorldMatrix");
                 var randomRotation = MatrixD.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll(
@@ -196,6 +195,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 WorldMatrix = randomRotation * MatrixD.CreateWorld(position, Vector3D.Forward, Vector3D.Up);
                 WorldMatrix.Orthogonalize();
+                Log.Info($"WorldMatrix: {WorldMatrix}");
 
                 Log.Info("Adding entity to MyEntities");
                 MyEntities.Add(this);
@@ -205,6 +205,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 CreatePhysics();
                 Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
                 Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand);
+                Log.Info($"Initial LinearVelocity: {Physics.LinearVelocity}, Initial AngularVelocity: {Physics.AngularVelocity}");
 
                 Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
 

@@ -152,7 +152,16 @@ namespace DynamicAsteroids
 
                 foreach (var asteroidMessage in asteroidMessages)
                 {
-                    Log.Info($"Client: Received message to create/remove asteroid at {asteroidMessage.Position} with velocity {asteroidMessage.InitialVelocity} of type {asteroidMessage.Type}");
+                    Log.Info($"Client: Received message to create/remove asteroid:");
+                    Log.Info($"Position: {asteroidMessage.Position}");
+                    Log.Info($"Size: {asteroidMessage.Size}");
+                    Log.Info($"InitialVelocity: {asteroidMessage.InitialVelocity}");
+                    Log.Info($"AngularVelocity: {asteroidMessage.AngularVelocity}");
+                    Log.Info($"Type: {asteroidMessage.Type}");
+                    Log.Info($"IsSubChunk: {asteroidMessage.IsSubChunk}");
+                    Log.Info($"EntityId: {asteroidMessage.EntityId}");
+                    Log.Info($"IsRemoval: {asteroidMessage.IsRemoval}");
+                    Log.Info($"IsInitialCreation: {asteroidMessage.IsInitialCreation}");
 
                     if (asteroidMessage.IsRemoval)
                     {
@@ -162,9 +171,14 @@ namespace DynamicAsteroids
                             asteroid.Close();
                             Log.Info($"Client: Removed asteroid with ID {asteroidMessage.EntityId}");
                         }
+                        else
+                        {
+                            Log.Info($"Client: Failed to find asteroid with ID {asteroidMessage.EntityId} for removal");
+                        }
                     }
                     else if (asteroidMessage.IsInitialCreation)
                     {
+                        Log.Info($"Client: Creating initial asteroid with provided details");
                         var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
                         asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
                         MyEntities.Add(asteroid);
@@ -172,6 +186,7 @@ namespace DynamicAsteroids
                     }
                     else
                     {
+                        Log.Info($"Client: Creating asteroid with provided details");
                         var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
                         asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
                         MyEntities.Add(asteroid);
