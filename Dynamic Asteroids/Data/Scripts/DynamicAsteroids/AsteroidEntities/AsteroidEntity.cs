@@ -84,8 +84,22 @@ namespace DynamicAsteroids.AsteroidEntities
         {
             var ent = new AsteroidEntity();
             Log.Info($"Creating AsteroidEntity at Position: {position}, Size: {size}, InitialVelocity: {initialVelocity}, Type: {type}");
-            ent.Init(position, size, initialVelocity, type);
-            ent.EntityId = ent.EntityId; // EntityId is already assigned by the game
+
+            try
+            {
+                ent.Init(position, size, initialVelocity, type);
+            }
+            catch (Exception ex)
+            {
+                Log.Exception(ex, typeof(AsteroidEntity), "Failed to initialize AsteroidEntity");
+                return null;
+            }
+
+            if (ent.EntityId == 0)
+            {
+                Log.Info("EntityId is 0 oh no!");
+            }
+
             return ent;
         }
 
@@ -94,6 +108,7 @@ namespace DynamicAsteroids.AsteroidEntities
             Log.Info($"AsteroidEntity.Init called with position: {position}, size: {size}, initialVelocity: {initialVelocity}, type: {type}");
             try
             {
+                // Check if MainSession.I is null
                 if (MainSession.I == null)
                 {
                     Log.Exception(new Exception("MainSession.I is null"), typeof(AsteroidEntity), "MainSession.I is not initialized.");
@@ -101,6 +116,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 }
                 Log.Info("MainSession.I is initialized.");
 
+                // Check if ModContext is null
                 if (MainSession.I.ModContext == null)
                 {
                     Log.Exception(new Exception("MainSession.I.ModContext is null"), typeof(AsteroidEntity), "MainSession.I.ModContext is not initialized.");
@@ -108,6 +124,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 }
                 Log.Info("MainSession.I.ModContext is initialized.");
 
+                // Check if ModPath is null or empty
                 string modPath = MainSession.I.ModContext.ModPath;
                 if (string.IsNullOrEmpty(modPath))
                 {
@@ -116,50 +133,154 @@ namespace DynamicAsteroids.AsteroidEntities
                 }
                 Log.Info($"ModPath: {modPath}");
 
+                if (MainSession.I.Rand == null)
+                {
+                    Log.Exception(new Exception("MainSession.I.Rand is null"), typeof(AsteroidEntity), "Random number generator is not initialized.");
+                    return;
+                }
+
                 Type = type;
                 Log.Info($"Asteroid Type: {type}");
 
                 switch (type)
                 {
                     case AsteroidType.Ice:
-                        ModelString = Path.Combine(modPath, IceAsteroidModels[MainSession.I.Rand.Next(IceAsteroidModels.Length)]);
+                        if (IceAsteroidModels.Length == 0)
+                        {
+                            Log.Info("IceAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(IceAsteroidModels.Length);
+                            Log.Info($"Selected model index for Ice: {modelIndex}");
+                            ModelString = Path.Combine(modPath, IceAsteroidModels[modelIndex]);
+                        }
                         break;
                     case AsteroidType.Stone:
-                        ModelString = Path.Combine(modPath, StoneAsteroidModels[MainSession.I.Rand.Next(StoneAsteroidModels.Length)]);
+                        if (StoneAsteroidModels.Length == 0)
+                        {
+                            Log.Info("StoneAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(StoneAsteroidModels.Length);
+                            Log.Info($"Selected model index for Stone: {modelIndex}");
+                            ModelString = Path.Combine(modPath, StoneAsteroidModels[modelIndex]);
+                        }
                         break;
                     case AsteroidType.Iron:
-                        ModelString = Path.Combine(modPath, IronAsteroidModels[MainSession.I.Rand.Next(IronAsteroidModels.Length)]);
+                        if (IronAsteroidModels.Length == 0)
+                        {
+                            Log.Info("IronAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(IronAsteroidModels.Length);
+                            Log.Info($"Selected model index for Iron: {modelIndex}");
+                            ModelString = Path.Combine(modPath, IronAsteroidModels[modelIndex]);
+                        }
                         break;
                     case AsteroidType.Nickel:
-                        ModelString = Path.Combine(modPath, NickelAsteroidModels[MainSession.I.Rand.Next(NickelAsteroidModels.Length)]);
+                        if (NickelAsteroidModels.Length == 0)
+                        {
+                            Log.Info("NickelAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(NickelAsteroidModels.Length);
+                            Log.Info($"Selected model index for Nickel: {modelIndex}");
+                            ModelString = Path.Combine(modPath, NickelAsteroidModels[modelIndex]);
+                        }
                         break;
                     case AsteroidType.Cobalt:
-                        ModelString = Path.Combine(modPath, CobaltAsteroidModels[MainSession.I.Rand.Next(CobaltAsteroidModels.Length)]);
+                        if (CobaltAsteroidModels.Length == 0)
+                        {
+                            Log.Info("CobaltAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(CobaltAsteroidModels.Length);
+                            Log.Info($"Selected model index for Cobalt: {modelIndex}");
+                            ModelString = Path.Combine(modPath, CobaltAsteroidModels[modelIndex]);
+                        }
                         break;
                     case AsteroidType.Magnesium:
-                        ModelString = Path.Combine(modPath, MagnesiumAsteroidModels[MainSession.I.Rand.Next(MagnesiumAsteroidModels.Length)]);
+                        if (MagnesiumAsteroidModels.Length == 0)
+                        {
+                            Log.Info("MagnesiumAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(MagnesiumAsteroidModels.Length);
+                            Log.Info($"Selected model index for Magnesium: {modelIndex}");
+                            ModelString = Path.Combine(modPath, MagnesiumAsteroidModels[modelIndex]);
+                        }
                         break;
                     case AsteroidType.Silicon:
-                        ModelString = Path.Combine(modPath, SiliconAsteroidModels[MainSession.I.Rand.Next(SiliconAsteroidModels.Length)]);
+                        if (SiliconAsteroidModels.Length == 0)
+                        {
+                            Log.Info("SiliconAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(SiliconAsteroidModels.Length);
+                            Log.Info($"Selected model index for Silicon: {modelIndex}");
+                            ModelString = Path.Combine(modPath, SiliconAsteroidModels[modelIndex]);
+                        }
                         break;
                     case AsteroidType.Silver:
-                        ModelString = Path.Combine(modPath, SilverAsteroidModels[MainSession.I.Rand.Next(SilverAsteroidModels.Length)]);
+                        if (SilverAsteroidModels.Length == 0)
+                        {
+                            Log.Info("SilverAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(SilverAsteroidModels.Length);
+                            Log.Info($"Selected model index for Silver: {modelIndex}");
+                            ModelString = Path.Combine(modPath, SilverAsteroidModels[modelIndex]);
+                        }
                         break;
                     case AsteroidType.Gold:
-                        ModelString = Path.Combine(modPath, GoldAsteroidModels[MainSession.I.Rand.Next(GoldAsteroidModels.Length)]);
+                        if (GoldAsteroidModels.Length == 0)
+                        {
+                            Log.Info("GoldAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(GoldAsteroidModels.Length);
+                            Log.Info($"Selected model index for Gold: {modelIndex}");
+                            ModelString = Path.Combine(modPath, GoldAsteroidModels[modelIndex]);
+                        }
                         break;
                     case AsteroidType.Platinum:
-                        ModelString = Path.Combine(modPath, PlatinumAsteroidModels[MainSession.I.Rand.Next(PlatinumAsteroidModels.Length)]);
+                        if (PlatinumAsteroidModels.Length == 0)
+                        {
+                            Log.Info("PlatinumAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(PlatinumAsteroidModels.Length);
+                            Log.Info($"Selected model index for Platinum: {modelIndex}");
+                            ModelString = Path.Combine(modPath, PlatinumAsteroidModels[modelIndex]);
+                        }
                         break;
                     case AsteroidType.Uraninite:
-                        ModelString = Path.Combine(modPath, UraniniteAsteroidModels[MainSession.I.Rand.Next(UraniniteAsteroidModels.Length)]);
+                        if (UraniniteAsteroidModels.Length == 0)
+                        {
+                            Log.Info("UraniniteAsteroidModels array is empty");
+                        }
+                        else
+                        {
+                            int modelIndex = MainSession.I.Rand.Next(UraniniteAsteroidModels.Length);
+                            Log.Info($"Selected model index for Uraninite: {modelIndex}");
+                            ModelString = Path.Combine(modPath, UraniniteAsteroidModels[modelIndex]);
+                        }
                         break;
                     default:
                         Log.Info("Invalid AsteroidType, setting ModelString to empty.");
                         ModelString = "";
                         break;
                 }
-
                 Log.Info($"ModelString: {ModelString}");
 
                 if (string.IsNullOrEmpty(ModelString))
@@ -174,6 +295,7 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 Log.Info($"Attempting to load model: {ModelString}");
 
+                // Additional check if Init parameters are valid
                 if (string.IsNullOrEmpty(ModelString))
                 {
                     Log.Exception(new Exception("ModelString is null or empty"), typeof(AsteroidEntity), "ModelString is not set.");

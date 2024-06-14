@@ -30,11 +30,12 @@ namespace DynamicAsteroids
             try
             {
                 Log.Info("Loading data in MainSession");
+                seed = (int)DateTime.UtcNow.Ticks;
+                AsteroidSettings.Seed = seed;
+                Rand = new Random(seed);
+
                 if (MyAPIGateway.Session.IsServer)
                 {
-                    seed = (int)DateTime.UtcNow.Ticks;
-                    AsteroidSettings.Seed = seed;
-                    Rand = new Random(seed);
                     _spawner.Init(seed);
                     if (AsteroidSettings.EnablePersistence)
                     {
@@ -188,6 +189,11 @@ namespace DynamicAsteroids
                     {
                         Log.Info($"Client: Creating asteroid with provided details");
                         var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
+                        if (asteroid == null)
+                        {
+                            Log.Info("Failed to create asteroid, skipping");
+                            continue;
+                        }
                         asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
                         MyEntities.Add(asteroid);
                         Log.Info($"Client: Created asteroid with ID {asteroid.EntityId}");
