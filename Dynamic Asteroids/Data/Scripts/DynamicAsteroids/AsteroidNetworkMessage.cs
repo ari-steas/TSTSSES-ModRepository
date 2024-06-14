@@ -49,7 +49,10 @@ namespace DynamicAsteroids
         [ProtoMember(9)]
         public bool IsInitialCreation;
 
-        public AsteroidNetworkMessage(Vector3D position, float size, Vector3D initialVelocity, Vector3D angularVelocity, AsteroidType type, bool isSubChunk, long entityId, bool isRemoval, bool isInitialCreation)
+        [ProtoMember(10)]
+        public Quaternion Rotation;       //I can just shove whole quaternions through right??
+
+        public AsteroidNetworkMessage(Vector3D position, float size, Vector3D initialVelocity, Vector3D angularVelocity, AsteroidType type, bool isSubChunk, long entityId, bool isRemoval, bool isInitialCreation, Quaternion rotation)
         {
             Position = position;
             Size = size;
@@ -60,6 +63,8 @@ namespace DynamicAsteroids
             EntityId = entityId;
             IsRemoval = isRemoval;
             IsInitialCreation = isInitialCreation;
+            Rotation = rotation;
         }
     }
+
 }

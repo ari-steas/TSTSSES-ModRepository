@@ -163,6 +163,7 @@ namespace DynamicAsteroids
                     Log.Info($"EntityId: {asteroidMessage.EntityId}");
                     Log.Info($"IsRemoval: {asteroidMessage.IsRemoval}");
                     Log.Info($"IsInitialCreation: {asteroidMessage.IsInitialCreation}");
+                    Log.Info($"Rotation: {asteroidMessage.Rotation}");
 
                     if (asteroidMessage.IsRemoval)
                     {
@@ -180,7 +181,7 @@ namespace DynamicAsteroids
                     else if (asteroidMessage.IsInitialCreation)
                     {
                         Log.Info($"Client: Creating initial asteroid with provided details");
-                        var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
+                        var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type, asteroidMessage.Rotation);
                         asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
                         MyEntities.Add(asteroid);
                         Log.Info($"Client: Created initial asteroid with ID {asteroid.EntityId}");
@@ -188,7 +189,7 @@ namespace DynamicAsteroids
                     else
                     {
                         Log.Info($"Client: Creating asteroid with provided details");
-                        var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
+                        var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type, asteroidMessage.Rotation);
                         if (asteroid == null)
                         {
                             Log.Info("Failed to create asteroid, skipping");
