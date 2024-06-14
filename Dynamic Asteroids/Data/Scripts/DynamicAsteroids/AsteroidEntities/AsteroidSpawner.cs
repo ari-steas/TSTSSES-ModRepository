@@ -172,8 +172,8 @@ public class AsteroidSpawner
                 }
                 else
                 {
-                    SpawnAsteroids();
-                    _spawnIntervalTimer = AsteroidSettings.SpawnInterval;
+                    SpawnAsteroids(playerPosition);
+                    _spawnIntervalTimer = AsteroidSettings.SpawnInterval; // Use setting
                 }
 
                 // Load asteroids in range
@@ -204,29 +204,8 @@ public class AsteroidSpawner
         }
     }
 
-    private void SpawnAsteroids()
+    private void SpawnAsteroids(Vector3D playerPosition)
     {
-        List<IMyPlayer> players = new List<IMyPlayer>();
-        MyAPIGateway.Players.GetPlayers(players);
-
-        // Find all players within the spawn radius
-        List<IMyPlayer> playersInRange = players.Where(player =>
-        {
-            Vector3D playerPosition = player.GetPosition();
-            return players.Any(otherPlayer =>
-            {
-                Vector3D otherPlayerPosition = otherPlayer.GetPosition();
-                double distanceSquared = Vector3D.DistanceSquared(playerPosition, otherPlayerPosition);
-                return distanceSquared <= AsteroidSettings.AsteroidSpawnRadius * AsteroidSettings.AsteroidSpawnRadius;
-            });
-        }).ToList();
-
-        if (playersInRange.Count == 0)
-            return;
-
-        // Calculate the center position of all players in range
-        Vector3D centerPosition = playersInRange.Aggregate(Vector3D.Zero, (sum, player) => sum + player.GetPosition()) / playersInRange.Count;
-
         int asteroidsSpawned = 0;
         int spawnAttempts = 0;
         int maxAttempts = 50;
@@ -242,10 +221,9 @@ public class AsteroidSpawner
             Vector3D newPosition;
             do
             {
-                newPosition = centerPosition + RandVector() * AsteroidSettings.AsteroidSpawnRadius;
+                newPosition = playerPosition + RandVector() * AsteroidSettings.AsteroidSpawnRadius;
                 spawnAttempts++;
-            }
-            while (Vector3D.DistanceSquared(newPosition, centerPosition) < AsteroidSettings.MinDistanceFromPlayer * AsteroidSettings.MinDistanceFromPlayer && spawnAttempts < maxAttempts);
+            } while (Vector3D.DistanceSquared(newPosition, playerPosition) < AsteroidSettings.MinDistanceFromPlayer * AsteroidSettings.MinDistanceFromPlayer && spawnAttempts < maxAttempts);
 
             if (spawnAttempts >= maxAttempts)
                 break;
@@ -262,15 +240,28 @@ public class AsteroidSpawner
 
             AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition);
             float size = AsteroidSettings.GetAsteroidSize(newPosition);
-            Quaternion rotation = Quaternion.CreateFromYawPitchRoll((float)rand.NextDouble() * MathHelper.TwoPi, (float)rand.NextDouble() * MathHelper.TwoPi, (float)rand.NextDouble() * MathHelper.TwoPi);
+            Quaternion rotation = Quaternion.CreateFromYawPitchRoll(
+                (float)rand.NextDouble() * MathHelper.TwoPi,
+                (float)rand.NextDouble() * MathHelper.TwoPi,
+                (float)rand.NextDouble() * MathHelper.TwoPi);
 
             Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
             var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type, rotation);
             _asteroids.Add(asteroid);
             Log.Info($"Server: Added new asteroid with ID {asteroid.EntityId} to _asteroids list");
 
-            var message = new AsteroidNetworkMessage(new Vector3D(newPosition.X, newPosition.Y, newPosition.Z), size, new Vector3D(newVelocity.X, newVelocity.Y, newVelocity.Z), Vector3D.Zero, type, false, asteroid.EntityId, false, true, rotation);
-            _networkMessages.Add(message);
+            var message = new AsteroidNetworkMessage(
+                new Vector3D(newPosition.X, newPosition.Y, newPosition.Z),
+                size,
+                new Vector3D(newVelocity.X, newVelocity.Y, newVelocity.Z),
+                Vector3D.Zero, // Angular velocity
+                type,
+                false,
+                asteroid.EntityId,
+                false,
+                true,
+                rotation);
+            _networkMessages.Add(message);  // Add to the list instead of sending immediately
 
             asteroidsSpawned++;
         }
