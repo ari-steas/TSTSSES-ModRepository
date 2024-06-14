@@ -250,7 +250,17 @@ public class AsteroidSpawner
             _asteroids.Add(asteroid);
             Log.Info($"Server: Added new asteroid with ID {asteroid.EntityId} to _asteroids list");
 
-            var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true, rotation);
+            var message = new AsteroidNetworkMessage(
+                new Vector3D(newPosition.X, newPosition.Y, newPosition.Z),
+                size,
+                new Vector3D(newVelocity.X, newVelocity.Y, newVelocity.Z),
+                Vector3D.Zero, // Angular velocity
+                type,
+                false,
+                asteroid.EntityId,
+                false,
+                true,
+                rotation);
             _networkMessages.Add(message);  // Add to the list instead of sending immediately
 
             asteroidsSpawned++;
@@ -259,12 +269,25 @@ public class AsteroidSpawner
 
     public void SendNetworkMessages()
     {
-        if (_networkMessages.Count == 0) return;
+        if (_networkMessages.Count == 0)
+            return;
+
         try
         {
             Log.Info($"Server: Preparing to send {_networkMessages.Count} network messages");
             var container = new AsteroidNetworkMessageContainer(_networkMessages.ToArray());
-            var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(container);
+
+            byte[] messageBytes;
+            try
+            {
+                messageBytes = MyAPIGateway.Utilities.SerializeToBinary(container);
+            }
+            catch (Exception ex)
+            {
+                Log.Exception(ex, typeof(AsteroidSpawner), "Failed to serialize network messages");
+                return;
+            }
+
             Log.Info($"Server: Serialized message size: {messageBytes.Length} bytes");
             MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
             Log.Info($"Server: Sent {_networkMessages.Count} network messages");
