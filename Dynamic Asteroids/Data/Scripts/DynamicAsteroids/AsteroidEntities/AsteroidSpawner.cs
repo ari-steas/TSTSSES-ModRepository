@@ -307,8 +307,8 @@ public class AsteroidSpawner
             MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
 
             _asteroids.Remove(asteroid);
-            asteroid.Close();
             MyEntities.Remove(asteroid);
+            asteroid.Close();
             Log.Info($"Server: Removed asteroid with ID {asteroid.EntityId} from _asteroids list and MyEntities");
         }
     }
