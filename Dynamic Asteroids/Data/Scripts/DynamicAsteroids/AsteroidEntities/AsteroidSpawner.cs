@@ -269,28 +269,19 @@ public class AsteroidSpawner
 
     public void SendNetworkMessages()
     {
-        if (_networkMessages.Count == 0)
-            return;
-
+        if (_networkMessages.Count == 0) return;
         try
         {
             Log.Info($"Server: Preparing to send {_networkMessages.Count} network messages");
-            var container = new AsteroidNetworkMessageContainer(_networkMessages.ToArray());
 
-            byte[] messageBytes;
-            try
+            foreach (var message in _networkMessages)
             {
-                messageBytes = MyAPIGateway.Utilities.SerializeToBinary(container);
-            }
-            catch (Exception ex)
-            {
-                Log.Exception(ex, typeof(AsteroidSpawner), "Failed to serialize network messages");
-                return;
+                var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
+                Log.Info($"Server: Serialized message size: {messageBytes.Length} bytes");
+                MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
+                Log.Info($"Server: Sent message for asteroid ID {message.EntityId}");
             }
 
-            Log.Info($"Server: Serialized message size: {messageBytes.Length} bytes");
-            MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
-            Log.Info($"Server: Sent {_networkMessages.Count} network messages");
             _networkMessages.Clear();
         }
         catch (Exception ex)

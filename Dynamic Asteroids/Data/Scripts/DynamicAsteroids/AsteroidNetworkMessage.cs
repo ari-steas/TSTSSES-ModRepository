@@ -65,16 +65,25 @@ namespace DynamicAsteroids
 
         public AsteroidNetworkMessage(Vector3D position, float size, Vector3D initialVelocity, Vector3D angularVelocity, AsteroidType type, bool isSubChunk, long entityId, bool isRemoval, bool isInitialCreation, Quaternion rotation)
         {
-            PosX = position.X; PosY = position.Y; PosZ = position.Z;
+            PosX = position.X;
+            PosY = position.Y;
+            PosZ = position.Z;
             Size = size;
-            VelX = initialVelocity.X; VelY = initialVelocity.Y; VelZ = initialVelocity.Z;
-            AngVelX = angularVelocity.X; AngVelY = angularVelocity.Y; AngVelZ = angularVelocity.Z;
+            VelX = initialVelocity.X;
+            VelY = initialVelocity.Y;
+            VelZ = initialVelocity.Z;
+            AngVelX = angularVelocity.X;
+            AngVelY = angularVelocity.Y;
+            AngVelZ = angularVelocity.Z;
             Type = (int)type;
             IsSubChunk = isSubChunk;
             EntityId = entityId;
             IsRemoval = isRemoval;
             IsInitialCreation = isInitialCreation;
-            RotX = rotation.X; RotY = rotation.Y; RotZ = rotation.Z; RotW = rotation.W;
+            RotX = rotation.X;
+            RotY = rotation.Y;
+            RotZ = rotation.Z;
+            RotW = rotation.W;
         }
 
         public Vector3D GetPosition() => new Vector3D(PosX, PosY, PosZ);
