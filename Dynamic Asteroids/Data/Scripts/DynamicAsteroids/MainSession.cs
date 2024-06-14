@@ -164,10 +164,10 @@ namespace DynamicAsteroids
                     else
                     {
                         Log.Info($"Client: Failed to find asteroid with ID {asteroidMessage.EntityId} for removal");
-                        foreach (var entity in MyEntities.GetEntities())
-                        {
-                            Log.Info($"Client: Existing Entity ID: {entity.EntityId}");
-                        }
+                        //foreach (var entity in MyEntities.GetEntities())
+                        //{
+                        //    Log.Info($"Client: Existing Entity ID: {entity.EntityId}");
+                        //}
                     }
                 }
                 else if (asteroidMessage.IsInitialCreation)
