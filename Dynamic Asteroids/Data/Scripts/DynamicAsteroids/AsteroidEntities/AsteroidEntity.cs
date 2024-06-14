@@ -85,30 +85,9 @@ namespace DynamicAsteroids.AsteroidEntities
             var ent = new AsteroidEntity();
             Log.Info($"Creating AsteroidEntity at Position: {position}, Size: {size}, InitialVelocity: {initialVelocity}, Type: {type}");
 
-            // Server-side: Generate a unique ID if none is provided
-            if (MyAPIGateway.Session.IsServer)
+            if (entityId.HasValue)
             {
-                if (entityId.HasValue)
-                {
-                    ent.EntityId = entityId.Value;
-                }
-                else
-                {
-                    ent.EntityId = MyEntityIdentifier.AllocateId(); // Generate a unique ID
-                }
-            }
-            else
-            {
-                // Client-side: Use the provided ID
-                if (entityId.HasValue)
-                {
-                    ent.EntityId = entityId.Value;
-                }
-                else
-                {
-                    Log.Info("Client did not receive a valid entity ID. Skipping asteroid creation.");
-                    return null;
-                }
+                ent.EntityId = entityId.Value;
             }
 
             try
