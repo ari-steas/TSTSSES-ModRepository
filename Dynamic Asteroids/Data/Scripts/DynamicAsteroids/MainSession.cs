@@ -30,11 +30,12 @@ namespace DynamicAsteroids
             try
             {
                 Log.Info("Loading data in MainSession");
+                seed = (int)DateTime.UtcNow.Ticks;
+                AsteroidSettings.Seed = seed;
+                Rand = new Random(seed);
+
                 if (MyAPIGateway.Session.IsServer)
                 {
-                    seed = (int)DateTime.UtcNow.Ticks;
-                    AsteroidSettings.Seed = seed;
-                    Rand = new Random(seed);
                     _spawner.Init(seed);
                     if (AsteroidSettings.EnablePersistence)
                     {
@@ -49,7 +50,6 @@ namespace DynamicAsteroids
                 Log.Exception(ex, typeof(MainSession));
             }
         }
-
 
         protected override void UnloadData()
         {
@@ -147,36 +147,72 @@ namespace DynamicAsteroids
             try
             {
                 Log.Info($"Client: Received message of {message.Length} bytes");
-                var asteroidMessages = MyAPIGateway.Utilities.SerializeFromBinary<List<AsteroidNetworkMessage>>(message);
-                Log.Info($"Client: Deserialized {asteroidMessages.Count} asteroid messages");
+                var asteroidMessage = MyAPIGateway.Utilities.SerializeFromBinary<AsteroidNetworkMessage>(message);
+                Log.Info($"Client: Deserialized asteroid message");
 
-                foreach (var asteroidMessage in asteroidMessages)
+                Log.Info($"Client: Received message to create/remove asteroid:");
+                Log.Info($"Position: {asteroidMessage.GetPosition()}");
+                Log.Info($"Size: {asteroidMessage.Size}");
+                Log.Info($"InitialVelocity: {asteroidMessage.GetVelocity()}");
+                Log.Info($"AngularVelocity: {asteroidMessage.GetAngularVelocity()}");
+                Log.Info($"Type: {asteroidMessage.GetType()}");
+                Log.Info($"IsSubChunk: {asteroidMessage.IsSubChunk}");
+                Log.Info($"EntityId: {asteroidMessage.EntityId}");
+                Log.Info($"IsRemoval: {asteroidMessage.IsRemoval}");
+                Log.Info($"IsInitialCreation: {asteroidMessage.IsInitialCreation}");
+                Log.Info($"Rotation: {asteroidMessage.GetRotation()}");
+
+                if (asteroidMessage.IsRemoval)
                 {
-                    Log.Info($"Client: Received message to create/remove asteroid at {asteroidMessage.Position} with velocity {asteroidMessage.InitialVelocity} of type {asteroidMessage.Type}");
-
-                    if (asteroidMessage.IsRemoval)
+                    var asteroid = MyEntities.GetEntityById(asteroidMessage.EntityId) as AsteroidEntity;
+                    if (asteroid != null)
                     {
-                        var asteroid = MyEntities.GetEntityById(asteroidMessage.EntityId) as AsteroidEntity;
-                        if (asteroid != null)
-                        {
-                            asteroid.Close();
-                            Log.Info($"Client: Removed asteroid with ID {asteroidMessage.EntityId}");
-                        }
-                    }
-                    else if (asteroidMessage.IsInitialCreation)
-                    {
-                        var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
-                        asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
-                        MyEntities.Add(asteroid);
-                        Log.Info($"Client: Created initial asteroid with ID {asteroid.EntityId}");
+                        Log.Info($"Client: Removing asteroid with ID {asteroidMessage.EntityId}");
+                        asteroid.Close();
+                        MyEntities.Remove(asteroid);  // Ensure the entity is removed from MyEntities
+                        Log.Info($"Client: Removed asteroid with ID {asteroidMessage.EntityId}");
                     }
                     else
                     {
-                        var asteroid = AsteroidEntity.CreateAsteroid(asteroidMessage.Position, asteroidMessage.Size, asteroidMessage.InitialVelocity, asteroidMessage.Type);
-                        asteroid.Physics.AngularVelocity = asteroidMessage.AngularVelocity;
-                        MyEntities.Add(asteroid);
-                        Log.Info($"Client: Created asteroid with ID {asteroid.EntityId}");
+                        Log.Info($"Client: Failed to find asteroid with ID {asteroidMessage.EntityId} for removal");
+                        foreach (var entity in MyEntities.GetEntities())
+                        {
+                            Log.Info($"Client: Existing Entity ID: {entity.EntityId}");
+                        }
                     }
+                }
+                else if (asteroidMessage.IsInitialCreation)
+                {
+                    Log.Info($"Client: Creating initial asteroid with provided details");
+                    var asteroid = AsteroidEntity.CreateAsteroid(
+                        asteroidMessage.GetPosition(),
+                        asteroidMessage.Size,
+                        asteroidMessage.GetVelocity(),
+                        asteroidMessage.GetType(),
+                        asteroidMessage.GetRotation(),
+                        asteroidMessage.EntityId);
+                    asteroid.Physics.AngularVelocity = asteroidMessage.GetAngularVelocity();
+                    MyEntities.Add(asteroid);
+                    Log.Info($"Client: Created initial asteroid with ID {asteroid.EntityId}");
+                }
+                else
+                {
+                    Log.Info($"Client: Creating asteroid with provided details");
+                    var asteroid = AsteroidEntity.CreateAsteroid(
+                        asteroidMessage.GetPosition(),
+                        asteroidMessage.Size,
+                        asteroidMessage.GetVelocity(),
+                        asteroidMessage.GetType(),
+                        asteroidMessage.GetRotation(),
+                        asteroidMessage.EntityId);
+                    if (asteroid == null)
+                    {
+                        Log.Info("Failed to create asteroid, skipping");
+                        return;
+                    }
+                    asteroid.Physics.AngularVelocity = asteroidMessage.GetAngularVelocity();
+                    MyEntities.Add(asteroid);
+                    Log.Info($"Client: Created asteroid with ID {asteroid.EntityId}");
                 }
             }
             catch (Exception ex)

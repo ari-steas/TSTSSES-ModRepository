@@ -1,13 +1,13 @@
 ﻿using DynamicAsteroids.AsteroidEntities;
-using DynamicAsteroids;
 using Sandbox.ModAPI;
 using SC.SUGMA;
 using System.Collections.Generic;
-using System;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
 using System.Linq;
+using System;
+using DynamicAsteroids;
 using Sandbox.Game.Entities;
 
 public class AsteroidSpawner
@@ -18,7 +18,6 @@ public class AsteroidSpawner
     private Random rand;
     private List<AsteroidState> _despawnedAsteroids = new List<AsteroidState>();
     private List<AsteroidNetworkMessage> _networkMessages = new List<AsteroidNetworkMessage>();
-
 
     public void Init(int seed)
     {
@@ -109,7 +108,7 @@ public class AsteroidSpawner
                 asteroid.EntityId = state.EntityId; // Assign the saved ID
                 _asteroids.Add(asteroid);
 
-                var message = new AsteroidNetworkMessage(state.Position, state.Size, Vector3D.Zero, Vector3D.Zero, state.Type, false, asteroid.EntityId, false, true);
+                var message = new AsteroidNetworkMessage(state.Position, state.Size, Vector3D.Zero, Vector3D.Zero, state.Type, false, asteroid.EntityId, false, true, Quaternion.Identity);
                 var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
                 MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
 
@@ -209,7 +208,7 @@ public class AsteroidSpawner
     {
         int asteroidsSpawned = 0;
         int spawnAttempts = 0;
-        int maxAttempts = 50; // Limit the number of attempts to find valid positions
+        int maxAttempts = 50;
 
         while (_asteroids.Count < AsteroidSettings.MaxAsteroidCount && asteroidsSpawned < 10)
         {
@@ -241,13 +240,27 @@ public class AsteroidSpawner
 
             AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition);
             float size = AsteroidSettings.GetAsteroidSize(newPosition);
+            Quaternion rotation = Quaternion.CreateFromYawPitchRoll(
+                (float)rand.NextDouble() * MathHelper.TwoPi,
+                (float)rand.NextDouble() * MathHelper.TwoPi,
+                (float)rand.NextDouble() * MathHelper.TwoPi);
 
             Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
-            var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type);
+            var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type, rotation);
             _asteroids.Add(asteroid);
             Log.Info($"Server: Added new asteroid with ID {asteroid.EntityId} to _asteroids list");
 
-            var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true);
+            var message = new AsteroidNetworkMessage(
+                new Vector3D(newPosition.X, newPosition.Y, newPosition.Z),
+                size,
+                new Vector3D(newVelocity.X, newVelocity.Y, newVelocity.Z),
+                Vector3D.Zero, // Angular velocity
+                type,
+                false,
+                asteroid.EntityId,
+                false,
+                true,
+                rotation);
             _networkMessages.Add(message);  // Add to the list instead of sending immediately
 
             asteroidsSpawned++;
@@ -260,10 +273,15 @@ public class AsteroidSpawner
         try
         {
             Log.Info($"Server: Preparing to send {_networkMessages.Count} network messages");
-            var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(_networkMessages);
-            Log.Info($"Server: Serialized message size: {messageBytes.Length} bytes");
-            MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
-            Log.Info($"Server: Sent {_networkMessages.Count} network messages");
+
+            foreach (var message in _networkMessages)
+            {
+                var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
+                Log.Info($"Server: Serialized message size: {messageBytes.Length} bytes");
+                MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
+                Log.Info($"Server: Sent message for asteroid ID {message.EntityId}");
+            }
+
             _networkMessages.Clear();
         }
         catch (Exception ex)
@@ -271,7 +289,6 @@ public class AsteroidSpawner
             Log.Exception(ex, typeof(AsteroidSpawner), "Failed to send network messages");
         }
     }
-
 
     private void RemoveAsteroid(AsteroidEntity asteroid)
     {
@@ -285,7 +302,7 @@ public class AsteroidSpawner
                 EntityId = asteroid.EntityId
             });
 
-            var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true, false);
+            var removalMessage = new AsteroidNetworkMessage(asteroid.PositionComp.GetPosition(), asteroid.Size, Vector3D.Zero, Vector3D.Zero, asteroid.Type, false, asteroid.EntityId, true, false, Quaternion.Identity);
             var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
             MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
 
