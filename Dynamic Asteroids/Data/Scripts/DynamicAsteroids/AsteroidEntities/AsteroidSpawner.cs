@@ -43,17 +43,15 @@ public class AsteroidSpawner
     private List<AsteroidState> _despawnedAsteroids = new List<AsteroidState>();
     private List<AsteroidNetworkMessage> _networkMessages = new List<AsteroidNetworkMessage>();
     private Dictionary<long, AsteroidZone> playerZones = new Dictionary<long, AsteroidZone>();
-    private const double ZONE_RADIUS = 10000;
 
     private Dictionary<long, PlayerMovementData> playerMovementData = new Dictionary<long, PlayerMovementData>();
-
 
     private class PlayerMovementData
     {
         public Vector3D LastPosition { get; set; }
         public DateTime LastUpdateTime { get; set; }
+        public double Speed { get; set; } // Added to store the calculated speed
     }
-
 
     public void Init(int seed)
     {
@@ -190,6 +188,17 @@ public class AsteroidSpawner
         {
             Vector3D playerPosition = player.GetPosition();
 
+            // Check player speed
+            PlayerMovementData data;
+            if (playerMovementData.TryGetValue(player.IdentityId, out data))
+            {
+                if (data.Speed > 1000)
+                {
+                    Log.Info($"Skipping zone creation for player {player.DisplayName} due to high speed: {data.Speed} m/s.");
+                    continue;
+                }
+            }
+
             // Check if the player already has a zone assigned
             AsteroidZone existingZone;
             if (playerZones.TryGetValue(player.IdentityId, out existingZone))
@@ -268,6 +277,7 @@ public class AsteroidSpawner
             }
         }
     }
+
     public void UpdateZones()
     {
         List<IMyPlayer> players = new List<IMyPlayer>();
@@ -279,6 +289,17 @@ public class AsteroidSpawner
         foreach (var player in players)
         {
             Vector3D playerPosition = player.GetPosition();
+
+            // Check player speed
+            PlayerMovementData data;
+            if (playerMovementData.TryGetValue(player.IdentityId, out data))
+            {
+                if (data.Speed > 1000)
+                {
+                    Log.Info($"Skipping zone update for player {player.DisplayName} due to high speed: {data.Speed} m/s.");
+                    continue;
+                }
+            }
 
             // Check if the player is within any of the existing zones
             bool playerInZone = false;
@@ -449,13 +470,9 @@ public class AsteroidSpawner
                     PlayerMovementData data;
                     if (playerMovementData.TryGetValue(player.IdentityId, out data))
                     {
-                        double distance = Vector3D.Distance(playerPosition, data.LastPosition);
-                        double timeElapsed = (DateTime.UtcNow - data.LastUpdateTime).TotalSeconds;
-                        double speed = distance / timeElapsed;
-
-                        if (speed > 1000)
+                        if (data.Speed > 1000)
                         {
-                            Log.Info($"Skipping asteroid spawning for player {player.DisplayName} due to high speed: {speed} m/s.");
+                            Log.Info($"Skipping asteroid spawning for player {player.DisplayName} due to high speed: {data.Speed} m/s.");
                             skipSpawning = true;
                             break;
                         }
@@ -556,29 +573,22 @@ public class AsteroidSpawner
 
                 // Calculate speed in meters per second
                 double speed = distance / timeElapsed;
+                data.Speed = speed;
 
-                if (speed > 1000)
-                {
-                    Log.Info($"Skipping asteroid spawning for player {player.DisplayName} due to high speed: {speed} m/s.");
-                    data.LastPosition = currentPosition;
-                    data.LastUpdateTime = currentTime;
-                    continue;
-                }
+                playerMovementData[player.IdentityId].LastPosition = currentPosition;
+                playerMovementData[player.IdentityId].LastUpdateTime = currentTime;
             }
             else
             {
                 playerMovementData[player.IdentityId] = new PlayerMovementData
                 {
                     LastPosition = currentPosition,
-                    LastUpdateTime = currentTime
+                    LastUpdateTime = currentTime,
+                    Speed = 0 // Initialize speed to 0
                 };
             }
-
-            playerMovementData[player.IdentityId].LastPosition = currentPosition;
-            playerMovementData[player.IdentityId].LastUpdateTime = currentTime;
         }
     }
-
 
     private bool IsValidSpawnPosition(Vector3D position, List<AsteroidZone> zones)
     {
@@ -592,6 +602,7 @@ public class AsteroidSpawner
         }
         return false;
     }
+
     public void SendNetworkMessages()
     {
         if (_networkMessages.Count == 0) return;
