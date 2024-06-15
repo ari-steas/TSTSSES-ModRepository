@@ -3,7 +3,7 @@ using System.IO;
 using DynamicAsteroids;
 using Sandbox.ModAPI;
 
-namespace SC.SUGMA
+namespace Invalid.DynamicRoids
 {
     internal class Log
     {
