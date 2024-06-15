@@ -150,7 +150,6 @@ namespace DynamicAsteroids
                 var asteroidMessage = MyAPIGateway.Utilities.SerializeFromBinary<AsteroidNetworkMessage>(message);
                 Log.Info($"Client: Deserialized asteroid message");
 
-                // Handle removal of asteroids
                 if (asteroidMessage.IsRemoval)
                 {
                     var asteroid = MyEntities.GetEntityById(asteroidMessage.EntityId) as AsteroidEntity;
@@ -164,44 +163,35 @@ namespace DynamicAsteroids
                     else
                     {
                         Log.Info($"Client: Failed to find asteroid with ID {asteroidMessage.EntityId} for removal");
-                        //foreach (var entity in MyEntities.GetEntities())
-                        //{
-                        //    Log.Info($"Client: Existing Entity ID: {entity.EntityId}");
-                        //}
-                    }
-                }
-                else if (asteroidMessage.IsInitialCreation)
-                {
-                    Log.Info($"Client: Creating initial asteroid with provided details");
-                    var asteroid = AsteroidEntity.CreateAsteroid(
-                        asteroidMessage.GetPosition(),
-                        asteroidMessage.Size,
-                        asteroidMessage.GetVelocity(),
-                        asteroidMessage.GetType(),
-                        asteroidMessage.GetRotation(),
-                        asteroidMessage.EntityId);
-                    if (asteroid != null)
-                    {
-                        asteroid.Physics.AngularVelocity = asteroidMessage.GetAngularVelocity();
-                        MyEntities.Add(asteroid);
-                        Log.Info($"Client: Created initial asteroid with ID {asteroid.EntityId}");
                     }
                 }
                 else
                 {
-                    Log.Info($"Client: Creating asteroid with provided details");
-                    var asteroid = AsteroidEntity.CreateAsteroid(
-                        asteroidMessage.GetPosition(),
-                        asteroidMessage.Size,
-                        asteroidMessage.GetVelocity(),
-                        asteroidMessage.GetType(),
-                        asteroidMessage.GetRotation(),
-                        asteroidMessage.EntityId);
-                    if (asteroid != null)
+                    var existingAsteroid = MyEntities.GetEntityById(asteroidMessage.EntityId) as AsteroidEntity;
+                    if (existingAsteroid != null)
                     {
-                        asteroid.Physics.AngularVelocity = asteroidMessage.GetAngularVelocity();
-                        MyEntities.Add(asteroid);
-                        Log.Info($"Client: Created asteroid with ID {asteroid.EntityId}");
+                        Log.Info($"Client: Asteroid with ID {asteroidMessage.EntityId} already exists, skipping creation");
+                    }
+                    else
+                    {
+                        Log.Info($"Client: Creating asteroid with provided details");
+                        var asteroid = AsteroidEntity.CreateAsteroid(
+                            asteroidMessage.GetPosition(),
+                            asteroidMessage.Size,
+                            asteroidMessage.GetVelocity(),
+                            asteroidMessage.GetType(),
+                            asteroidMessage.GetRotation(),
+                            asteroidMessage.EntityId);
+                        if (asteroid != null)
+                        {
+                            asteroid.Physics.AngularVelocity = asteroidMessage.GetAngularVelocity();
+                            MyEntities.Add(asteroid);
+                            Log.Info($"Client: Created asteroid with ID {asteroid.EntityId}");
+                        }
+                        else
+                        {
+                            Log.Info($"Client: Failed to create asteroid with ID {asteroidMessage.EntityId}");
+                        }
                     }
                 }
             }
@@ -210,7 +200,6 @@ namespace DynamicAsteroids
                 Log.Exception(ex, typeof(MainSession));
             }
         }
-
         private AsteroidEntity FindNearestAsteroid(Vector3D characterPosition)
         {
             if (_spawner._asteroids == null) return null;
