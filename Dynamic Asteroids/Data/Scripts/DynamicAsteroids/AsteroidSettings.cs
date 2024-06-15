@@ -10,13 +10,13 @@ namespace DynamicAsteroids
         public static bool EnablePersistence = false; //barely works, don't touch this. It's already persistent per-session. This tries to save to a .dat but it's broken.
         public static bool EnableMiddleMouseAsteroidSpawn = false;  //debug
 
-        public static int SaveStateInterval = 600; // Default: 600 ticks (10 seconds)
-        public static int NetworkMessageInterval = 120; // Default: 120 ticks (2 seconds)
+        public static int SaveStateInterval = 600; // Default: 600 ticks (10 seconds). for writing the persistence .dat.
+        public static int NetworkMessageInterval = 120; // Default: 120 ticks (2 seconds). Many small packet bad(?)
         public static int SpawnInterval = 6; // Default: 600 ticks (10 seconds)
         public static int UpdateInterval = 120; // Default: 120 ticks (2 seconds)
 
         // Set to 0 to disable spawning, -1 for no limit, or a positive number for the maximum count
-        public static int MaxAsteroidCount = -1;
+        public static int MaxAsteroidCount = 20000;
 
         public static int MaxAsteroidsPerZone = 1000;  //Each player makes a "Zone" of asteroids. They merge together when players are nearby.
         public static int MaxTotalAttempts = 100;

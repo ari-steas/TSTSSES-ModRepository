@@ -46,7 +46,7 @@ public class AsteroidSpawner
             return;
 
         Log.Info("Initializing AsteroidSpawner");
-        _asteroids = new List<AsteroidEntity>(AsteroidSettings.MaxAsteroidCount);
+        _asteroids = new List<AsteroidEntity>(AsteroidSettings.MaxAsteroidCount == -1 ? 0 : AsteroidSettings.MaxAsteroidCount);
         _worldLoadTime = DateTime.UtcNow;
         rand = new Random(seed);
         AsteroidSettings.Seed = seed;
