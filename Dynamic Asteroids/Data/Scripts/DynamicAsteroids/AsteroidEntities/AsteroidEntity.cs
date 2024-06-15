@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
+using Invalid.DynamicRoids;
 using Sandbox.Definitions;
 using Sandbox.Engine.Physics;
 using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
-using SC.SUGMA;
 using VRage;
 using VRage.Game;
 using VRage.Game.Components;
@@ -102,7 +102,8 @@ namespace DynamicAsteroids.AsteroidEntities
 
             if (ent.EntityId == 0)
             {
-                Log.Info("EntityId is 0 oh no!");
+                Log.Warning("EntityId is 0, which is invalid!");
+                return null;
             }
 
             return ent;

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using DynamicAsteroids.AsteroidEntities;
+using Invalid.DynamicRoids;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
-using SC.SUGMA;
 using VRage.Game.Components;
 using VRage.Input;
 using VRageMath;
@@ -146,9 +146,14 @@ namespace DynamicAsteroids
         {
             try
             {
+                if (message == null || message.Length == 0)
+                {
+                    Log.Info("Received empty or null message, skipping processing.");
+                    return;
+                }
+
                 Log.Info($"Client: Received message of {message.Length} bytes");
                 var asteroidMessage = MyAPIGateway.Utilities.SerializeFromBinary<AsteroidNetworkMessage>(message);
-                Log.Info($"Client: Deserialized asteroid message");
 
                 if (asteroidMessage.IsRemoval)
                 {
@@ -197,9 +202,10 @@ namespace DynamicAsteroids
             }
             catch (Exception ex)
             {
-                Log.Exception(ex, typeof(MainSession));
+                Log.Exception(ex, typeof(MainSession), "Error processing received message: ");
             }
         }
+
         private AsteroidEntity FindNearestAsteroid(Vector3D characterPosition)
         {
             if (_spawner._asteroids == null) return null;

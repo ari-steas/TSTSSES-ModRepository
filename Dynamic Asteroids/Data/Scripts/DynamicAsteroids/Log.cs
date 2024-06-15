@@ -3,7 +3,7 @@ using System.IO;
 using DynamicAsteroids;
 using Sandbox.ModAPI;
 
-namespace SC.SUGMA
+namespace Invalid.DynamicRoids
 {
     internal class Log
     {
@@ -13,24 +13,27 @@ namespace SC.SUGMA
         private Log()
         {
             MyAPIGateway.Utilities.DeleteFileInGlobalStorage("DynamicAsteroids.log");
-            _writer = MyAPIGateway.Utilities
-                .WriteFileInGlobalStorage(
-                    "DynamicAsteroids.log"); // Only creating one debug.log to avoid clutter. Might change in the future.
-            _writer.WriteLine(
-                $"      Dynamic Asteroids - {(MyAPIGateway.Session.IsServer ? "Server" : "Client")} Debug Log\n===========================================\n");
+            _writer = MyAPIGateway.Utilities.WriteFileInGlobalStorage("DynamicAsteroids.log");
+            _writer.WriteLine($"      Dynamic Asteroids - {(MyAPIGateway.Session.IsServer ? "Server" : "Client")} Debug Log\n===========================================\n");
             _writer.Flush();
         }
 
         public static void Info(string message)
         {
             if (AsteroidSettings.EnableLogging)
-                I._Log(message);
+                I?._Log(message);
+        }
+
+        public static void Warning(string message)
+        {
+            if (AsteroidSettings.EnableLogging)
+                I?._Log("WARNING: " + message);
         }
 
         public static void Exception(Exception ex, Type callingType, string prefix = "")
         {
             if (AsteroidSettings.EnableLogging)
-                I._LogException(ex, callingType, prefix);
+                I?._LogException(ex, callingType, prefix);
         }
 
         public static void Init()
