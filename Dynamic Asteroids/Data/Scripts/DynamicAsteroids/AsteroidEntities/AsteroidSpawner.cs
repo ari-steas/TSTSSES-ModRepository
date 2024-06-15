@@ -239,19 +239,43 @@ public class AsteroidSpawner
         List<IMyPlayer> players = new List<IMyPlayer>();
         MyAPIGateway.Players.GetPlayers(players);
 
+        // Create a new dictionary to store the updated zones
+        Dictionary<long, AsteroidZone> updatedZones = new Dictionary<long, AsteroidZone>();
+
         foreach (var player in players)
         {
-            AsteroidZone zone;
-            if (playerZones.TryGetValue(player.IdentityId, out zone))
+            Vector3D playerPosition = player.GetPosition();
+
+            // Check if the player is within any of the existing zones
+            bool playerInZone = false;
+            foreach (var zone in playerZones.Values)
             {
-                Vector3D playerPosition = player.GetPosition();
-                if (!zone.IsPointInZone(playerPosition))
+                if (zone.IsPointInZone(playerPosition))
                 {
-                    // Player has moved out of the zone, reassign
-                    zone.Center = playerPosition;
+                    playerInZone = true;
+                    break;
                 }
             }
+
+            // If the player is not in any zone, create a new zone for them
+            if (!playerInZone)
+            {
+                AsteroidZone newZone = new AsteroidZone(playerPosition, ZONE_RADIUS);
+                updatedZones[player.IdentityId] = newZone;
+            }
         }
+
+        // Add any existing zones that still have players in them
+        foreach (var kvp in playerZones)
+        {
+            if (players.Any(p => kvp.Value.IsPointInZone(p.GetPosition())))
+            {
+                updatedZones[kvp.Key] = kvp.Value;
+            }
+        }
+
+        // Update the playerZones dictionary with the updated zones
+        playerZones = updatedZones;
     }
 
     private int _spawnIntervalTimer = 0;
@@ -337,6 +361,8 @@ public class AsteroidSpawner
         int spawnAttempts = 0;
         int maxAttempts = 50;
 
+        Log.Info($"Attempting to spawn asteroids. Current count: {_asteroids.Count}, Max count: {AsteroidSettings.MaxAsteroidCount}");
+
         while (_asteroids.Count < AsteroidSettings.MaxAsteroidCount && asteroidsSpawned < 10 && spawnAttempts < maxAttempts)
         {
             AsteroidZone selectedZone = zones[rand.Next(zones.Count)];
@@ -370,6 +396,8 @@ public class AsteroidSpawner
             var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true, rotation);
             _networkMessages.Add(message);
             asteroidsSpawned++;
+
+            Log.Info($"Spawn attempt complete. Asteroids spawned: {asteroidsSpawned}, Total spawn attempts: {spawnAttempts}, New asteroid count: {_asteroids.Count}");
         }
     }
     private bool IsValidSpawnPosition(Vector3D position, List<AsteroidZone> zones)
