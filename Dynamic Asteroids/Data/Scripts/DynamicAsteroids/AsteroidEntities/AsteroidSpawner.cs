@@ -35,9 +35,8 @@ public class AsteroidSpawner
     private Random rand;
     private List<AsteroidState> _despawnedAsteroids = new List<AsteroidState>();
     private List<AsteroidNetworkMessage> _networkMessages = new List<AsteroidNetworkMessage>();
-
     private Dictionary<long, AsteroidZone> playerZones = new Dictionary<long, AsteroidZone>();
-    private const double ZONE_RADIUS = 10000; // Example radius, adjust as needed
+    private const double ZONE_RADIUS = 10000;
 
     public void Init(int seed)
     {
@@ -150,13 +149,87 @@ public class AsteroidSpawner
         List<IMyPlayer> players = new List<IMyPlayer>();
         MyAPIGateway.Players.GetPlayers(players);
 
+        // Create a new dictionary to store the updated zones
+        Dictionary<long, AsteroidZone> updatedZones = new Dictionary<long, AsteroidZone>();
+
         foreach (var player in players)
         {
-            if (!playerZones.ContainsKey(player.IdentityId))
+            Vector3D playerPosition = player.GetPosition();
+
+            // Check if the player already has a zone assigned
+            AsteroidZone existingZone;
+            if (playerZones.TryGetValue(player.IdentityId, out existingZone))
             {
-                Vector3D playerPosition = player.GetPosition();
-                AsteroidZone zone = new AsteroidZone(playerPosition, ZONE_RADIUS);
-                playerZones.Add(player.IdentityId, zone);
+                // If the player's position is still within the existing zone, keep the zone
+                if (existingZone.IsPointInZone(playerPosition))
+                {
+                    updatedZones[player.IdentityId] = existingZone;
+                }
+                else
+                {
+                    // If the player's position is outside the existing zone, create a new zone
+                    AsteroidZone newZone = new AsteroidZone(playerPosition, ZONE_RADIUS);
+                    updatedZones[player.IdentityId] = newZone;
+                }
+            }
+            else
+            {
+                // If the player doesn't have a zone assigned, create a new zone
+                AsteroidZone newZone = new AsteroidZone(playerPosition, ZONE_RADIUS);
+                updatedZones[player.IdentityId] = newZone;
+            }
+        }
+
+        // Update the playerZones dictionary with the updated zones
+        playerZones = updatedZones;
+    }
+
+    public void MergeZones()
+    {
+        List<AsteroidZone> mergedZones = new List<AsteroidZone>();
+
+        foreach (var zone in playerZones.Values)
+        {
+            bool merged = false;
+
+            foreach (var mergedZone in mergedZones)
+            {
+                double distance = Vector3D.Distance(zone.Center, mergedZone.Center);
+                double combinedRadius = zone.Radius + mergedZone.Radius;
+
+                if (distance <= combinedRadius)
+                {
+                    // Merge the zones by updating the center and radius of the merged zone
+                    Vector3D newCenter = (zone.Center + mergedZone.Center) / 2;
+                    double newRadius = Math.Max(zone.Radius, mergedZone.Radius) + distance / 2;
+                    mergedZone.Center = newCenter;
+                    mergedZone.Radius = newRadius;
+                    merged = true;
+                    break;
+                }
+            }
+
+            if (!merged)
+            {
+                // If the zone couldn't be merged with any existing merged zones, add it as a new merged zone
+                mergedZones.Add(zone);
+            }
+        }
+
+        // Update the playerZones dictionary with the merged zones
+        playerZones.Clear();
+        List<IMyPlayer> players = new List<IMyPlayer>();
+        MyAPIGateway.Players.GetPlayers(players);
+
+        foreach (var mergedZone in mergedZones)
+        {
+            foreach (var player in players)
+            {
+                if (mergedZone.IsPointInZone(player.GetPosition()))
+                {
+                    playerZones[player.IdentityId] = mergedZone;
+                    break;
+                }
             }
         }
     }
@@ -189,6 +262,7 @@ public class AsteroidSpawner
         if (!MyAPIGateway.Session.IsServer) return;
 
         AssignZonesToPlayers();
+        MergeZones(); // Add this line to merge zones
         UpdateZones();
 
         try
@@ -235,7 +309,6 @@ public class AsteroidSpawner
             Log.Exception(ex, typeof(AsteroidSpawner));
         }
     }
-
     private void UpdateAsteroids(Vector3D playerPosition, AsteroidZone zone)
     {
         foreach (var asteroid in _asteroids.ToArray())
