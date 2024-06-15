@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
+using Invalid.DynamicRoids;
 using Sandbox.Definitions;
 using Sandbox.Engine.Physics;
 using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
-using SC.SUGMA;
 using VRage;
 using VRage.Game;
 using VRage.Game.Components;

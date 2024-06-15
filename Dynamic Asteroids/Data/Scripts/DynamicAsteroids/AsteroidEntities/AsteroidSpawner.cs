@@ -1,6 +1,5 @@
 ﻿using DynamicAsteroids.AsteroidEntities;
 using Sandbox.ModAPI;
-using SC.SUGMA;
 using System.Collections.Generic;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
@@ -8,6 +7,7 @@ using VRageMath;
 using System.Linq;
 using System;
 using DynamicAsteroids;
+using Invalid.DynamicRoids;
 using Sandbox.Game.Entities;
 
 public class AsteroidZone
