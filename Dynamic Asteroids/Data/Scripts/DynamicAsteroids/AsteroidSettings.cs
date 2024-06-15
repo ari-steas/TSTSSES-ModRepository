@@ -10,6 +10,9 @@ namespace DynamicAsteroids
         public static bool EnablePersistence = false; //barely works, don't touch this. It's already persistent per-session. This tries to save to a .dat but it's broken.
         public static bool EnableMiddleMouseAsteroidSpawn = false;  //debug
 
+        public static bool DisableZoneWhileMovingFast =  true;
+        public static double ZoneSpeedThreshold = 1000.0;
+
         public static int SaveStateInterval = 600; // Default: 600 ticks (10 seconds). for writing the persistence .dat.
         public static int NetworkMessageInterval = 120; // Default: 120 ticks (2 seconds). Many small packet bad(?)
         public static int SpawnInterval = 6; // Default: 600 ticks (10 seconds)

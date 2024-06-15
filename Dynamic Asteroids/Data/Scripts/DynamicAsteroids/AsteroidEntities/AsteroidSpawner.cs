@@ -181,52 +181,44 @@ public class AsteroidSpawner
         List<IMyPlayer> players = new List<IMyPlayer>();
         MyAPIGateway.Players.GetPlayers(players);
 
-        // Create a new dictionary to store the updated zones
         Dictionary<long, AsteroidZone> updatedZones = new Dictionary<long, AsteroidZone>();
 
         foreach (var player in players)
         {
             Vector3D playerPosition = player.GetPosition();
 
-            // Check player speed
             PlayerMovementData data;
             if (playerMovementData.TryGetValue(player.IdentityId, out data))
             {
-                if (data.Speed > 1000)
+                if (AsteroidSettings.DisableZoneWhileMovingFast && data.Speed > AsteroidSettings.ZoneSpeedThreshold)
                 {
                     Log.Info($"Skipping zone creation for player {player.DisplayName} due to high speed: {data.Speed} m/s.");
                     continue;
                 }
             }
 
-            // Check if the player already has a zone assigned
             AsteroidZone existingZone;
             if (playerZones.TryGetValue(player.IdentityId, out existingZone))
             {
-                // If the player's position is still within the existing zone, keep the zone
                 if (existingZone.IsPointInZone(playerPosition))
                 {
                     updatedZones[player.IdentityId] = existingZone;
                 }
                 else
                 {
-                    // If the player's position is outside the existing zone, create a new zone
                     AsteroidZone newZone = new AsteroidZone(playerPosition, AsteroidSettings.ZoneRadius);
                     updatedZones[player.IdentityId] = newZone;
                 }
             }
             else
             {
-                // If the player doesn't have a zone assigned, create a new zone
                 AsteroidZone newZone = new AsteroidZone(playerPosition, AsteroidSettings.ZoneRadius);
                 updatedZones[player.IdentityId] = newZone;
             }
         }
 
-        // Update the playerZones dictionary with the updated zones
         playerZones = updatedZones;
     }
-
     public void MergeZones()
     {
         List<AsteroidZone> mergedZones = new List<AsteroidZone>();
@@ -283,25 +275,22 @@ public class AsteroidSpawner
         List<IMyPlayer> players = new List<IMyPlayer>();
         MyAPIGateway.Players.GetPlayers(players);
 
-        // Create a new dictionary to store the updated zones
         Dictionary<long, AsteroidZone> updatedZones = new Dictionary<long, AsteroidZone>();
 
         foreach (var player in players)
         {
             Vector3D playerPosition = player.GetPosition();
 
-            // Check player speed
             PlayerMovementData data;
             if (playerMovementData.TryGetValue(player.IdentityId, out data))
             {
-                if (data.Speed > 1000)
+                if (AsteroidSettings.DisableZoneWhileMovingFast && data.Speed > AsteroidSettings.ZoneSpeedThreshold)
                 {
                     Log.Info($"Skipping zone update for player {player.DisplayName} due to high speed: {data.Speed} m/s.");
                     continue;
                 }
             }
 
-            // Check if the player is within any of the existing zones
             bool playerInZone = false;
             foreach (var zone in playerZones.Values)
             {
@@ -312,7 +301,6 @@ public class AsteroidSpawner
                 }
             }
 
-            // If the player is not in any zone, create a new zone for them
             if (!playerInZone)
             {
                 AsteroidZone newZone = new AsteroidZone(playerPosition, AsteroidSettings.ZoneRadius);
@@ -320,7 +308,6 @@ public class AsteroidSpawner
             }
         }
 
-        // Add any existing zones that still have players in them
         foreach (var kvp in playerZones)
         {
             if (players.Any(p => kvp.Value.IsPointInZone(p.GetPosition())))
@@ -329,10 +316,8 @@ public class AsteroidSpawner
             }
         }
 
-        // Update the playerZones dictionary with the updated zones
         playerZones = updatedZones;
     }
-
     private int _spawnIntervalTimer = 0;
     private int _updateIntervalTimer = 0;
 
@@ -571,7 +556,6 @@ public class AsteroidSpawner
                 double distance = Vector3D.Distance(currentPosition, data.LastPosition);
                 double timeElapsed = (currentTime - data.LastUpdateTime).TotalSeconds;
 
-                // Calculate speed in meters per second
                 double speed = distance / timeElapsed;
                 data.Speed = speed;
 
@@ -584,7 +568,7 @@ public class AsteroidSpawner
                 {
                     LastPosition = currentPosition,
                     LastUpdateTime = currentTime,
-                    Speed = 0 // Initialize speed to 0
+                    Speed = 0
                 };
             }
         }
