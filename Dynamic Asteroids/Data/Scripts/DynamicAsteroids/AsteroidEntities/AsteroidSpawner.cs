@@ -109,16 +109,19 @@ public class AsteroidSpawner
 
     private void LoadAsteroidsInRange(Vector3D playerPosition, AsteroidZone zone)
     {
+        int skippedCount = 0;
+        List<Vector3D> skippedPositions = new List<Vector3D>();
+
         foreach (var state in _despawnedAsteroids.ToArray())
         {
             if (zone.IsPointInZone(state.Position))
             {
                 bool tooClose = _asteroids.Any(a => Vector3D.DistanceSquared(a.PositionComp.GetPosition(), state.Position) < AsteroidSettings.MinDistanceFromPlayer * AsteroidSettings.MinDistanceFromPlayer);
-                bool exists = _asteroids.Any(a => a.EntityId == state.EntityId); // Check for existing IDs
 
-                if (tooClose || exists)
+                if (tooClose)
                 {
-                    Log.Info($"Skipping respawn of asteroid at {state.Position} due to proximity to other asteroids or duplicate ID");
+                    skippedCount++;
+                    skippedPositions.Add(state.Position);
                     continue;
                 }
 
@@ -133,6 +136,11 @@ public class AsteroidSpawner
 
                 _despawnedAsteroids.Remove(state);
             }
+        }
+
+        if (skippedCount > 0)
+        {
+            Log.Info($"Skipped respawn of {skippedCount} asteroids due to proximity to other asteroids or duplicate ID. Positions: {string.Join(", ", skippedPositions.Select(p => p.ToString()))}");
         }
     }
 
