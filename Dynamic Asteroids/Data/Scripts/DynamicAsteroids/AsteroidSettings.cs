@@ -6,8 +6,8 @@ namespace DynamicAsteroids
 {
     public static class AsteroidSettings
     {
-        public static bool EnableLogging = false; //can get very laggy
-        public static bool EnablePersistence = false; //barely works, don't touch this
+        public static bool EnableLogging = true; //can get very laggy
+        public static bool EnablePersistence = false; //barely works, don't touch this. It's already persistent per-session. This tries to save to a .dat but it's broken.
         public static bool EnableMiddleMouseAsteroidSpawn = false;  //debug
 
         public static int SaveStateInterval = 600; // Default: 600 ticks (10 seconds)
@@ -15,9 +15,10 @@ namespace DynamicAsteroids
         public static int SpawnInterval = 6; // Default: 600 ticks (10 seconds)
         public static int UpdateInterval = 120; // Default: 120 ticks (2 seconds)
 
-        public static int MaxAsteroidCount = 1000;
+        // Set to 0 to disable spawning, -1 for no limit, or a positive number for the maximum count
+        public static int MaxAsteroidCount = -1;
 
-        public static int MaxAsteroidsPerZone = 1000;
+        public static int MaxAsteroidsPerZone = 1000;  //Each player makes a "Zone" of asteroids. They merge together when players are nearby.
         public static int MaxTotalAttempts = 100;
         public static int MaxZoneAttempts = 50;
         public static double ZoneRadius = 10000.0;
@@ -29,7 +30,7 @@ namespace DynamicAsteroids
         public static double AngularVelocityVariability = 0;
 
         public static double MinDistanceFromVanillaAsteroids = 1000; // 1 km
-        public static double MinDistanceFromPlayer = 1; // Minimum distance from the player to spawn new asteroids
+        public static double MinDistanceFromPlayer = 3000; // Minimum distance from the player to spawn new asteroids
         public static int Seed = 69420; // Default seed, can be set dynamically
 
         public static double IceWeight = 99;
@@ -90,14 +91,6 @@ namespace DynamicAsteroids
             }
 
             velocity = Vector3D.Zero;
-            return false;
-        }
-
-        public static bool PlayerCanSeeRings(Vector3D point)
-        {
-            foreach (var area in ValidSpawnLocations)
-                if (area.ContainsPoint(point))
-                    return true;
             return false;
         }
 

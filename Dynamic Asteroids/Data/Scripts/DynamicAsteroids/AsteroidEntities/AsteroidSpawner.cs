@@ -386,13 +386,21 @@ public class AsteroidSpawner
     {
         int totalSpawnAttempts = 0;
 
+        // Check if total asteroids have reached the global limit
+        if (AsteroidSettings.MaxAsteroidCount == 0)
+        {
+            Log.Info("Asteroid spawning is disabled.");
+            return;
+        }
+
         foreach (var zone in zones)
         {
             int asteroidsSpawned = 0;
             int zoneSpawnAttempts = 0;
 
             while (zone.AsteroidCount < AsteroidSettings.MaxAsteroidsPerZone && asteroidsSpawned < 10 &&
-                   zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts && totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts)
+                   zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts && totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts &&
+                   (AsteroidSettings.MaxAsteroidCount == -1 || _asteroids.Count < AsteroidSettings.MaxAsteroidCount))
             {
                 Vector3D newPosition;
                 do
