@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using DynamicAsteroids.AsteroidEntities;
+﻿using DynamicAsteroids.AsteroidEntities;
 using Invalid.DynamicRoids;
-using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
+using System;
 using VRage.Game.Components;
 using VRage.Input;
 using VRageMath;
@@ -26,12 +24,12 @@ namespace DynamicAsteroids
         {
             I = this;
             Log.Init();
+            AsteroidSettings.LoadSettings(); // Load settings from the config file
 
             try
             {
                 Log.Info("Loading data in MainSession");
-                seed = (int)DateTime.UtcNow.Ticks;
-                AsteroidSettings.Seed = seed;
+                seed = AsteroidSettings.Seed;
                 Rand = new Random(seed);
 
                 if (MyAPIGateway.Session.IsServer)
@@ -58,12 +56,14 @@ namespace DynamicAsteroids
                 Log.Info("Unloading data in MainSession");
                 if (MyAPIGateway.Session.IsServer)
                 {
-                    if (AsteroidSettings.EnablePersistence) // Add this line
+                    if (AsteroidSettings.EnablePersistence)
                     {
-                        _spawner.SaveAsteroidState(); // Save asteroid states
+                        _spawner.SaveAsteroidState();
                     }
                     _spawner.Close();
                 }
+
+                AsteroidSettings.SaveSettings(); // Save settings to the config file
 
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(32000, OnMessageReceived);
             }
@@ -83,8 +83,6 @@ namespace DynamicAsteroids
                 if (MyAPIGateway.Session.IsServer)
                 {
                     _spawner.UpdateTick();
-
-                    // Save asteroid states periodically
                     if (_saveStateTimer > 0)
                     {
                         _saveStateTimer--;
@@ -92,10 +90,9 @@ namespace DynamicAsteroids
                     else
                     {
                         _spawner.SaveAsteroidState();
-                        _saveStateTimer = AsteroidSettings.SaveStateInterval; // Use setting
+                        _saveStateTimer = AsteroidSettings.SaveStateInterval;
                     }
 
-                    // Batch and delay network messages
                     if (_networkMessageTimer > 0)
                     {
                         _networkMessageTimer--;
@@ -112,15 +109,12 @@ namespace DynamicAsteroids
                 {
                     Vector3D characterPosition = MyAPIGateway.Session.Player.Character.PositionComp.GetPosition();
                     AsteroidEntity nearestAsteroid = FindNearestAsteroid(characterPosition);
-
                     if (nearestAsteroid != null)
                     {
                         Vector3D angularVelocity = nearestAsteroid.Physics.AngularVelocity;
                         string rotationString = $"({angularVelocity.X:F2}, {angularVelocity.Y:F2}, {angularVelocity.Z:F2})";
-
                         string message = $"Nearest Asteroid: {nearestAsteroid.EntityId} ({nearestAsteroid.Type})\nRotation: {rotationString}";
-                        if (AsteroidSettings.EnableLogging)
-                            MyAPIGateway.Utilities.ShowNotification(message, 1000 / 60);
+                        if (AsteroidSettings.EnableLogging) MyAPIGateway.Utilities.ShowNotification(message, 1000 / 60);
                     }
                 }
 
@@ -130,7 +124,7 @@ namespace DynamicAsteroids
                     {
                         var position = MyAPIGateway.Session.Player?.GetPosition() ?? Vector3D.Zero;
                         var velocity = MyAPIGateway.Session.Player?.Character?.Physics?.LinearVelocity ?? Vector3D.Zero;
-                        AsteroidType type = DetermineAsteroidType(); // Determine the type of asteroid
+                        AsteroidType type = DetermineAsteroidType();
                         AsteroidEntity.CreateAsteroid(position, Rand.Next(50), velocity, type);
                         Log.Info($"Asteroid created at {position} with velocity {velocity}");
                     }
@@ -187,6 +181,7 @@ namespace DynamicAsteroids
                             asteroidMessage.GetType(),
                             asteroidMessage.GetRotation(),
                             asteroidMessage.EntityId);
+
                         if (asteroid != null)
                         {
                             asteroid.Physics.AngularVelocity = asteroidMessage.GetAngularVelocity();
@@ -212,7 +207,6 @@ namespace DynamicAsteroids
 
             AsteroidEntity nearestAsteroid = null;
             double minDistance = double.MaxValue;
-
             foreach (var asteroid in _spawner._asteroids)
             {
                 double distance = Vector3D.DistanceSquared(characterPosition, asteroid.PositionComp.GetPosition());
@@ -222,16 +216,13 @@ namespace DynamicAsteroids
                     nearestAsteroid = asteroid;
                 }
             }
-
             return nearestAsteroid;
         }
 
-        // This function determines the type of asteroid to spawn
         private AsteroidType DetermineAsteroidType()
         {
-            int randValue = Rand.Next(0, 2); // Adjust as needed for more types
+            int randValue = Rand.Next(0, 2);
             return (AsteroidType)randValue;
         }
-
     }
 }
