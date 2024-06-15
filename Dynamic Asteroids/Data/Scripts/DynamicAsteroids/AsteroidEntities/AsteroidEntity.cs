@@ -89,6 +89,10 @@ namespace DynamicAsteroids.AsteroidEntities
             {
                 ent.EntityId = entityId.Value;
             }
+            else
+            {
+                ent.EntityId = MyAPIGateway.
+            }
 
             try
             {
@@ -102,7 +106,8 @@ namespace DynamicAsteroids.AsteroidEntities
 
             if (ent.EntityId == 0)
             {
-                Log.Info("EntityId is 0 oh no!");
+                Log.Warning("EntityId is 0, which is invalid!");
+                return null;
             }
 
             return ent;

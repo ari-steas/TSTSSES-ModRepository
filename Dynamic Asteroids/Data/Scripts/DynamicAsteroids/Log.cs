@@ -21,19 +21,19 @@ namespace Invalid.DynamicRoids
         public static void Info(string message)
         {
             if (AsteroidSettings.EnableLogging)
-                I._Log(message);
+                I?._Log(message);
         }
 
         public static void Warning(string message)
         {
             if (AsteroidSettings.EnableLogging)
-                I._Log("WARNING: " + message);
+                I?._Log("WARNING: " + message);
         }
 
         public static void Exception(Exception ex, Type callingType, string prefix = "")
         {
             if (AsteroidSettings.EnableLogging)
-                I._LogException(ex, callingType, prefix);
+                I?._LogException(ex, callingType, prefix);
         }
 
         public static void Init()
