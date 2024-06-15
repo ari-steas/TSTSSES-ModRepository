@@ -386,7 +386,6 @@ public class AsteroidSpawner
     {
         int totalSpawnAttempts = 0;
 
-        // Check if total asteroids have reached the global limit
         if (AsteroidSettings.MaxAsteroidCount == 0)
         {
             Log.Info("Asteroid spawning is disabled.");
@@ -419,7 +418,10 @@ public class AsteroidSpawner
 
                 if (IsNearVanillaAsteroid(newPosition))
                 {
-                    Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
+                    if (AsteroidSettings.EnableLogging)
+                    {
+                        Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
+                    }
                     continue;
                 }
 
@@ -429,14 +431,20 @@ public class AsteroidSpawner
                                                                         (float)rand.NextDouble() * MathHelper.TwoPi,
                                                                         (float)rand.NextDouble() * MathHelper.TwoPi);
 
-                Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
+                if (AsteroidSettings.EnableLogging)
+                {
+                    Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
+                }
                 var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type, rotation);
 
                 if (asteroid != null)
                 {
                     _asteroids.Add(asteroid);
                     zone.AsteroidCount++;
-                    Log.Info($"Server: Added new asteroid with ID {asteroid.EntityId} to _asteroids list");
+                    if (AsteroidSettings.EnableLogging)
+                    {
+                        Log.Info($"Server: Added new asteroid with ID {asteroid.EntityId} to _asteroids list");
+                    }
 
                     var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true, rotation);
                     _networkMessages.Add(message);
@@ -444,14 +452,23 @@ public class AsteroidSpawner
                 }
                 else
                 {
-                    Log.Info($"Failed to create asteroid at position {newPosition}");
+                    if (AsteroidSettings.EnableLogging)
+                    {
+                        Log.Info($"Failed to create asteroid at position {newPosition}");
+                    }
                 }
             }
 
-            Log.Info($"Zone spawn complete. Asteroids spawned: {asteroidsSpawned}, Zone spawn attempts: {zoneSpawnAttempts}, Zone asteroid count: {zone.AsteroidCount}");
+            if (AsteroidSettings.EnableLogging)
+            {
+                Log.Info($"Zone spawn complete. Asteroids spawned: {asteroidsSpawned}, Zone spawn attempts: {zoneSpawnAttempts}, Zone asteroid count: {zone.AsteroidCount}");
+            }
         }
 
-        Log.Info($"All zones spawn attempt complete. Total spawn attempts: {totalSpawnAttempts}, New total asteroid count: {_asteroids.Count}");
+        if (AsteroidSettings.EnableLogging)
+        {
+            Log.Info($"All zones spawn attempt complete. Total spawn attempts: {totalSpawnAttempts}, New total asteroid count: {_asteroids.Count}");
+        }
     }
 
     private bool IsValidSpawnPosition(Vector3D position, List<AsteroidZone> zones)
