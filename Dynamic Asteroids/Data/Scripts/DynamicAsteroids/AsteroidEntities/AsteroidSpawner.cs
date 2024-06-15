@@ -14,11 +14,13 @@ public class AsteroidZone
 {
     public Vector3D Center { get; set; }
     public double Radius { get; set; }
+    public int AsteroidCount { get; set; }
 
     public AsteroidZone(Vector3D center, double radius)
     {
         Center = center;
         Radius = radius;
+        AsteroidCount = 0;
     }
 
     public bool IsPointInZone(Vector3D point)
@@ -204,6 +206,7 @@ public class AsteroidSpawner
                     double newRadius = Math.Max(zone.Radius, mergedZone.Radius) + distance / 2;
                     mergedZone.Center = newCenter;
                     mergedZone.Radius = newRadius;
+                    mergedZone.AsteroidCount += zone.AsteroidCount;
                     merged = true;
                     break;
                 }
@@ -212,7 +215,7 @@ public class AsteroidSpawner
             if (!merged)
             {
                 // If the zone couldn't be merged with any existing merged zones, add it as a new merged zone
-                mergedZones.Add(zone);
+                mergedZones.Add(new AsteroidZone(zone.Center, zone.Radius) { AsteroidCount = zone.AsteroidCount });
             }
         }
 
@@ -233,7 +236,6 @@ public class AsteroidSpawner
             }
         }
     }
-
     public void UpdateZones()
     {
         List<IMyPlayer> players = new List<IMyPlayer>();
@@ -335,14 +337,20 @@ public class AsteroidSpawner
 
     private void UpdateAsteroids(List<AsteroidZone> zones)
     {
+        Log.Info($"Updating asteroids. Total asteroids: {_asteroids.Count}, Total zones: {zones.Count}");
+        int removedCount = 0;
+
         foreach (var asteroid in _asteroids.ToArray())
         {
             bool inAnyZone = false;
+            AsteroidZone currentZone = null;
+
             foreach (var zone in zones)
             {
                 if (zone.IsPointInZone(asteroid.PositionComp.GetPosition()))
                 {
                     inAnyZone = true;
+                    currentZone = zone;
                     break;
                 }
             }
@@ -351,55 +359,93 @@ public class AsteroidSpawner
             {
                 Log.Info($"Removing asteroid at {asteroid.PositionComp.GetPosition()} due to distance from all player zones");
                 RemoveAsteroid(asteroid);
+                removedCount++;
             }
+            else if (currentZone != null)
+            {
+                // Ensure the asteroid is counted in the correct zone
+                foreach (var zone in zones)
+                {
+                    if (zone != currentZone && zone.IsPointInZone(asteroid.PositionComp.GetPosition()))
+                    {
+                        zone.AsteroidCount--;
+                    }
+                }
+                currentZone.AsteroidCount++;
+            }
+        }
+
+        Log.Info($"Update complete. Removed asteroids: {removedCount}, Remaining asteroids: {_asteroids.Count}");
+        foreach (var zone in zones)
+        {
+            Log.Info($"Zone center: {zone.Center}, Radius: {zone.Radius}, Asteroid count: {zone.AsteroidCount}");
         }
     }
 
     private void SpawnAsteroids(List<AsteroidZone> zones)
     {
-        int asteroidsSpawned = 0;
-        int spawnAttempts = 0;
-        int maxAttempts = 50;
+        const int MAX_ASTEROIDS_PER_ZONE = 1000;
+        int totalSpawnAttempts = 0;
+        int maxTotalAttempts = 100;
 
-        Log.Info($"Attempting to spawn asteroids. Current count: {_asteroids.Count}, Max count: {AsteroidSettings.MaxAsteroidCount}");
+        Log.Info($"Attempting to spawn asteroids. Current total count: {_asteroids.Count}, Zones: {zones.Count}");
 
-        while (_asteroids.Count < AsteroidSettings.MaxAsteroidCount && asteroidsSpawned < 10 && spawnAttempts < maxAttempts)
+        foreach (var zone in zones)
         {
-            AsteroidZone selectedZone = zones[rand.Next(zones.Count)];
-            Vector3D newPosition;
-            do
+            int asteroidsSpawned = 0;
+            int zoneSpawnAttempts = 0;
+            int maxZoneAttempts = 50;
+
+            while (zone.AsteroidCount < MAX_ASTEROIDS_PER_ZONE && asteroidsSpawned < 10 && zoneSpawnAttempts < maxZoneAttempts && totalSpawnAttempts < maxTotalAttempts)
             {
-                newPosition = selectedZone.Center + RandVector() * selectedZone.Radius;
-                spawnAttempts++;
-            } while (!IsValidSpawnPosition(newPosition, zones) && spawnAttempts < maxAttempts);
+                Vector3D newPosition;
+                do
+                {
+                    newPosition = zone.Center + RandVector() * zone.Radius;
+                    zoneSpawnAttempts++;
+                    totalSpawnAttempts++;
+                } while (!IsValidSpawnPosition(newPosition, zones) && zoneSpawnAttempts < maxZoneAttempts && totalSpawnAttempts < maxTotalAttempts);
 
-            if (spawnAttempts >= maxAttempts) break;
+                if (zoneSpawnAttempts >= maxZoneAttempts || totalSpawnAttempts >= maxTotalAttempts) break;
 
-            Vector3D newVelocity;
-            if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity)) continue;
+                Vector3D newVelocity;
+                if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity)) continue;
 
-            if (IsNearVanillaAsteroid(newPosition))
-            {
-                Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
-                continue;
+                if (IsNearVanillaAsteroid(newPosition))
+                {
+                    Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
+                    continue;
+                }
+
+                AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition);
+                float size = AsteroidSettings.GetAsteroidSize(newPosition);
+                Quaternion rotation = Quaternion.CreateFromYawPitchRoll((float)rand.NextDouble() * MathHelper.TwoPi, (float)rand.NextDouble() * MathHelper.TwoPi, (float)rand.NextDouble() * MathHelper.TwoPi);
+
+                Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
+                var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type, rotation);
+
+                if (asteroid != null)
+                {
+                    _asteroids.Add(asteroid);
+                    zone.AsteroidCount++;
+                    Log.Info($"Server: Added new asteroid with ID {asteroid.EntityId} to _asteroids list");
+
+                    var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true, rotation);
+                    _networkMessages.Add(message);
+                    asteroidsSpawned++;
+                }
+                else
+                {
+                    Log.Info($"Failed to create asteroid at position {newPosition}");
+                }
             }
 
-            AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition);
-            float size = AsteroidSettings.GetAsteroidSize(newPosition);
-            Quaternion rotation = Quaternion.CreateFromYawPitchRoll((float)rand.NextDouble() * MathHelper.TwoPi, (float)rand.NextDouble() * MathHelper.TwoPi, (float)rand.NextDouble() * MathHelper.TwoPi);
-
-            Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
-            var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type, rotation);
-            _asteroids.Add(asteroid);
-            Log.Info($"Server: Added new asteroid with ID {asteroid.EntityId} to _asteroids list");
-
-            var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true, rotation);
-            _networkMessages.Add(message);
-            asteroidsSpawned++;
-
-            Log.Info($"Spawn attempt complete. Asteroids spawned: {asteroidsSpawned}, Total spawn attempts: {spawnAttempts}, New asteroid count: {_asteroids.Count}");
+            Log.Info($"Zone spawn complete. Asteroids spawned: {asteroidsSpawned}, Zone spawn attempts: {zoneSpawnAttempts}, Zone asteroid count: {zone.AsteroidCount}");
         }
+
+        Log.Info($"All zones spawn attempt complete. Total spawn attempts: {totalSpawnAttempts}, New total asteroid count: {_asteroids.Count}");
     }
+
     private bool IsValidSpawnPosition(Vector3D position, List<AsteroidZone> zones)
     {
         foreach (var zone in zones)
