@@ -13,11 +13,8 @@ namespace Invalid.DynamicRoids
         private Log()
         {
             MyAPIGateway.Utilities.DeleteFileInGlobalStorage("DynamicAsteroids.log");
-            _writer = MyAPIGateway.Utilities
-                .WriteFileInGlobalStorage(
-                    "DynamicAsteroids.log"); // Only creating one debug.log to avoid clutter. Might change in the future.
-            _writer.WriteLine(
-                $"      Dynamic Asteroids - {(MyAPIGateway.Session.IsServer ? "Server" : "Client")} Debug Log\n===========================================\n");
+            _writer = MyAPIGateway.Utilities.WriteFileInGlobalStorage("DynamicAsteroids.log");
+            _writer.WriteLine($"      Dynamic Asteroids - {(MyAPIGateway.Session.IsServer ? "Server" : "Client")} Debug Log\n===========================================\n");
             _writer.Flush();
         }
 
@@ -25,6 +22,12 @@ namespace Invalid.DynamicRoids
         {
             if (AsteroidSettings.EnableLogging)
                 I._Log(message);
+        }
+
+        public static void Warning(string message)
+        {
+            if (AsteroidSettings.EnableLogging)
+                I._Log("WARNING: " + message);
         }
 
         public static void Exception(Exception ex, Type callingType, string prefix = "")

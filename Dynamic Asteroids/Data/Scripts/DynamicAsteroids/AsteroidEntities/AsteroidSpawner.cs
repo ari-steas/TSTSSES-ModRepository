@@ -398,8 +398,7 @@ public class AsteroidSpawner
             int zoneSpawnAttempts = 0;
 
             while (zone.AsteroidCount < AsteroidSettings.MaxAsteroidsPerZone && asteroidsSpawned < 10 &&
-                   zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts && totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts &&
-                   (AsteroidSettings.MaxAsteroidCount == -1 || _asteroids.Count < AsteroidSettings.MaxAsteroidCount))
+                   zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts && totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts)
             {
                 Vector3D newPosition;
                 do
@@ -423,6 +422,13 @@ public class AsteroidSpawner
                         Log.Info("Skipped spawning asteroid due to proximity to vanilla asteroid.");
                     }
                     continue;
+                }
+
+                // Check max asteroid count before actually adding a new asteroid
+                if (AsteroidSettings.MaxAsteroidCount != -1 && _asteroids.Count >= AsteroidSettings.MaxAsteroidCount)
+                {
+                    Log.Warning($"Maximum asteroid count of {AsteroidSettings.MaxAsteroidCount} reached. No more asteroids will be spawned until existing ones are removed.");
+                    return;
                 }
 
                 AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition);

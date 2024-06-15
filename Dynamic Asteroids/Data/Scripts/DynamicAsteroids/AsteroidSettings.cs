@@ -16,7 +16,7 @@ namespace DynamicAsteroids
         public static int UpdateInterval = 120; // Default: 120 ticks (2 seconds)
 
         // Set to 0 to disable spawning, -1 for no limit, or a positive number for the maximum count
-        public static int MaxAsteroidCount = -1;
+        public static int MaxAsteroidCount = 20000;
 
         public static int MaxAsteroidsPerZone = 1000;  //Each player makes a "Zone" of asteroids. They merge together when players are nearby.
         public static int MaxTotalAttempts = 100;
