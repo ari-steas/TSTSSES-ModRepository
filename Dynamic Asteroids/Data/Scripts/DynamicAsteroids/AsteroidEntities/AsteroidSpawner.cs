@@ -382,31 +382,29 @@ public class AsteroidSpawner
         }
     }
 
-    private void SpawnAsteroids(List<AsteroidZone> zones)
+    public void SpawnAsteroids(List<AsteroidZone> zones)
     {
-        const int MAX_ASTEROIDS_PER_ZONE = 1000;
         int totalSpawnAttempts = 0;
-        int maxTotalAttempts = 100;
-
-        Log.Info($"Attempting to spawn asteroids. Current total count: {_asteroids.Count}, Zones: {zones.Count}");
 
         foreach (var zone in zones)
         {
             int asteroidsSpawned = 0;
             int zoneSpawnAttempts = 0;
-            int maxZoneAttempts = 50;
 
-            while (zone.AsteroidCount < MAX_ASTEROIDS_PER_ZONE && asteroidsSpawned < 10 && zoneSpawnAttempts < maxZoneAttempts && totalSpawnAttempts < maxTotalAttempts)
+            while (zone.AsteroidCount < AsteroidSettings.MaxAsteroidsPerZone && asteroidsSpawned < 10 &&
+                   zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts && totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts)
             {
                 Vector3D newPosition;
                 do
                 {
-                    newPosition = zone.Center + RandVector() * zone.Radius;
+                    newPosition = zone.Center + RandVector() * AsteroidSettings.ZoneRadius;
                     zoneSpawnAttempts++;
                     totalSpawnAttempts++;
-                } while (!IsValidSpawnPosition(newPosition, zones) && zoneSpawnAttempts < maxZoneAttempts && totalSpawnAttempts < maxTotalAttempts);
+                } while (!IsValidSpawnPosition(newPosition, zones) && zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts &&
+                         totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts);
 
-                if (zoneSpawnAttempts >= maxZoneAttempts || totalSpawnAttempts >= maxTotalAttempts) break;
+                if (zoneSpawnAttempts >= AsteroidSettings.MaxZoneAttempts || totalSpawnAttempts >= AsteroidSettings.MaxTotalAttempts)
+                    break;
 
                 Vector3D newVelocity;
                 if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity)) continue;
@@ -419,7 +417,9 @@ public class AsteroidSpawner
 
                 AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition);
                 float size = AsteroidSettings.GetAsteroidSize(newPosition);
-                Quaternion rotation = Quaternion.CreateFromYawPitchRoll((float)rand.NextDouble() * MathHelper.TwoPi, (float)rand.NextDouble() * MathHelper.TwoPi, (float)rand.NextDouble() * MathHelper.TwoPi);
+                Quaternion rotation = Quaternion.CreateFromYawPitchRoll((float)rand.NextDouble() * MathHelper.TwoPi,
+                                                                        (float)rand.NextDouble() * MathHelper.TwoPi,
+                                                                        (float)rand.NextDouble() * MathHelper.TwoPi);
 
                 Log.Info($"Spawning asteroid at {newPosition} with velocity {newVelocity} of type {type}");
                 var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type, rotation);

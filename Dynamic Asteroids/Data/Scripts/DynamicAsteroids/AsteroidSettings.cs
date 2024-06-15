@@ -6,9 +6,9 @@ namespace DynamicAsteroids
 {
     public static class AsteroidSettings
     {
-        public static bool EnableLogging = true;
+        public static bool EnableLogging = false; //can get very laggy
         public static bool EnablePersistence = false; //barely works, don't touch this
-        public static bool EnableMiddleMouseAsteroidSpawn = true;  //debug
+        public static bool EnableMiddleMouseAsteroidSpawn = false;  //debug
 
         public static int SaveStateInterval = 600; // Default: 600 ticks (10 seconds)
         public static int NetworkMessageInterval = 120; // Default: 120 ticks (2 seconds)
@@ -16,7 +16,12 @@ namespace DynamicAsteroids
         public static int UpdateInterval = 120; // Default: 120 ticks (2 seconds)
 
         public static int MaxAsteroidCount = 1000;
-        public static int AsteroidSpawnRadius = 10000;
+
+        public static int MaxAsteroidsPerZone = 1000;
+        public static int MaxTotalAttempts = 100;
+        public static int MaxZoneAttempts = 50;
+        public static double ZoneRadius = 10000.0;
+
         //TODO: make these velocities only affect a % of asteroids with an option
         //note: these are absolutely awful for performance, thousands of moving entities etc.
         public static int AsteroidVelocityBase = 0;
