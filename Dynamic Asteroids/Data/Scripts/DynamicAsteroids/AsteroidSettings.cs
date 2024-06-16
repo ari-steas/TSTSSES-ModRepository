@@ -64,10 +64,7 @@ namespace DynamicAsteroids
             new SpawnableArea
             {
                 CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
-                Normal = new Vector3D(1, 10, 0.5).Normalized(),
-                Radius = 60268000 * 2.5,
-                InnerRadius = 60268000 * 1.2,
-                HeightFromCenter = 1000,
+                Radius = 60268000 * 2.5
             }
         };
 
@@ -199,6 +196,11 @@ namespace DynamicAsteroids
                     WriteIntArray(writer, "GoldDropRange", GoldDropRange);
                     WriteIntArray(writer, "PlatinumDropRange", PlatinumDropRange);
                     WriteIntArray(writer, "UraniniteDropRange", UraniniteDropRange);
+
+                    writer.WriteLine("[SpawnableArea]");
+                    var spawnLocation = ValidSpawnLocations[0];
+                    writer.WriteLine($"CenterPosition={spawnLocation.CenterPosition.X},{spawnLocation.CenterPosition.Y},{spawnLocation.CenterPosition.Z}");
+                    writer.WriteLine($"Radius={spawnLocation.Radius}");
                 }
             }
             catch (Exception ex)
@@ -380,6 +382,13 @@ namespace DynamicAsteroids
                                 case "UraniniteDropRange":
                                     UraniniteDropRange = ReadIntArray(value);
                                     break;
+                                case "CenterPosition":
+                                    var coords = value.Split(',');
+                                    ValidSpawnLocations[0].CenterPosition = new Vector3D(double.Parse(coords[0]), double.Parse(coords[1]), double.Parse(coords[2]));
+                                    break;
+                                case "Radius":
+                                    ValidSpawnLocations[0].Radius = double.Parse(value);
+                                    break;
                             }
                         }
                     }
@@ -411,25 +420,17 @@ namespace DynamicAsteroids
     public class SpawnableArea
     {
         public Vector3D CenterPosition;
-        public Vector3D Normal;
         public double Radius;
-        public double InnerRadius;
-        public double HeightFromCenter;
 
         public bool ContainsPoint(Vector3D point)
         {
-            point -= CenterPosition;
-            double pointDistanceSq = point.LengthSquared();
-            if (pointDistanceSq > Radius * Radius || pointDistanceSq < InnerRadius * InnerRadius)
-                return false;
-            if (Math.Abs(Vector3D.Dot(point, Normal)) > HeightFromCenter)
-                return false;
-            return true;
+            double distanceSquared = (point - CenterPosition).LengthSquared();
+            return distanceSquared <= Radius * Radius;
         }
 
         public Vector3D VelocityAtPoint(Vector3D point)
         {
-            return -(point - CenterPosition).Cross(Normal).Normalized() * AsteroidSettings.AsteroidVelocityBase;
+            return (point - CenterPosition).Normalized() * AsteroidSettings.AsteroidVelocityBase;
         }
     }
 }
