@@ -293,7 +293,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 }
 
                 Size = size;
-                _integrity = AsteroidSettings.BaseIntegrity + Size;
+                _integrity = AsteroidSettings.BaseIntegrity * Size;
                 Log.Info($"Base Integrity: {AsteroidSettings.BaseIntegrity}, Size: {Size}, Total Integrity: {_integrity}");
 
                 Log.Info($"Attempting to load model: {ModelString}");
