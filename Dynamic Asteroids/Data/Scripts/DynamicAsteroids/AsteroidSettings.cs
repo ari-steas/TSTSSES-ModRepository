@@ -13,7 +13,7 @@ namespace DynamicAsteroids
         public static bool EnablePersistence = false;
         public static bool EnableMiddleMouseAsteroidSpawn = false;
         public static bool DisableZoneWhileMovingFast = true;
-        public static double ZoneSpeedThreshold = 1000.0;
+        public static double ZoneSpeedThreshold = 2000.0;
         public static int SaveStateInterval = 600;
         public static int NetworkMessageInterval = 120;
         public static int SpawnInterval = 6;
@@ -40,7 +40,7 @@ namespace DynamicAsteroids
         public static double GoldWeight = 0.05;
         public static double PlatinumWeight = 0.05;
         public static double UraniniteWeight = 0.05;
-        public static float BaseIntegrity = 1000f;
+        public static float BaseIntegrity = 1f;
         public static float MinAsteroidSize = 50f;
         public static float MaxAsteroidSize = 250f;
         public static float MinSubChunkSize = 5f;
