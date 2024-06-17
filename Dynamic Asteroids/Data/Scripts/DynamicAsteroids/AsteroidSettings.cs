@@ -20,7 +20,7 @@ namespace DynamicAsteroids
         public static int SpawnInterval = 6;
         public static int UpdateInterval = 120;
         public static int MaxAsteroidCount = 20000;
-        public static int MaxAsteroidsPerZone = 1000;
+        public static int MaxAsteroidsPerZone = 100;
         public static int MaxTotalAttempts = 100;
         public static int MaxZoneAttempts = 50;
         public static double ZoneRadius = 10000.0;
