@@ -349,6 +349,8 @@ public class AsteroidSpawner
         MergeZones();
         UpdateZones();
 
+        CreateTemporarySpawnableAreasAroundVanillaAsteroids(); // Add this line to create temporary areas
+
         try
         {
             List<IMyPlayer> players = new List<IMyPlayer>();
@@ -728,6 +730,25 @@ public class AsteroidSpawner
 
         return false;
     }
+
+    public void CreateTemporarySpawnableAreasAroundVanillaAsteroids()
+    {
+        List<IMyVoxelBase> voxelMaps = new List<IMyVoxelBase>();
+        MyAPIGateway.Session.VoxelMaps.GetInstances(voxelMaps, v => v is IMyVoxelMap && !v.StorageName.StartsWith("mod_"));
+
+        foreach (var voxelMap in voxelMaps)
+        {
+            Vector3D asteroidPosition = voxelMap.GetPosition();
+            SpawnableArea tempArea = new SpawnableArea
+            {
+                Name = "TempArea_" + voxelMap.StorageName,
+                CenterPosition = asteroidPosition,
+                Radius = AsteroidSettings.VanillaAsteroidSpawnLatchingRadius
+            };
+            AsteroidSettings.ValidSpawnLocations.Add(tempArea);
+        }
+    }
+
 
     private Vector3D RandVector()
     {
