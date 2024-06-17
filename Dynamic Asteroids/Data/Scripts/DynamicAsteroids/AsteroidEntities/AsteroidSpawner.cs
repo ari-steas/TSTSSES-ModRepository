@@ -576,6 +576,11 @@ public class AsteroidSpawner
 
     private bool IsValidSpawnPosition(Vector3D position, List<AsteroidZone> zones)
     {
+        if (AsteroidSettings.IgnorePlanets && IsNearPlanet(position))
+        {
+            return false;
+        }
+
         foreach (var zone in zones)
         {
             if (zone.IsPointInZone(position) &&
@@ -585,6 +590,13 @@ public class AsteroidSpawner
             }
         }
         return false;
+    }
+
+    private bool IsNearPlanet(Vector3D position)
+    {
+        float interference;
+        Vector3D gravity = MyAPIGateway.Physics.CalculateNaturalGravityAt(position, out interference);
+        return gravity.LengthSquared() > 0;
     }
 
     public void SendNetworkMessages()
