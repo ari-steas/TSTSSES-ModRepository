@@ -30,6 +30,7 @@ namespace DynamicAsteroids
         public static double MinDistanceFromVanillaAsteroids = 1000;
         public static double MinDistanceFromPlayer = 3000;
         public static int Seed = 69420;
+        public static bool IgnorePlanets = true;
         public static double IceWeight = 99;
         public static double StoneWeight = 0.5;
         public static double IronWeight = 0.25;
@@ -153,6 +154,7 @@ namespace DynamicAsteroids
                     writer.WriteLine($"MinDistanceFromVanillaAsteroids={MinDistanceFromVanillaAsteroids}");
                     writer.WriteLine($"MinDistanceFromPlayer={MinDistanceFromPlayer}");
                     writer.WriteLine($"Seed={Seed}");
+                    writer.WriteLine($"IgnorePlanets={IgnorePlanets}");
 
                     writer.WriteLine("[Weights]");
                     writer.WriteLine($"IceWeight={IceWeight}");
@@ -290,6 +292,9 @@ namespace DynamicAsteroids
                                     break;
                                 case "Seed":
                                     Seed = int.Parse(value);
+                                    break;
+                                case "IgnorePlanets":
+                                    IgnorePlanets = bool.Parse(value);
                                     break;
                                 case "IceWeight":
                                     IceWeight = double.Parse(value);
