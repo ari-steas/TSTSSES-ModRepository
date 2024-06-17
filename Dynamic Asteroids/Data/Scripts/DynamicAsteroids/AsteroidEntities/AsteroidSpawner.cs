@@ -533,8 +533,6 @@ public class AsteroidSpawner
                 continue;
             }
 
-
-
             while (zone.AsteroidCount < AsteroidSettings.MaxAsteroidsPerZone && asteroidsSpawned < 10 &&
                    zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts && totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts)
             {
@@ -553,7 +551,7 @@ public class AsteroidSpawner
                 Vector3D newVelocity;
                 if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity)) continue;
 
-                if (AsteroidSettings.EnableVanillaAsteroidSpawnLatching && IsNearVanillaAsteroid(newPosition))
+                if (IsNearVanillaAsteroid(newPosition))
                 {
                     skippedPositions.Add(newPosition);
                     continue;
@@ -719,7 +717,7 @@ public class AsteroidSpawner
 
         foreach (var voxelMap in voxelMaps)
         {
-            if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < AsteroidSettings.VanillaAsteroidSpawnLatchingRadius * AsteroidSettings.VanillaAsteroidSpawnLatchingRadius)
+            if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < AsteroidSettings.MinDistanceFromVanillaAsteroids * AsteroidSettings.MinDistanceFromVanillaAsteroids)
             {
                 Log.Info($"Position {position} is near vanilla asteroid {voxelMap.StorageName}");
                 return true;

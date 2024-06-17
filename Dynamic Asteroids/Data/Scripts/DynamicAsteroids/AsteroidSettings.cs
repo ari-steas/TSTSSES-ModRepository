@@ -13,8 +13,6 @@ namespace DynamicAsteroids
         public static bool EnableLogging = false;
         public static bool EnablePersistence = false;
         public static bool EnableMiddleMouseAsteroidSpawn = false;
-        public static bool EnableVanillaAsteroidSpawnLatching = true;
-        public static double VanillaAsteroidSpawnLatchingRadius = 3000;
         public static bool DisableZoneWhileMovingFast = true;
         public static double ZoneSpeedThreshold = 2000.0;
         public static int SaveStateInterval = 600;
@@ -139,8 +137,6 @@ namespace DynamicAsteroids
                     writer.WriteLine($"EnableLogging={EnableLogging}");
                     writer.WriteLine($"EnablePersistence={EnablePersistence}");
                     writer.WriteLine($"EnableMiddleMouseAsteroidSpawn={EnableMiddleMouseAsteroidSpawn}");
-                    writer.WriteLine($"EnableVanillaAsteroidSpawnLatching={EnableVanillaAsteroidSpawnLatching}");
-                    writer.WriteLine($"VanillaAsteroidSpawnLatchingRadius={VanillaAsteroidSpawnLatchingRadius}");
                     writer.WriteLine($"DisableZoneWhileMovingFast={DisableZoneWhileMovingFast}");
                     writer.WriteLine($"ZoneSpeedThreshold={ZoneSpeedThreshold}");
                     writer.WriteLine($"SaveStateInterval={SaveStateInterval}");
@@ -245,12 +241,6 @@ namespace DynamicAsteroids
                                     break;
                                 case "EnableMiddleMouseAsteroidSpawn":
                                     EnableMiddleMouseAsteroidSpawn = bool.Parse(value);
-                                    break;
-                                case "EnableVanillaAsteroidSpawnLatching":
-                                    EnableVanillaAsteroidSpawnLatching = bool.Parse(value);
-                                    break;
-                                case "VanillaAsteroidSpawnLatchingRadius":
-                                    VanillaAsteroidSpawnLatchingRadius = double.Parse(value);
                                     break;
                                 case "DisableZoneWhileMovingFast":
                                     DisableZoneWhileMovingFast = bool.Parse(value);
@@ -419,7 +409,7 @@ namespace DynamicAsteroids
                     {
                         Name = "DefaultArea",
                         CenterPosition = new Vector3D(0.0, 0.0, 0.0),
-                        Radius = 0
+                        Radius = 10000
                     });
                     SaveSettings();
                 }
