@@ -40,10 +40,11 @@ public class AsteroidSpawner
     private Dictionary<long, AsteroidZone> playerZones = new Dictionary<long, AsteroidZone>();
     private Dictionary<long, PlayerMovementData> playerMovementData = new Dictionary<long, PlayerMovementData>();
     private Queue<AsteroidEntity> gravityCheckQueue = new Queue<AsteroidEntity>();
-    private const int GravityChecksPerTick = 1;
+    private const int GravityChecksPerTick = 10;
 
     private Queue<AsteroidEntity> _updateQueue = new Queue<AsteroidEntity>();
     private const int UpdatesPerTick = 50; // Adjust this number based on performance needs
+
 
     private class PlayerMovementData
     {
@@ -62,12 +63,6 @@ public class AsteroidSpawner
         _worldLoadTime = DateTime.UtcNow;
         rand = new Random(seed);
         AsteroidSettings.Seed = seed;
-
-        // Add all asteroids to the update queue
-        foreach (var asteroid in _asteroids)
-        {
-            _updateQueue.Enqueue(asteroid);
-        }
     }
 
     public void SaveAsteroidState()
@@ -89,13 +84,6 @@ public class AsteroidSpawner
         using (var writer = MyAPIGateway.Utilities.WriteBinaryFileInLocalStorage("asteroid_states.dat", typeof(AsteroidSpawner)))
         {
             writer.Write(stateBytes, 0, stateBytes.Length);
-        }
-
-        // Ensure the update queue is saved as well
-        _updateQueue.Clear();
-        foreach (var asteroid in _asteroids)
-        {
-            _updateQueue.Enqueue(asteroid);
         }
     }
 
@@ -131,9 +119,6 @@ public class AsteroidSpawner
 
                 // Add to gravity check queue
                 gravityCheckQueue.Enqueue(asteroid);
-
-                // Add to update queue
-                _updateQueue.Enqueue(asteroid);
             }
         }
     }
@@ -362,7 +347,7 @@ public class AsteroidSpawner
             }
             else
             {
-                ProcessAsteroidUpdates();
+                UpdateAsteroids(playerZones.Values.ToList());
                 _updateIntervalTimer = AsteroidSettings.UpdateInterval;
             }
 
@@ -395,29 +380,6 @@ public class AsteroidSpawner
         {
             Log.Exception(ex, typeof(AsteroidSpawner));
         }
-    }
-
-    private void ProcessAsteroidUpdates()
-    {
-        int updatesProcessed = 0;
-
-        while (updatesProcessed < UpdatesPerTick && _updateQueue.Count > 0)
-        {
-            var asteroid = _updateQueue.Dequeue();
-
-            // Perform the update logic for the asteroid here
-            UpdateAsteroid(asteroid);
-
-            // Re-enqueue the asteroid for future updates
-            _updateQueue.Enqueue(asteroid);
-
-            updatesProcessed++;
-        }
-    }
-
-    private void UpdateAsteroid(AsteroidEntity asteroid)
-    {
-        // Implement the actual update logic for an individual asteroid here
     }
 
     private void ProcessGravityCheckQueue()
