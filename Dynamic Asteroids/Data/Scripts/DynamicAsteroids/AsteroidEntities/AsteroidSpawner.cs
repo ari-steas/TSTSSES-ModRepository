@@ -38,8 +38,13 @@ public class AsteroidSpawner
     private List<AsteroidState> _despawnedAsteroids = new List<AsteroidState>();
     private List<AsteroidNetworkMessage> _networkMessages = new List<AsteroidNetworkMessage>();
     private Dictionary<long, AsteroidZone> playerZones = new Dictionary<long, AsteroidZone>();
-
     private Dictionary<long, PlayerMovementData> playerMovementData = new Dictionary<long, PlayerMovementData>();
+    private Queue<AsteroidEntity> gravityCheckQueue = new Queue<AsteroidEntity>();
+    private const int GravityChecksPerTick = 10;
+
+    private Queue<AsteroidEntity> _updateQueue = new Queue<AsteroidEntity>();
+    private const int UpdatesPerTick = 50; // Adjust this number based on performance needs
+
 
     private class PlayerMovementData
     {
@@ -111,6 +116,9 @@ public class AsteroidSpawner
                 asteroid.EntityId = state.EntityId;
                 _asteroids.Add(asteroid);
                 MyEntities.Add(asteroid);
+
+                // Add to gravity check queue
+                gravityCheckQueue.Enqueue(asteroid);
             }
         }
     }
@@ -147,6 +155,9 @@ public class AsteroidSpawner
                 MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
 
                 _despawnedAsteroids.Remove(state);
+
+                // Add to gravity check queue
+                gravityCheckQueue.Enqueue(asteroid);
             }
         }
 
@@ -358,12 +369,31 @@ public class AsteroidSpawner
                 }
             }
 
+            ProcessGravityCheckQueue();
+
             if (AsteroidSettings.EnableLogging)
                 MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
         }
         catch (Exception ex)
         {
             Log.Exception(ex, typeof(AsteroidSpawner));
+        }
+    }
+
+    private void ProcessGravityCheckQueue()
+    {
+        for (int i = 0; i < GravityChecksPerTick && gravityCheckQueue.Count > 0; i++)
+        {
+            var asteroid = gravityCheckQueue.Dequeue();
+            if (IsInNaturalGravity(asteroid.PositionComp.GetPosition()))
+            {
+                RemoveAsteroid(asteroid);
+            }
+            else
+            {
+                // Re-enqueue if still valid
+                gravityCheckQueue.Enqueue(asteroid);
+            }
         }
     }
 
@@ -404,6 +434,9 @@ public class AsteroidSpawner
                 }
                 currentZone.AsteroidCount++;
             }
+
+            // Add to gravity check queue
+            gravityCheckQueue.Enqueue(asteroid);
         }
 
         Log.Info($"Update complete. Removed asteroids: {removedCount}, Remaining asteroids: {_asteroids.Count}");
@@ -509,6 +542,9 @@ public class AsteroidSpawner
                     var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true, rotation);
                     _networkMessages.Add(message);
                     asteroidsSpawned++;
+
+                    // Add to gravity check queue
+                    gravityCheckQueue.Enqueue(asteroid);
                 }
             }
 
