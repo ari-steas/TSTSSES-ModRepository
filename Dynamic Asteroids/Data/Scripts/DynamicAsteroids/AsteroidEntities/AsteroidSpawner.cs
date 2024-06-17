@@ -10,8 +10,6 @@ using DynamicAsteroids;
 using Invalid.DynamicRoids;
 using Sandbox.Game.Entities;
 
-
-
 public class AsteroidZone
 {
     public Vector3D Center { get; set; }
@@ -31,9 +29,6 @@ public class AsteroidZone
     }
 }
 
-
-
-
 public class AsteroidSpawner
 {
     public List<AsteroidEntity> _asteroids;
@@ -50,7 +45,7 @@ public class AsteroidSpawner
     {
         public Vector3D LastPosition { get; set; }
         public DateTime LastUpdateTime { get; set; }
-        public double Speed { get; set; } // Added to store the calculated speed
+        public double Speed { get; set; }
     }
 
     public void Init(int seed)
@@ -75,7 +70,7 @@ public class AsteroidSpawner
             Position = asteroid.PositionComp.GetPosition(),
             Size = asteroid.Size,
             Type = asteroid.Type,
-            EntityId = asteroid.EntityId // Save unique ID
+            EntityId = asteroid.EntityId
         }).ToList();
 
         asteroidStates.AddRange(_despawnedAsteroids);
@@ -109,11 +104,11 @@ public class AsteroidSpawner
                 if (_asteroids.Any(a => a.EntityId == state.EntityId))
                 {
                     Log.Info($"Skipping duplicate asteroid with ID {state.EntityId}");
-                    continue; // Skip duplicates
+                    continue;
                 }
 
                 var asteroid = AsteroidEntity.CreateAsteroid(state.Position, state.Size, Vector3D.Zero, state.Type);
-                asteroid.EntityId = state.EntityId; // Assign the saved ID
+                asteroid.EntityId = state.EntityId;
                 _asteroids.Add(asteroid);
                 MyEntities.Add(asteroid);
             }
@@ -144,7 +139,7 @@ public class AsteroidSpawner
                 respawnedPositions.Add(state.Position);
 
                 var asteroid = AsteroidEntity.CreateAsteroid(state.Position, state.Size, Vector3D.Zero, state.Type);
-                asteroid.EntityId = state.EntityId; // Assign the saved ID
+                asteroid.EntityId = state.EntityId;
                 _asteroids.Add(asteroid);
 
                 var message = new AsteroidNetworkMessage(state.Position, state.Size, Vector3D.Zero, Vector3D.Zero, state.Type, false, asteroid.EntityId, false, true, Quaternion.Identity);
@@ -219,6 +214,7 @@ public class AsteroidSpawner
 
         playerZones = updatedZones;
     }
+
     public void MergeZones()
     {
         List<AsteroidZone> mergedZones = new List<AsteroidZone>();
@@ -234,7 +230,6 @@ public class AsteroidSpawner
 
                 if (distance <= combinedRadius)
                 {
-                    // Merge the zones by updating the center and radius of the merged zone
                     Vector3D newCenter = (zone.Center + mergedZone.Center) / 2;
                     double newRadius = Math.Max(zone.Radius, mergedZone.Radius) + distance / 2;
                     mergedZone.Center = newCenter;
@@ -247,12 +242,10 @@ public class AsteroidSpawner
 
             if (!merged)
             {
-                // If the zone couldn't be merged with any existing merged zones, add it as a new merged zone
                 mergedZones.Add(new AsteroidZone(zone.Center, zone.Radius) { AsteroidCount = zone.AsteroidCount });
             }
         }
 
-        // Update the playerZones dictionary with the merged zones
         playerZones.Clear();
         List<IMyPlayer> players = new List<IMyPlayer>();
         MyAPIGateway.Players.GetPlayers(players);
@@ -318,6 +311,7 @@ public class AsteroidSpawner
 
         playerZones = updatedZones;
     }
+
     private int _spawnIntervalTimer = 0;
     private int _updateIntervalTimer = 0;
 
@@ -401,7 +395,6 @@ public class AsteroidSpawner
             }
             else if (currentZone != null)
             {
-                // Ensure the asteroid is counted in the correct zone
                 foreach (var zone in zones)
                 {
                     if (zone != currentZone && zone.IsPointInZone(asteroid.PositionComp.GetPosition()))
@@ -435,14 +428,13 @@ public class AsteroidSpawner
         List<Vector3D> skippedPositions = new List<Vector3D>();
         List<Vector3D> spawnedPositions = new List<Vector3D>();
 
-        UpdatePlayerMovementData(); // Update player movement data
+        UpdatePlayerMovementData();
 
         foreach (var zone in zones)
         {
             int asteroidsSpawned = 0;
             int zoneSpawnAttempts = 0;
 
-            // Check if any player in the zone is moving too fast
             bool skipSpawning = false;
             List<IMyPlayer> players = new List<IMyPlayer>();
             MyAPIGateway.Players.GetPlayers(players);
@@ -494,7 +486,6 @@ public class AsteroidSpawner
                     continue;
                 }
 
-                // Check max asteroid count before actually adding a new asteroid
                 if (AsteroidSettings.MaxAsteroidCount != -1 && _asteroids.Count >= AsteroidSettings.MaxAsteroidCount)
                 {
                     Log.Warning($"Maximum asteroid count of {AsteroidSettings.MaxAsteroidCount} reached. No more asteroids will be spawned until existing ones are removed.");
@@ -576,7 +567,7 @@ public class AsteroidSpawner
 
     private bool IsValidSpawnPosition(Vector3D position, List<AsteroidZone> zones)
     {
-        if (AsteroidSettings.IgnorePlanets && IsNearPlanet(position))
+        if (AsteroidSettings.IgnorePlanets && IsInNaturalGravity(position))
         {
             return false;
         }
@@ -592,10 +583,10 @@ public class AsteroidSpawner
         return false;
     }
 
-    private bool IsNearPlanet(Vector3D position)
+    private bool IsInNaturalGravity(Vector3D position)
     {
-        float interference;
-        Vector3D gravity = MyAPIGateway.Physics.CalculateNaturalGravityAt(position, out interference);
+        float naturalGravityInterference;
+        Vector3 gravity = MyAPIGateway.Physics.CalculateNaturalGravityAt(position, out naturalGravityInterference);
         return gravity.LengthSquared() > 0;
     }
 
