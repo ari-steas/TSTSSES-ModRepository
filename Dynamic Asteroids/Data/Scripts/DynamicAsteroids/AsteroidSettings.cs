@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using DynamicAsteroids.AsteroidEntities;
 using Invalid.DynamicRoids;
@@ -60,13 +61,7 @@ namespace DynamicAsteroids
         public static int[] PlatinumDropRange = { 500, 2500 };
         public static int[] UraniniteDropRange = { 500, 2500 };
 
-        public static SpawnableArea[] ValidSpawnLocations = {
-            new SpawnableArea
-            {
-                CenterPosition = new Vector3D(148001024.50, 1024.50, 1024.50),
-                Radius = 60268000 * 2.5
-            }
-        };
+        public static List<SpawnableArea> ValidSpawnLocations = new List<SpawnableArea>();
 
         public static bool CanSpawnAsteroidAtPoint(Vector3D point, out Vector3D velocity)
         {
@@ -197,10 +192,13 @@ namespace DynamicAsteroids
                     WriteIntArray(writer, "PlatinumDropRange", PlatinumDropRange);
                     WriteIntArray(writer, "UraniniteDropRange", UraniniteDropRange);
 
-                    writer.WriteLine("[SpawnableArea]");
-                    var spawnLocation = ValidSpawnLocations[0];
-                    writer.WriteLine($"CenterPosition={spawnLocation.CenterPosition.X},{spawnLocation.CenterPosition.Y},{spawnLocation.CenterPosition.Z}");
-                    writer.WriteLine($"Radius={spawnLocation.Radius}");
+                    writer.WriteLine("[SpawnableAreas]");
+                    foreach (var area in ValidSpawnLocations)
+                    {
+                        writer.WriteLine($"Name={area.Name}");
+                        writer.WriteLine($"CenterPosition={area.CenterPosition.X},{area.CenterPosition.Y},{area.CenterPosition.Z}");
+                        writer.WriteLine($"Radius={area.Radius}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -218,6 +216,7 @@ namespace DynamicAsteroids
                     using (var reader = MyAPIGateway.Utilities.ReadFileInWorldStorage("AsteroidSettings.cfg", typeof(AsteroidSettings)))
                     {
                         string line;
+                        SpawnableArea currentArea = null;
                         while ((line = reader.ReadLine()) != null)
                         {
                             if (line.StartsWith("[") || string.IsNullOrWhiteSpace(line))
@@ -382,15 +381,20 @@ namespace DynamicAsteroids
                                 case "UraniniteDropRange":
                                     UraniniteDropRange = ReadIntArray(value);
                                     break;
+                                case "Name":
+                                    if (currentArea != null) ValidSpawnLocations.Add(currentArea);
+                                    currentArea = new SpawnableArea { Name = value };
+                                    break;
                                 case "CenterPosition":
                                     var coords = value.Split(',');
-                                    ValidSpawnLocations[0].CenterPosition = new Vector3D(double.Parse(coords[0]), double.Parse(coords[1]), double.Parse(coords[2]));
+                                    currentArea.CenterPosition = new Vector3D(double.Parse(coords[0]), double.Parse(coords[1]), double.Parse(coords[2]));
                                     break;
                                 case "Radius":
-                                    ValidSpawnLocations[0].Radius = double.Parse(value);
+                                    currentArea.Radius = double.Parse(value);
                                     break;
                             }
                         }
+                        if (currentArea != null) ValidSpawnLocations.Add(currentArea);
                     }
                 }
             }
@@ -419,8 +423,9 @@ namespace DynamicAsteroids
 
     public class SpawnableArea
     {
-        public Vector3D CenterPosition;
-        public double Radius;
+        public string Name { get; set; }
+        public Vector3D CenterPosition { get; set; }
+        public double Radius { get; set; }
 
         public bool ContainsPoint(Vector3D point)
         {
