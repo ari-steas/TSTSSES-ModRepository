@@ -572,7 +572,11 @@ public class AsteroidSpawner
                 };
             }
         }
-    }
+    }             
+
+    private Dictionary<Vector3D, bool> gravityCache = new Dictionary<Vector3D, bool>();
+    private const int gravityCheckInterval = 10; // Check every 10 spawns
+    private int spawnCounter = 0;
 
     private bool IsValidSpawnPosition(Vector3D position, List<AsteroidZone> zones)
     {
@@ -594,9 +598,21 @@ public class AsteroidSpawner
 
     private bool IsNearPlanet(Vector3D position)
     {
-        float interference;
-        Vector3D gravity = MyAPIGateway.Physics.CalculateNaturalGravityAt(position, out interference);
-        return gravity.LengthSquared() > 0;
+        bool isNearPlanet;
+        if (gravityCache.TryGetValue(position, out isNearPlanet))
+        {
+            return isNearPlanet;
+        }
+
+        if (spawnCounter++ % gravityCheckInterval == 0)
+        {
+            float naturalGravityInterference;
+            MyAPIGateway.Physics.CalculateNaturalGravityAt(position, out naturalGravityInterference);
+            isNearPlanet = naturalGravityInterference > 0;
+            gravityCache[position] = isNearPlanet;
+        }
+
+        return isNearPlanet;
     }
 
     public void SendNetworkMessages()
