@@ -497,12 +497,11 @@ public class AsteroidSpawner
                 continue;
             }
 
-
-
             while (zone.AsteroidCount < AsteroidSettings.MaxAsteroidsPerZone && asteroidsSpawned < 10 &&
                    zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts && totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts)
             {
                 Vector3D newPosition;
+                Vector3D nearestPoint;
                 do
                 {
                     newPosition = zone.Center + RandVector() * AsteroidSettings.ZoneRadius;
@@ -517,10 +516,20 @@ public class AsteroidSpawner
                 Vector3D newVelocity;
                 if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity)) continue;
 
-                if (AsteroidSettings.EnableVanillaAsteroidSpawnLatching && IsNearVanillaAsteroid(newPosition))
+                if (AsteroidSettings.EnableVanillaAsteroidSpawnLatching && IsNearVanillaAsteroid(newPosition, out nearestPoint))
                 {
-                    skippedPositions.Add(newPosition);
-                    continue;
+                    double distance = Vector3D.Distance(newPosition, nearestPoint);
+                    if (distance < AsteroidSettings.MinDistanceFromVanillaAsteroids)
+                    {
+                        newPosition = nearestPoint + (newPosition - nearestPoint).Normalized() * AsteroidSettings.MinDistanceFromVanillaAsteroids;
+                    }
+
+                    // Ensure the new position is valid
+                    if (!IsValidSpawnPosition(newPosition, zones))
+                    {
+                        skippedPositions.Add(newPosition);
+                        continue;
+                    }
                 }
 
                 if (AsteroidSettings.MaxAsteroidCount != -1 && _asteroids.Count >= AsteroidSettings.MaxAsteroidCount)
@@ -676,21 +685,25 @@ public class AsteroidSpawner
         }
     }
 
-    private bool IsNearVanillaAsteroid(Vector3D position)
+    private bool IsNearVanillaAsteroid(Vector3D position, out Vector3D nearestPoint)
     {
         List<IMyVoxelBase> voxelMaps = new List<IMyVoxelBase>();
         MyAPIGateway.Session.VoxelMaps.GetInstances(voxelMaps, v => v is IMyVoxelMap && !v.StorageName.StartsWith("mod_"));
 
+        double minDistance = double.MaxValue;
+        nearestPoint = Vector3D.Zero;
+
         foreach (var voxelMap in voxelMaps)
         {
-            if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < AsteroidSettings.VanillaAsteroidSpawnLatchingRadius * AsteroidSettings.VanillaAsteroidSpawnLatchingRadius)
+            double distanceSquared = Vector3D.DistanceSquared(position, voxelMap.GetPosition());
+            if (distanceSquared < minDistance)
             {
-                Log.Info($"Position {position} is near vanilla asteroid {voxelMap.StorageName}");
-                return true;
+                minDistance = distanceSquared;
+                nearestPoint = voxelMap.GetPosition();
             }
         }
 
-        return false;
+        return minDistance < AsteroidSettings.VanillaAsteroidSpawnLatchingRadius * AsteroidSettings.VanillaAsteroidSpawnLatchingRadius;
     }
 
     public void CreateTemporarySpawnableAreasAroundVanillaAsteroids()

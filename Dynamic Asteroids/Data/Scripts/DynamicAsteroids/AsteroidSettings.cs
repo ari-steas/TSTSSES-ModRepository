@@ -14,7 +14,7 @@ namespace DynamicAsteroids
         public static bool EnablePersistence = false;
         public static bool EnableMiddleMouseAsteroidSpawn = false;
         public static bool EnableVanillaAsteroidSpawnLatching = true;
-        public static double VanillaAsteroidSpawnLatchingRadius = 3000;
+        public static double VanillaAsteroidSpawnLatchingRadius = 10000;
         public static bool DisableZoneWhileMovingFast = true;
         public static double ZoneSpeedThreshold = 2000.0;
         public static int SaveStateInterval = 600;
