@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using DynamicAsteroids.AsteroidEntities;
 using Invalid.DynamicRoids;
 using Sandbox.ModAPI;
 using VRageMath;
+using System.Collections.Generic;
 
 namespace DynamicAsteroids
 {
@@ -396,6 +396,17 @@ namespace DynamicAsteroids
                         }
                         if (currentArea != null) ValidSpawnLocations.Add(currentArea);
                     }
+                }
+                else
+                {
+                    // Create default configuration if it doesn't exist
+                    ValidSpawnLocations.Add(new SpawnableArea
+                    {
+                        Name = "DefaultArea",
+                        CenterPosition = new Vector3D(0.0, 0.0, 0.0),
+                        Radius = 10000
+                    });
+                    SaveSettings();
                 }
             }
             catch (Exception ex)
