@@ -360,6 +360,7 @@ public class AsteroidSpawner
             }
             else
             {
+                UpdateAsteroids(playerZones.Values.ToList());
                 ProcessAsteroidUpdates();
                 _updateIntervalTimer = AsteroidSettings.UpdateInterval;
             }
@@ -392,6 +393,55 @@ public class AsteroidSpawner
         catch (Exception ex)
         {
             Log.Exception(ex, typeof(AsteroidSpawner));
+        }
+    }
+
+    private void UpdateAsteroids(List<AsteroidZone> zones)
+    {
+        Log.Info($"Updating asteroids. Total asteroids: {_asteroids.Count}, Total zones: {zones.Count}");
+        int removedCount = 0;
+
+        foreach (var asteroid in _asteroids.ToArray())
+        {
+            bool inAnyZone = false;
+            AsteroidZone currentZone = null;
+
+            foreach (var zone in zones)
+            {
+                if (zone.IsPointInZone(asteroid.PositionComp.GetPosition()))
+                {
+                    inAnyZone = true;
+                    currentZone = zone;
+                    break;
+                }
+            }
+
+            if (!inAnyZone)
+            {
+                Log.Info($"Removing asteroid at {asteroid.PositionComp.GetPosition()} due to distance from all player zones");
+                RemoveAsteroid(asteroid);
+                removedCount++;
+            }
+            else if (currentZone != null)
+            {
+                foreach (var zone in zones)
+                {
+                    if (zone != currentZone && zone.IsPointInZone(asteroid.PositionComp.GetPosition()))
+                    {
+                        zone.AsteroidCount--;
+                    }
+                }
+                currentZone.AsteroidCount++;
+            }
+
+            // Add to gravity check queue
+            gravityCheckQueue.Enqueue(asteroid);
+        }
+
+        Log.Info($"Update complete. Removed asteroids: {removedCount}, Remaining asteroids: {_asteroids.Count}");
+        foreach (var zone in zones)
+        {
+            Log.Info($"Zone center: {zone.Center}, Radius: {zone.Radius}, Asteroid count: {zone.AsteroidCount}");
         }
     }
 
@@ -455,55 +505,6 @@ public class AsteroidSpawner
                 // Re-enqueue if still valid
                 gravityCheckQueue.Enqueue(asteroid);
             }
-        }
-    }
-
-    private void UpdateAsteroids(List<AsteroidZone> zones)
-    {
-        Log.Info($"Updating asteroids. Total asteroids: {_asteroids.Count}, Total zones: {zones.Count}");
-        int removedCount = 0;
-
-        foreach (var asteroid in _asteroids.ToArray())
-        {
-            bool inAnyZone = false;
-            AsteroidZone currentZone = null;
-
-            foreach (var zone in zones)
-            {
-                if (zone.IsPointInZone(asteroid.PositionComp.GetPosition()))
-                {
-                    inAnyZone = true;
-                    currentZone = zone;
-                    break;
-                }
-            }
-
-            if (!inAnyZone)
-            {
-                Log.Info($"Removing asteroid at {asteroid.PositionComp.GetPosition()} due to distance from all player zones");
-                RemoveAsteroid(asteroid);
-                removedCount++;
-            }
-            else if (currentZone != null)
-            {
-                foreach (var zone in zones)
-                {
-                    if (zone != currentZone && zone.IsPointInZone(asteroid.PositionComp.GetPosition()))
-                    {
-                        zone.AsteroidCount--;
-                    }
-                }
-                currentZone.AsteroidCount++;
-            }
-
-            // Add to gravity check queue
-            gravityCheckQueue.Enqueue(asteroid);
-        }
-
-        Log.Info($"Update complete. Removed asteroids: {removedCount}, Remaining asteroids: {_asteroids.Count}");
-        foreach (var zone in zones)
-        {
-            Log.Info($"Zone center: {zone.Center}, Radius: {zone.Radius}, Asteroid count: {zone.AsteroidCount}");
         }
     }
 
