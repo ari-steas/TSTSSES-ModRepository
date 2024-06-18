@@ -508,18 +508,6 @@ public class AsteroidSpawner
         }
     }
 
-    public List<AsteroidState> GetAsteroidStates()
-    {
-        return _asteroids.Select(asteroid => new AsteroidState
-        {
-            Position = asteroid.PositionComp.GetPosition(),
-            Size = asteroid.Size,
-            Type = asteroid.Type,
-            EntityId = asteroid.EntityId
-        }).ToList();
-    }
-
-
     public void SpawnAsteroids(List<AsteroidZone> zones)
     {
         int totalSpawnAttempts = 0;
