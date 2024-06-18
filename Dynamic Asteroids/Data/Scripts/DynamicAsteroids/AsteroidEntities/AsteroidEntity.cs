@@ -502,7 +502,8 @@ namespace DynamicAsteroids.AsteroidEntities
         private void CreatePhysics()
         {
             float mass = 10000 * Size * Size * Size;
-            float radius = Size / 2; // Assuming Size represents the diameter
+            //float radius = Size / 2; // Assuming Size represents the diameter
+            float radius = Size; // Assuming Size represents the diameter
 
             PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
                 this,
