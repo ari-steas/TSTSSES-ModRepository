@@ -13,8 +13,6 @@ namespace DynamicAsteroids
         public static bool EnableLogging = false;
         public static bool EnablePersistence = false;
         public static bool EnableMiddleMouseAsteroidSpawn = false;
-        public static bool EnableVanillaAsteroidSpawnLatching = true;
-        public static double VanillaAsteroidSpawnLatchingRadius = 10000;
         public static bool DisableZoneWhileMovingFast = true;
         public static double ZoneSpeedThreshold = 2000.0;
         public static int SaveStateInterval = 600;
@@ -139,8 +137,6 @@ namespace DynamicAsteroids
                     writer.WriteLine($"EnableLogging={EnableLogging}");
                     writer.WriteLine($"EnablePersistence={EnablePersistence}");
                     writer.WriteLine($"EnableMiddleMouseAsteroidSpawn={EnableMiddleMouseAsteroidSpawn}");
-                    writer.WriteLine($"EnableVanillaAsteroidSpawnLatching={EnableVanillaAsteroidSpawnLatching}");
-                    writer.WriteLine($"VanillaAsteroidSpawnLatchingRadius={VanillaAsteroidSpawnLatchingRadius}");
                     writer.WriteLine($"DisableZoneWhileMovingFast={DisableZoneWhileMovingFast}");
                     writer.WriteLine($"ZoneSpeedThreshold={ZoneSpeedThreshold}");
                     writer.WriteLine($"SaveStateInterval={SaveStateInterval}");
@@ -159,6 +155,7 @@ namespace DynamicAsteroids
                     writer.WriteLine($"MinDistanceFromPlayer={MinDistanceFromPlayer}");
                     writer.WriteLine($"Seed={Seed}");
                     writer.WriteLine($"IgnorePlanets={IgnorePlanets}");
+
                     writer.WriteLine("[Weights]");
                     writer.WriteLine($"IceWeight={IceWeight}");
                     writer.WriteLine($"StoneWeight={StoneWeight}");
@@ -171,16 +168,19 @@ namespace DynamicAsteroids
                     writer.WriteLine($"GoldWeight={GoldWeight}");
                     writer.WriteLine($"PlatinumWeight={PlatinumWeight}");
                     writer.WriteLine($"UraniniteWeight={UraniniteWeight}");
+
                     writer.WriteLine("[AsteroidSize]");
                     writer.WriteLine($"BaseIntegrity={BaseIntegrity}");
                     writer.WriteLine($"MinAsteroidSize={MinAsteroidSize}");
                     writer.WriteLine($"MaxAsteroidSize={MaxAsteroidSize}");
                     writer.WriteLine($"MinSubChunkSize={MinSubChunkSize}");
+
                     writer.WriteLine("[SubChunkVelocity]");
                     writer.WriteLine($"SubChunkVelocityMin={SubChunkVelocityMin}");
                     writer.WriteLine($"SubChunkVelocityMax={SubChunkVelocityMax}");
                     writer.WriteLine($"SubChunkAngularVelocityMin={SubChunkAngularVelocityMin}");
                     writer.WriteLine($"SubChunkAngularVelocityMax={SubChunkAngularVelocityMax}");
+
                     writer.WriteLine("[DropRanges]");
                     WriteIntArray(writer, "IceDropRange", IceDropRange);
                     WriteIntArray(writer, "StoneDropRange", StoneDropRange);
@@ -193,15 +193,13 @@ namespace DynamicAsteroids
                     WriteIntArray(writer, "GoldDropRange", GoldDropRange);
                     WriteIntArray(writer, "PlatinumDropRange", PlatinumDropRange);
                     WriteIntArray(writer, "UraniniteDropRange", UraniniteDropRange);
+
                     writer.WriteLine("[SpawnableAreas]");
                     foreach (var area in ValidSpawnLocations)
                     {
-                        if (!area.Name.StartsWith("TempArea_")) // Skip temporary areas
-                        {
-                            writer.WriteLine($"Name={area.Name}");
-                            writer.WriteLine($"CenterPosition={area.CenterPosition.X},{area.CenterPosition.Y},{area.CenterPosition.Z}");
-                            writer.WriteLine($"Radius={area.Radius}");
-                        }
+                        writer.WriteLine($"Name={area.Name}");
+                        writer.WriteLine($"CenterPosition={area.CenterPosition.X},{area.CenterPosition.Y},{area.CenterPosition.Z}");
+                        writer.WriteLine($"Radius={area.Radius}");
                     }
                 }
             }
@@ -243,12 +241,6 @@ namespace DynamicAsteroids
                                     break;
                                 case "EnableMiddleMouseAsteroidSpawn":
                                     EnableMiddleMouseAsteroidSpawn = bool.Parse(value);
-                                    break;
-                                case "EnableVanillaAsteroidSpawnLatching":
-                                    EnableVanillaAsteroidSpawnLatching = bool.Parse(value);
-                                    break;
-                                case "VanillaAsteroidSpawnLatchingRadius":
-                                    VanillaAsteroidSpawnLatchingRadius = double.Parse(value);
                                     break;
                                 case "DisableZoneWhileMovingFast":
                                     DisableZoneWhileMovingFast = bool.Parse(value);
@@ -417,7 +409,7 @@ namespace DynamicAsteroids
                     {
                         Name = "DefaultArea",
                         CenterPosition = new Vector3D(0.0, 0.0, 0.0),
-                        Radius = 0
+                        Radius = 10000
                     });
                     SaveSettings();
                 }
@@ -453,12 +445,8 @@ namespace DynamicAsteroids
 
         public bool ContainsPoint(Vector3D point)
         {
-            // Calculate the squared distance to avoid expensive square root operations
-            double distanceSquared = Vector3D.DistanceSquared(CenterPosition, point);
-            double radiusSquared = Radius * Radius;
-
-            // Return whether the point is within the spawnable area
-            return distanceSquared <= radiusSquared;
+            double distanceSquared = (point - CenterPosition).LengthSquared();
+            return distanceSquared <= Radius * Radius;
         }
 
         public Vector3D VelocityAtPoint(Vector3D point)
