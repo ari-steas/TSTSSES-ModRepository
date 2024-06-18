@@ -5,6 +5,7 @@ using Invalid.DynamicRoids;
 using Sandbox.ModAPI;
 using VRageMath;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DynamicAsteroids
 {
@@ -445,6 +446,28 @@ namespace DynamicAsteroids
             }
             return array;
         }
+
+        public static void AddSpawnableArea(string name, Vector3D center, double radius)
+        {
+            ValidSpawnLocations.Add(new SpawnableArea
+            {
+                Name = name,
+                CenterPosition = center,
+                Radius = radius
+            });
+            SaveSettings();
+        }
+
+        public static void RemoveSpawnableArea(string name)
+        {
+            var area = ValidSpawnLocations.FirstOrDefault(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            if (area != null)
+            {
+                ValidSpawnLocations.Remove(area);
+                SaveSettings();
+            }
+        }
+
     }
 
     public class SpawnableArea
@@ -463,5 +486,6 @@ namespace DynamicAsteroids
         {
             return (point - CenterPosition).Normalized() * AsteroidSettings.AsteroidVelocityBase;
         }
+
     }
 }
