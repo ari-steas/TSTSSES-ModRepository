@@ -416,6 +416,29 @@ public class AsteroidSpawner
     private void UpdateAsteroid(AsteroidEntity asteroid)
     {
         // Implement the actual update logic for an individual asteroid here
+        Vector3D currentPosition = asteroid.PositionComp.GetPosition();
+        bool inAnyZone = false;
+        AsteroidZone currentZone = null;
+
+        foreach (var zone in playerZones.Values)
+        {
+            if (zone.IsPointInZone(currentPosition))
+            {
+                inAnyZone = true;
+                currentZone = zone;
+                break;
+            }
+        }
+
+        if (!inAnyZone)
+        {
+            Log.Info($"Removing asteroid at {currentPosition} due to being out of any player zone");
+            RemoveAsteroid(asteroid);
+        }
+        else if (currentZone != null)
+        {
+            currentZone.AsteroidCount++;
+        }
     }
 
     private void ProcessGravityCheckQueue()
@@ -542,6 +565,7 @@ public class AsteroidSpawner
                     newPosition = zone.Center + RandVector() * AsteroidSettings.ZoneRadius;
                     zoneSpawnAttempts++;
                     totalSpawnAttempts++;
+                    Log.Info($"Attempting to spawn asteroid at {newPosition} (attempt {totalSpawnAttempts})");
                 } while (!IsValidSpawnPosition(newPosition, zones) && zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts &&
                          totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts);
 
@@ -549,10 +573,15 @@ public class AsteroidSpawner
                     break;
 
                 Vector3D newVelocity;
-                if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity)) continue;
+                if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity))
+                {
+                    Log.Info($"Cannot spawn asteroid at {newPosition}, skipping.");
+                    continue;
+                }
 
                 if (IsNearVanillaAsteroid(newPosition))
                 {
+                    Log.Info($"Position {newPosition} is near a vanilla asteroid, skipping.");
                     skippedPositions.Add(newPosition);
                     continue;
                 }
@@ -561,6 +590,12 @@ public class AsteroidSpawner
                 {
                     Log.Warning($"Maximum asteroid count of {AsteroidSettings.MaxAsteroidCount} reached. No more asteroids will be spawned until existing ones are removed.");
                     return;
+                }
+
+                if (zone.AsteroidCount >= AsteroidSettings.MaxAsteroidsPerZone)
+                {
+                    Log.Info($"Zone at {zone.Center} has reached its maximum asteroid count ({AsteroidSettings.MaxAsteroidsPerZone}). Skipping further spawning in this zone.");
+                    break;
                 }
 
                 AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition);
