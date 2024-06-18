@@ -7,6 +7,8 @@ using VRage.Input;
 using VRageMath;
 using ProtoBuf;
 using Sandbox.Game.Entities;
+using VRage.Game.ModAPI;
+using VRage.Game;
 
 namespace DynamicAsteroids
 {
@@ -80,6 +82,9 @@ namespace DynamicAsteroids
 
         private void OnMessageEntered(string messageText, ref bool sendToOthers)
         {
+            var player = MyAPIGateway.Session.Player;
+            if (player == null || !IsPlayerAdmin(player)) return;
+
             if (messageText.StartsWith("/dynamicasteroids") || messageText.StartsWith("/dn"))
             {
                 var args = messageText.Split(' ');
@@ -106,6 +111,11 @@ namespace DynamicAsteroids
                     }
                 }
             }
+        }
+
+        private bool IsPlayerAdmin(IMyPlayer player)
+        {
+            return MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Session.IsUserAdmin(player.SteamUserId);
         }
 
         private void CreateSpawnArea(double radius)
