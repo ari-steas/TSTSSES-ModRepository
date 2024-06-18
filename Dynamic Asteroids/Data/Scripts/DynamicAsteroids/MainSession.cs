@@ -42,6 +42,7 @@ namespace DynamicAsteroids
                 }
 
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(32000, OnMessageReceived);
+                MyAPIGateway.Utilities.MessageEntered += OnMessageEntered;
             }
             catch (Exception ex)
             {
@@ -66,6 +67,7 @@ namespace DynamicAsteroids
                 AsteroidSettings.SaveSettings(); // Save settings to the config file
 
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(32000, OnMessageReceived);
+                MyAPIGateway.Utilities.MessageEntered -= OnMessageEntered;
             }
             catch (Exception ex)
             {
@@ -74,6 +76,55 @@ namespace DynamicAsteroids
 
             Log.Close();
             I = null;
+        }
+
+        private void OnMessageEntered(string messageText, ref bool sendToOthers)
+        {
+            if (messageText.StartsWith("/dynamicasteroids") || messageText.StartsWith("/dn"))
+            {
+                var args = messageText.Split(' ');
+                if (args.Length > 1)
+                {
+                    switch (args[1].ToLower())
+                    {
+                        case "createspawnarea":
+                            double radius;
+                            if (args.Length == 3 && double.TryParse(args[2], out radius))
+                            {
+                                CreateSpawnArea(radius);
+                                sendToOthers = false;
+                            }
+                            break;
+
+                        case "removespawnarea":
+                            if (args.Length == 3)
+                            {
+                                RemoveSpawnArea(args[2]);
+                                sendToOthers = false;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void CreateSpawnArea(double radius)
+        {
+            var player = MyAPIGateway.Session.Player;
+            if (player == null) return;
+
+            var position = player.GetPosition();
+            var name = $"Area_{position.GetHashCode()}";
+            AsteroidSettings.AddSpawnableArea(name, position, radius);
+            Log.Info($"Created spawn area '{name}' at {position} with radius {radius}");
+            MyAPIGateway.Utilities.ShowMessage("DynamicAsteroids", $"Created spawn area '{name}' at {position} with radius {radius}");
+        }
+
+        private void RemoveSpawnArea(string name)
+        {
+            AsteroidSettings.RemoveSpawnableArea(name);
+            Log.Info($"Removed spawn area '{name}'");
+            MyAPIGateway.Utilities.ShowMessage("DynamicAsteroids", $"Removed spawn area '{name}'");
         }
 
         public override void UpdateAfterSimulation()
