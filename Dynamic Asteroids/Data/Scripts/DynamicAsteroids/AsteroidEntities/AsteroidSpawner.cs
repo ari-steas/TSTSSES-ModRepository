@@ -529,6 +529,12 @@ public class AsteroidSpawner
             int asteroidsSpawned = 0;
             int zoneSpawnAttempts = 0;
 
+            if (zone.AsteroidCount >= AsteroidSettings.MaxAsteroidsPerZone)
+            {
+                Log.Info($"Zone at {zone.Center} has reached its maximum asteroid count ({AsteroidSettings.MaxAsteroidsPerZone}). Skipping further spawning in this zone.");
+                continue;
+            }
+
             bool skipSpawning = false;
             List<IMyPlayer> players = new List<IMyPlayer>();
             MyAPIGateway.Players.GetPlayers(players);
