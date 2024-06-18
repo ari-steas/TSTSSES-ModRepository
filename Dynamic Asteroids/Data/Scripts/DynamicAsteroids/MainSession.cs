@@ -2,6 +2,7 @@
 using Invalid.DynamicRoids;
 using Sandbox.ModAPI;
 using System;
+using System.Linq;
 using VRage.Game.Components;
 using VRage.Input;
 using VRageMath;
@@ -137,6 +138,31 @@ namespace DynamicAsteroids
             MyAPIGateway.Utilities.ShowMessage("DynamicAsteroids", $"Removed spawn area '{name}'");
         }
 
+        private void SyncAsteroidsToPlayers()
+        {
+            if (!MyAPIGateway.Session.IsServer) return;
+
+            var asteroidStates = _spawner.GetAsteroidStates();
+            var messages = asteroidStates.Select(state => new AsteroidNetworkMessage(
+                state.Position,
+                state.Size,
+                Vector3D.Zero,
+                Vector3D.Zero,
+                state.Type,
+                false,
+                state.EntityId,
+                false,
+                true,
+                Quaternion.Identity
+            )).ToArray();
+
+            var container = new AsteroidNetworkMessageContainer(messages);
+            var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(container);
+
+            MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
+        }
+
+
         public override void UpdateAfterSimulation()
         {
             try
@@ -164,7 +190,10 @@ namespace DynamicAsteroids
                         _spawner.SendNetworkMessages();
                         _networkMessageTimer = AsteroidSettings.NetworkMessageInterval;
                     }
+
+                    SyncAsteroidsToPlayers(); // Add this line to sync asteroids periodically
                 }
+
 
                 if (MyAPIGateway.Session?.Player?.Character != null && _spawner._asteroids != null)
                 {
@@ -209,6 +238,11 @@ namespace DynamicAsteroids
 
                 Log.Info($"Client: Received message of {message.Length} bytes");
                 var asteroidMessage = MyAPIGateway.Utilities.SerializeFromBinary<AsteroidNetworkMessage>(message);
+
+                if (asteroidMessage.IsInitialCreation)
+                {
+                    SyncAsteroidsToPlayers(); // Sync all asteroids when a new player joins
+                }
 
                 if (asteroidMessage.IsRemoval)
                 {
