@@ -327,13 +327,13 @@ namespace DynamicAsteroids.AsteroidEntities
                 MyEntities.Add(this);
                 Log.Info($"{(MyAPIGateway.Session.IsServer ? "Server" : "Client")}: Added asteroid entity with ID {EntityId} to MyEntities");
 
-                Log.Info("Creating physics");
-                CreatePhysics();
-                Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
-                Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand);
-                Log.Info($"Initial LinearVelocity: {Physics.LinearVelocity}, Initial AngularVelocity: {Physics.AngularVelocity}");
+                if (MyAPIGateway.Session.IsServer)
+                {
+                    Log.Info("Creating physics");
+                    CreatePhysics();
+                }
 
-                Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
+                BindPhysics(initialVelocity);
 
                 if (MyAPIGateway.Session.IsServer)
                 {
@@ -354,6 +354,46 @@ namespace DynamicAsteroids.AsteroidEntities
                 Log.Exception(ex, typeof(AsteroidEntity), $"Failed to load model: {ModelString}");
                 Flags &= ~EntityFlags.Visible;
             }
+        }
+
+        private void BindPhysics(Vector3D initialVelocity)
+        {
+            if (Physics == null)
+            {
+                Log.Warning("Physics object is not created, binding failed.");
+                return;
+            }
+
+            Physics.Enabled = true;
+            Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
+            Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand);
+
+            Log.Info($"Initial LinearVelocity: {Physics.LinearVelocity}, Initial AngularVelocity: {Physics.AngularVelocity}");
+            Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
+        }
+
+        private void CreatePhysics()
+        {
+            float mass = 10000 * Size * Size * Size;
+            float radius = Size / 2; // Assuming Size represents the diameter
+
+            PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
+                this,
+                WorldMatrix,
+                Vector3.Zero,
+                linearDamping: 0f, // Remove damping
+                angularDamping: 0f, // Remove damping
+                rigidBodyFlags: RigidBodyFlag.RBF_DEFAULT,
+                collisionLayer: CollisionLayers.NoVoxelCollisionLayer,
+                isPhantom: false,
+                mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
+            );
+
+            MyAPIGateway.Physics.CreateSpherePhysics(settings, radius);
+            Physics.Enabled = true;
+            Physics.Activate();
+
+            Log.ServerInfo($"Physics created for asteroid with ID {EntityId}, Mass: {mass}, Radius: {radius}");
         }
 
         public float Size;
@@ -520,30 +560,6 @@ namespace DynamicAsteroids.AsteroidEntities
         public float Integrity => _integrity;
 
         public bool UseDamageSystem => true;
-
-        private void CreatePhysics()
-        {
-            float mass = 10000 * Size * Size * Size;
-            float radius = Size / 2; // Assuming Size represents the diameter
-
-            PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
-                this,
-                WorldMatrix,
-                Vector3.Zero,
-                linearDamping: 0f, // Remove damping
-                angularDamping: 0f, // Remove damping
-                rigidBodyFlags: RigidBodyFlag.RBF_DEFAULT,
-                collisionLayer: CollisionLayers.NoVoxelCollisionLayer,
-                isPhantom: false,
-                mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
-            );
-
-            MyAPIGateway.Physics.CreateSpherePhysics(settings, radius);
-            Physics.Enabled = true;
-            Physics.Activate();
-
-            Log.ServerInfo($"Physics created for asteroid with ID {EntityId}, Mass: {mass}, Radius: {radius}");
-        }
 
         private Vector3D RandVector()
         {
