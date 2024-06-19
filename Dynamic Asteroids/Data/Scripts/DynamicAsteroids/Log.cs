@@ -12,9 +12,11 @@ namespace Invalid.DynamicRoids
 
         private Log()
         {
-            MyAPIGateway.Utilities.DeleteFileInGlobalStorage("DynamicAsteroids.log");
-            _writer = MyAPIGateway.Utilities.WriteFileInGlobalStorage("DynamicAsteroids.log");
+            var logFileName = MyAPIGateway.Session.IsServer ? "DynamicAsteroids_Server.log" : "DynamicAsteroids_Client.log";
+            MyAPIGateway.Utilities.DeleteFileInGlobalStorage(logFileName);
+            _writer = MyAPIGateway.Utilities.WriteFileInGlobalStorage(logFileName);
             _writer.WriteLine($"      Dynamic Asteroids - {(MyAPIGateway.Session.IsServer ? "Server" : "Client")} Debug Log\n===========================================\n");
+            _writer.WriteLine($"{DateTime.UtcNow:HH:mm:ss}: Logger initialized for {(MyAPIGateway.Session.IsServer ? "Server" : "Client")}");
             _writer.Flush();
         }
 

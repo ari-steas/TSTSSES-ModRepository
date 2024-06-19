@@ -25,7 +25,9 @@ namespace DynamicAsteroids
         public override void LoadData()
         {
             I = this;
-            Log.Init();
+            Log.Init(); // Ensure this is called on both server and client
+            Log.Info("Log initialized in LoadData method.");
+
             AsteroidSettings.LoadSettings(); // Load settings from the config file
 
             try
