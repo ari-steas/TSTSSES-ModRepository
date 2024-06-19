@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Timers;
 using DynamicAsteroids;
 using Sandbox.ModAPI;
 
@@ -9,6 +11,8 @@ namespace Invalid.DynamicRoids
     {
         private static Log I;
         private readonly TextWriter _writer;
+        private static List<string> _logBuffer = new List<string>();
+        private static Timer _logTimer;
 
         private Log()
         {
@@ -18,24 +22,28 @@ namespace Invalid.DynamicRoids
             _writer.WriteLine($"      Dynamic Asteroids - {(MyAPIGateway.Session.IsServer ? "Server" : "Client")} Debug Log\n===========================================\n");
             _writer.WriteLine($"{DateTime.UtcNow:HH:mm:ss}: Logger initialized for {(MyAPIGateway.Session.IsServer ? "Server" : "Client")}");
             _writer.Flush();
+
+            _logTimer = new Timer(5000); // Set the interval to 5 seconds
+            _logTimer.Elapsed += FlushLogs;
+            _logTimer.Start();
         }
 
         public static void Info(string message)
         {
             if (AsteroidSettings.EnableLogging)
-                I?._Log(message);
+                I?._BufferLog(message);
         }
 
         public static void Warning(string message)
         {
             if (AsteroidSettings.EnableLogging)
-                I?._Log("WARNING: " + message);
+                I?._BufferLog("WARNING: " + message);
         }
 
         public static void Exception(Exception ex, Type callingType, string prefix = "")
         {
             if (AsteroidSettings.EnableLogging)
-                I?._LogException(ex, callingType, prefix);
+                I?._BufferLogException(ex, callingType, prefix);
         }
 
         public static void Init()
@@ -49,28 +57,47 @@ namespace Invalid.DynamicRoids
             if (I != null)
             {
                 Info("Closing log writer.");
+                FlushLogs(null, null);
                 I._writer.Close();
             }
 
             I = null;
         }
 
-        private void _Log(string message)
+        private void _BufferLog(string message)
         {
-            _writer.WriteLine($"{DateTime.UtcNow:HH:mm:ss}: {message}");
-            _writer.Flush();
+            lock (_logBuffer)
+            {
+                _logBuffer.Add($"{DateTime.UtcNow:HH:mm:ss}: {message}");
+            }
         }
 
-        private void _LogException(Exception ex, Type callingType, string prefix = "")
+        private void _BufferLogException(Exception ex, Type callingType, string prefix = "")
         {
             if (ex == null)
             {
-                _Log("Null exception! CallingType: " + callingType.FullName);
+                _BufferLog("Null exception! CallingType: " + callingType.FullName);
                 return;
             }
 
-            _Log(prefix + $"Exception in {callingType.FullName}! {ex.Message}\n{ex.StackTrace}\n{ex.InnerException}");
+            _BufferLog(prefix + $"Exception in {callingType.FullName}! {ex.Message}\n{ex.StackTrace}\n{ex.InnerException}");
             MyAPIGateway.Utilities.ShowNotification($"{ex.GetType().Name} in Dynamic Asteroids! Check logs for more info.", 10000, "Red");
+        }
+
+        private static void FlushLogs(object sender, ElapsedEventArgs e)
+        {
+            lock (_logBuffer)
+            {
+                if (_logBuffer.Count > 0)
+                {
+                    foreach (var log in _logBuffer)
+                    {
+                        I?._writer.WriteLine(log);
+                    }
+                    _logBuffer.Clear();
+                    I?._writer.Flush();
+                }
+            }
         }
     }
 }
