@@ -374,8 +374,10 @@ namespace DynamicAsteroids.AsteroidEntities
 
         private void CreatePhysics()
         {
-            float mass = 10000 * Size * Size * Size;
             float radius = Size / 2; // Assuming Size represents the diameter
+            float volume = (4.0f / 3.0f) * (float)Math.PI * (radius * radius * radius);
+            float density = 917.0f; // Density of ice in kg/m³
+            float mass = density * volume;
 
             PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
                 this,
@@ -386,7 +388,7 @@ namespace DynamicAsteroids.AsteroidEntities
                 rigidBodyFlags: RigidBodyFlag.RBF_DEFAULT,
                 collisionLayer: CollisionLayers.NoVoxelCollisionLayer,
                 isPhantom: false,
-                mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
+                mass: new ModAPIMass(volume, mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
             );
 
             MyAPIGateway.Physics.CreateSpherePhysics(settings, radius);
