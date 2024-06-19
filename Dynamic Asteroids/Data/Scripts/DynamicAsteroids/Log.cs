@@ -34,6 +34,18 @@ namespace Invalid.DynamicRoids
                 I?._BufferLog(message);
         }
 
+        public static void ServerInfo(string message)
+        {
+            if (AsteroidSettings.EnableLogging && MyAPIGateway.Session.IsServer)
+                I?._BufferLog("Server: " + message);
+        }
+
+        public static void ClientInfo(string message)
+        {
+            if (AsteroidSettings.EnableLogging && !MyAPIGateway.Session.IsServer)
+                I?._BufferLog("Client: " + message);
+        }
+
         public static void Warning(string message)
         {
             if (AsteroidSettings.EnableLogging)
