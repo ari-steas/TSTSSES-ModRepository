@@ -764,19 +764,10 @@ public class AsteroidSpawner
 
     private bool IsNearVanillaAsteroid(Vector3D position)
     {
-        List<IMyVoxelBase> voxelMaps = new List<IMyVoxelBase>();
-        MyAPIGateway.Session.VoxelMaps.GetInstances(voxelMaps, v => v is IMyVoxelMap && !v.StorageName.StartsWith("mod_"));
+        double distance = AsteroidSettings.MinDistanceFromVanillaAsteroids;
+        BoundingBoxD box = new BoundingBoxD(position - new Vector3D(distance), position + new Vector3D(distance));
 
-        foreach (var voxelMap in voxelMaps)
-        {
-            if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < AsteroidSettings.MinDistanceFromVanillaAsteroids * AsteroidSettings.MinDistanceFromVanillaAsteroids)
-            {
-                Log.Info($"Position {position} is near vanilla asteroid {voxelMap.StorageName}");
-                return true;
-            }
-        }
-
-        return false;
+        return MyGamePruningStructure.AnyVoxelMapInBox(ref box);
     }
 
     private Vector3D RandVector()
