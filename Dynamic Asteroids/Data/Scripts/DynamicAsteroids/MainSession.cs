@@ -38,6 +38,7 @@ namespace DynamicAsteroids
 
                 if (MyAPIGateway.Session.IsServer)
                 {
+                    _spawner = new AsteroidSpawner();
                     _spawner.Init(seed);
                     if (AsteroidSettings.EnablePersistence)
                     {

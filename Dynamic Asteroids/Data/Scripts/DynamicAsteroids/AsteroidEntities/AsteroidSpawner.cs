@@ -350,62 +350,35 @@ public class AsteroidSpawner
         AssignZonesToPlayers();
         MergeZones();
         UpdateZones();
+        UpdatePlayerMovementData();
 
-        try
+        _updateIntervalTimer--;
+        _spawnIntervalTimer--;
+        _logUpdateTimer--;
+
+        if (_updateIntervalTimer <= 0)
         {
-            List<IMyPlayer> players = new List<IMyPlayer>();
-            MyAPIGateway.Players.GetPlayers(players);
-
-            if (_updateIntervalTimer > 0)
-            {
-                _updateIntervalTimer--;
-            }
-            else
-            {
-                UpdateAsteroids(playerZones.Values.ToList());
-                ProcessAsteroidUpdates();
-                _updateIntervalTimer = AsteroidSettings.UpdateInterval;
-            }
-
-            if (_spawnIntervalTimer > 0)
-            {
-                _spawnIntervalTimer--;
-            }
-            else
-            {
-                SpawnAsteroids(playerZones.Values.ToList());
-                _spawnIntervalTimer = AsteroidSettings.SpawnInterval;
-            }
-
-            if (_logUpdateTimer > 0)
-            {
-                _logUpdateTimer--;
-            }
-            else
-            {
-                Log.Info($"All zones spawn attempt complete. Total spawn attempts: {totalSpawnAttempts}, New total asteroid count: {_asteroids.Count}");
-                _logUpdateTimer = 5; // Log every 5 updates, adjust as necessary
-            }
-
-            foreach (var player in players)
-            {
-                Vector3D playerPosition = player.GetPosition();
-                AsteroidZone zone;
-                if (playerZones.TryGetValue(player.IdentityId, out zone))
-                {
-                    LoadAsteroidsInRange(playerPosition, zone);
-                }
-            }
-
-            ProcessGravityCheckQueue();
-
-            if (AsteroidSettings.EnableLogging)
-                MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
+            UpdateAsteroids(playerZones.Values.ToList());
+            ProcessAsteroidUpdates();
+            _updateIntervalTimer = AsteroidSettings.UpdateInterval;
         }
-        catch (Exception ex)
+
+        if (_spawnIntervalTimer <= 0)
         {
-            Log.Exception(ex, typeof(AsteroidSpawner));
+            SpawnAsteroids(playerZones.Values.ToList());
+            _spawnIntervalTimer = AsteroidSettings.SpawnInterval;
         }
+
+        if (_logUpdateTimer <= 0)
+        {
+            Log.Info($"All zones spawn attempt complete. Total spawn attempts: {totalSpawnAttempts}, New total asteroid count: {_asteroids.Count}");
+            _logUpdateTimer = 300; // Log every 5 seconds (assuming 60 updates per second)
+        }
+
+        ProcessGravityCheckQueue();
+
+        if (AsteroidSettings.EnableLogging)
+            MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
     }
 
     private void UpdateAsteroids(List<AsteroidZone> zones)
