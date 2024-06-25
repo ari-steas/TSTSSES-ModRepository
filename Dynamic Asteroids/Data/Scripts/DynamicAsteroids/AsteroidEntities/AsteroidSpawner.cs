@@ -9,6 +9,7 @@ using System;
 using DynamicAsteroids;
 using Invalid.DynamicRoids;
 using Sandbox.Game.Entities;
+using VRage.Game.Entity;
 
 public class AsteroidZone
 {
@@ -493,16 +494,24 @@ public class AsteroidSpawner
 
     private void ProcessGravityCheckQueue()
     {
+        BoundingSphereD sphere = new BoundingSphereD(Vector3D.Zero, 1);
+        List<MyEntity> entities = new List<MyEntity>();
+
         for (int i = 0; i < GravityChecksPerTick && gravityCheckQueue.Count > 0; i++)
         {
             var asteroid = gravityCheckQueue.Dequeue();
-            if (IsInNaturalGravity(asteroid.PositionComp.GetPosition()))
+            sphere.Center = asteroid.PositionComp.GetPosition();
+
+            entities.Clear();
+            MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, entities, MyEntityQueryType.Static);
+
+            bool inGravity = entities.Any(e => e is MyPlanet);
+            if (inGravity)
             {
                 RemoveAsteroid(asteroid);
             }
             else
             {
-                // Re-enqueue if still valid
                 gravityCheckQueue.Enqueue(asteroid);
             }
         }
@@ -688,14 +697,26 @@ public class AsteroidSpawner
             return false;
         }
 
+        BoundingSphereD sphere = new BoundingSphereD(position, AsteroidSettings.MinDistanceFromPlayer);
+        List<MyEntity> entities = new List<MyEntity>();
+        MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, entities, MyEntityQueryType.Both);
+
+        foreach (var entity in entities)
+        {
+            if (entity is IMyCharacter || entity is IMyShipController)
+            {
+                return false; // Too close to a player or ship
+            }
+        }
+
         foreach (var zone in zones)
         {
-            if (zone.IsPointInZone(position) &&
-                Vector3D.DistanceSquared(position, zone.Center) >= AsteroidSettings.MinDistanceFromPlayer * AsteroidSettings.MinDistanceFromPlayer)
+            if (zone.IsPointInZone(position))
             {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -754,12 +775,14 @@ public class AsteroidSpawner
 
     private bool IsNearVanillaAsteroid(Vector3D position)
     {
-        List<IMyVoxelBase> voxelMaps = new List<IMyVoxelBase>();
-        MyAPIGateway.Session.VoxelMaps.GetInstances(voxelMaps, v => v is IMyVoxelMap && !v.StorageName.StartsWith("mod_"));
+        BoundingSphereD sphere = new BoundingSphereD(position, AsteroidSettings.MinDistanceFromVanillaAsteroids);
+        List<MyEntity> entities = new List<MyEntity>();
+        MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, entities, MyEntityQueryType.Static);
 
-        foreach (var voxelMap in voxelMaps)
+        foreach (var entity in entities)
         {
-            if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < AsteroidSettings.MinDistanceFromVanillaAsteroids * AsteroidSettings.MinDistanceFromVanillaAsteroids)
+            var voxelMap = entity as IMyVoxelMap;
+            if (voxelMap != null && !voxelMap.StorageName.StartsWith("mod_"))
             {
                 Log.Info($"Position {position} is near vanilla asteroid {voxelMap.StorageName}");
                 return true;
