@@ -52,11 +52,6 @@ public class AsteroidSpawner
         public double Speed { get; set; }
     }
 
-    private int _spawnIntervalTimer = 0;
-    private int _updateIntervalTimer = 0;
-    private int _logUpdateTimer = 0;
-    private int totalSpawnAttempts = 0;
-
     public void Init(int seed)
     {
         if (!MyAPIGateway.Session.IsServer)
@@ -343,6 +338,9 @@ public class AsteroidSpawner
         playerZones = updatedZones;
     }
 
+    private int _spawnIntervalTimer = 0;
+    private int _updateIntervalTimer = 0;
+
     public void UpdateTick()
     {
         if (!MyAPIGateway.Session.IsServer) return;
@@ -375,16 +373,6 @@ public class AsteroidSpawner
             {
                 SpawnAsteroids(playerZones.Values.ToList());
                 _spawnIntervalTimer = AsteroidSettings.SpawnInterval;
-            }
-
-            if (_logUpdateTimer > 0)
-            {
-                _logUpdateTimer--;
-            }
-            else
-            {
-                Log.Info($"All zones spawn attempt complete. Total spawn attempts: {totalSpawnAttempts}, New total asteroid count: {_asteroids.Count}");
-                _logUpdateTimer = 5; // Log every 5 updates, adjust as necessary
             }
 
             foreach (var player in players)
@@ -522,6 +510,8 @@ public class AsteroidSpawner
 
     public void SpawnAsteroids(List<AsteroidZone> zones)
     {
+        int totalSpawnAttempts = 0;
+
         if (AsteroidSettings.MaxAsteroidCount == 0)
         {
             Log.Info("Asteroid spawning is disabled.");
