@@ -9,6 +9,8 @@ using ProtoBuf;
 using Sandbox.Game.Entities;
 using VRage.Game.ModAPI;
 using VRage.Game;
+using System.Collections.Generic;
+using VRage.ModAPI;
 
 namespace DynamicAsteroids
 {
@@ -127,10 +129,23 @@ namespace DynamicAsteroids
 
             var position = player.GetPosition();
             var name = $"Area_{position.GetHashCode()}";
+
+            BoundingBoxD boundingBox = new BoundingBoxD(position - new Vector3D(radius), position + new Vector3D(radius));
+            MyPlanet closestPlanet = MyGamePruningStructure.GetClosestPlanet(ref boundingBox);
+
+            if (closestPlanet != null)
+            {
+                Log.Info($"Cannot create spawn area '{name}' at {position} with radius {radius}: Intersects with a planet.");
+                MyAPIGateway.Utilities.ShowMessage("DynamicAsteroids", $"Cannot create spawn area '{name}' at {position} with radius {radius}: Intersects with a planet.");
+                return;
+            }
+
             AsteroidSettings.AddSpawnableArea(name, position, radius);
             Log.Info($"Created spawn area '{name}' at {position} with radius {radius}");
             MyAPIGateway.Utilities.ShowMessage("DynamicAsteroids", $"Created spawn area '{name}' at {position} with radius {radius}");
         }
+
+
 
         private void RemoveSpawnArea(string name)
         {

@@ -9,6 +9,7 @@ using System;
 using DynamicAsteroids;
 using Invalid.DynamicRoids;
 using Sandbox.Game.Entities;
+using VRage.Game.Entity;
 
 public class AsteroidZone
 {
@@ -39,8 +40,6 @@ public class AsteroidSpawner
     private List<AsteroidNetworkMessage> _networkMessages = new List<AsteroidNetworkMessage>();
     private Dictionary<long, AsteroidZone> playerZones = new Dictionary<long, AsteroidZone>();
     private Dictionary<long, PlayerMovementData> playerMovementData = new Dictionary<long, PlayerMovementData>();
-    private Queue<AsteroidEntity> gravityCheckQueue = new Queue<AsteroidEntity>();
-    private const int GravityChecksPerTick = 1;
 
     private Queue<AsteroidEntity> _updateQueue = new Queue<AsteroidEntity>();
     private const int UpdatesPerTick = 50; // Adjust this number based on performance needs
@@ -129,9 +128,6 @@ public class AsteroidSpawner
                 _asteroids.Add(asteroid);
                 MyEntities.Add(asteroid);
 
-                // Add to gravity check queue
-                gravityCheckQueue.Enqueue(asteroid);
-
                 // Add to update queue
                 _updateQueue.Enqueue(asteroid);
             }
@@ -171,8 +167,8 @@ public class AsteroidSpawner
 
                 _despawnedAsteroids.Remove(state);
 
-                // Add to gravity check queue
-                gravityCheckQueue.Enqueue(asteroid);
+                // Add to update queue
+                _updateQueue.Enqueue(asteroid);
             }
         }
 
@@ -385,8 +381,6 @@ public class AsteroidSpawner
                 }
             }
 
-            ProcessGravityCheckQueue();
-
             if (AsteroidSettings.EnableLogging)
                 MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
         }
@@ -433,9 +427,6 @@ public class AsteroidSpawner
                 }
                 currentZone.AsteroidCount++;
             }
-
-            // Add to gravity check queue
-            gravityCheckQueue.Enqueue(asteroid);
         }
 
         Log.Info($"Update complete. Removed asteroids: {removedCount}, Remaining asteroids: {_asteroids.Count}");
@@ -488,23 +479,6 @@ public class AsteroidSpawner
         else if (currentZone != null)
         {
             currentZone.AsteroidCount++;
-        }
-    }
-
-    private void ProcessGravityCheckQueue()
-    {
-        for (int i = 0; i < GravityChecksPerTick && gravityCheckQueue.Count > 0; i++)
-        {
-            var asteroid = gravityCheckQueue.Dequeue();
-            if (IsInNaturalGravity(asteroid.PositionComp.GetPosition()))
-            {
-                RemoveAsteroid(asteroid);
-            }
-            else
-            {
-                // Re-enqueue if still valid
-                gravityCheckQueue.Enqueue(asteroid);
-            }
         }
     }
 
@@ -622,9 +596,6 @@ public class AsteroidSpawner
                     var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true, rotation);
                     _networkMessages.Add(message);
                     asteroidsSpawned++;
-
-                    // Add to gravity check queue
-                    gravityCheckQueue.Enqueue(asteroid);
                 }
             }
 
@@ -683,27 +654,27 @@ public class AsteroidSpawner
 
     private bool IsValidSpawnPosition(Vector3D position, List<AsteroidZone> zones)
     {
-        if (AsteroidSettings.IgnorePlanets && IsInNaturalGravity(position))
+        BoundingSphereD sphere = new BoundingSphereD(position, AsteroidSettings.MinDistanceFromPlayer);
+        List<MyEntity> entities = new List<MyEntity>();
+        MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, entities, MyEntityQueryType.Both);
+
+        foreach (var entity in entities)
         {
-            return false;
+            if (entity is IMyCharacter || entity is IMyShipController)
+            {
+                return false; // Too close to a player or ship
+            }
         }
 
         foreach (var zone in zones)
         {
-            if (zone.IsPointInZone(position) &&
-                Vector3D.DistanceSquared(position, zone.Center) >= AsteroidSettings.MinDistanceFromPlayer * AsteroidSettings.MinDistanceFromPlayer)
+            if (zone.IsPointInZone(position))
             {
                 return true;
             }
         }
-        return false;
-    }
 
-    private bool IsInNaturalGravity(Vector3D position)
-    {
-        float naturalGravityInterference;
-        Vector3 gravity = MyAPIGateway.Physics.CalculateNaturalGravityAt(position, out naturalGravityInterference);
-        return gravity.LengthSquared() > 0;
+        return false;
     }
 
     public void SendNetworkMessages()
@@ -754,12 +725,14 @@ public class AsteroidSpawner
 
     private bool IsNearVanillaAsteroid(Vector3D position)
     {
-        List<IMyVoxelBase> voxelMaps = new List<IMyVoxelBase>();
-        MyAPIGateway.Session.VoxelMaps.GetInstances(voxelMaps, v => v is IMyVoxelMap && !v.StorageName.StartsWith("mod_"));
+        BoundingSphereD sphere = new BoundingSphereD(position, AsteroidSettings.MinDistanceFromVanillaAsteroids);
+        List<MyEntity> entities = new List<MyEntity>();
+        MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, entities, MyEntityQueryType.Static);
 
-        foreach (var voxelMap in voxelMaps)
+        foreach (var entity in entities)
         {
-            if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < AsteroidSettings.MinDistanceFromVanillaAsteroids * AsteroidSettings.MinDistanceFromVanillaAsteroids)
+            var voxelMap = entity as IMyVoxelMap;
+            if (voxelMap != null && !voxelMap.StorageName.StartsWith("mod_"))
             {
                 Log.Info($"Position {position} is near vanilla asteroid {voxelMap.StorageName}");
                 return true;
