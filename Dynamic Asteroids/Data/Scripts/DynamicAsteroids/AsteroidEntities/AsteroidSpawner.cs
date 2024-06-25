@@ -40,8 +40,6 @@ public class AsteroidSpawner
     private List<AsteroidNetworkMessage> _networkMessages = new List<AsteroidNetworkMessage>();
     private Dictionary<long, AsteroidZone> playerZones = new Dictionary<long, AsteroidZone>();
     private Dictionary<long, PlayerMovementData> playerMovementData = new Dictionary<long, PlayerMovementData>();
-    private Queue<AsteroidEntity> gravityCheckQueue = new Queue<AsteroidEntity>();
-    private const int GravityChecksPerTick = 1;
 
     private Queue<AsteroidEntity> _updateQueue = new Queue<AsteroidEntity>();
     private const int UpdatesPerTick = 50; // Adjust this number based on performance needs
@@ -130,9 +128,6 @@ public class AsteroidSpawner
                 _asteroids.Add(asteroid);
                 MyEntities.Add(asteroid);
 
-                // Add to gravity check queue
-                gravityCheckQueue.Enqueue(asteroid);
-
                 // Add to update queue
                 _updateQueue.Enqueue(asteroid);
             }
@@ -172,8 +167,8 @@ public class AsteroidSpawner
 
                 _despawnedAsteroids.Remove(state);
 
-                // Add to gravity check queue
-                gravityCheckQueue.Enqueue(asteroid);
+                // Add to update queue
+                _updateQueue.Enqueue(asteroid);
             }
         }
 
@@ -386,8 +381,6 @@ public class AsteroidSpawner
                 }
             }
 
-            ProcessGravityCheckQueue();
-
             if (AsteroidSettings.EnableLogging)
                 MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
         }
@@ -434,9 +427,6 @@ public class AsteroidSpawner
                 }
                 currentZone.AsteroidCount++;
             }
-
-            // Add to gravity check queue
-            gravityCheckQueue.Enqueue(asteroid);
         }
 
         Log.Info($"Update complete. Removed asteroids: {removedCount}, Remaining asteroids: {_asteroids.Count}");
@@ -489,31 +479,6 @@ public class AsteroidSpawner
         else if (currentZone != null)
         {
             currentZone.AsteroidCount++;
-        }
-    }
-
-    private void ProcessGravityCheckQueue()
-    {
-        BoundingSphereD sphere = new BoundingSphereD(Vector3D.Zero, 1);
-        List<MyEntity> entities = new List<MyEntity>();
-
-        for (int i = 0; i < GravityChecksPerTick && gravityCheckQueue.Count > 0; i++)
-        {
-            var asteroid = gravityCheckQueue.Dequeue();
-            sphere.Center = asteroid.PositionComp.GetPosition();
-
-            entities.Clear();
-            MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, entities, MyEntityQueryType.Static);
-
-            bool inGravity = entities.Any(e => e is MyPlanet);
-            if (inGravity)
-            {
-                RemoveAsteroid(asteroid);
-            }
-            else
-            {
-                gravityCheckQueue.Enqueue(asteroid);
-            }
         }
     }
 
@@ -631,9 +596,6 @@ public class AsteroidSpawner
                     var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true, rotation);
                     _networkMessages.Add(message);
                     asteroidsSpawned++;
-
-                    // Add to gravity check queue
-                    gravityCheckQueue.Enqueue(asteroid);
                 }
             }
 
@@ -692,11 +654,6 @@ public class AsteroidSpawner
 
     private bool IsValidSpawnPosition(Vector3D position, List<AsteroidZone> zones)
     {
-        if (AsteroidSettings.IgnorePlanets && IsInNaturalGravity(position))
-        {
-            return false;
-        }
-
         BoundingSphereD sphere = new BoundingSphereD(position, AsteroidSettings.MinDistanceFromPlayer);
         List<MyEntity> entities = new List<MyEntity>();
         MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, entities, MyEntityQueryType.Both);
@@ -718,13 +675,6 @@ public class AsteroidSpawner
         }
 
         return false;
-    }
-
-    private bool IsInNaturalGravity(Vector3D position)
-    {
-        float naturalGravityInterference;
-        Vector3 gravity = MyAPIGateway.Physics.CalculateNaturalGravityAt(position, out naturalGravityInterference);
-        return gravity.LengthSquared() > 0;
     }
 
     public void SendNetworkMessages()
