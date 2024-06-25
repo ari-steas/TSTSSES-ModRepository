@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities;
 using Sandbox.ModAPI;
 
 namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids

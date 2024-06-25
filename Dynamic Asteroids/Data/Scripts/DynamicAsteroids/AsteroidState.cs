@@ -1,4 +1,4 @@
-﻿using DynamicAsteroids.Data.Scripts.DynamicAsteroids;
+﻿using DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities;
 using ProtoBuf;
 using System;
 using System.Collections.Generic;

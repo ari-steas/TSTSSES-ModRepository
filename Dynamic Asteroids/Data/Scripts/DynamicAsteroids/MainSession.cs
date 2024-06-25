@@ -9,6 +9,7 @@ using VRage.Game.ModAPI;
 using VRage.Game;
 using System.Collections.Generic;
 using VRage.ModAPI;
+using DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities;
 
 namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 {

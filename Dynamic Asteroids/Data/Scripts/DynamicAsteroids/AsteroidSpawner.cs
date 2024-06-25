@@ -7,6 +7,7 @@ using System.Linq;
 using System;
 using Sandbox.Game.Entities;
 using VRage.Game.Entity;
+using DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities;
 
 namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 {

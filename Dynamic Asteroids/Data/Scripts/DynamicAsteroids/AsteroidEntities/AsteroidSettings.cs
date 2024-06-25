@@ -5,7 +5,7 @@ using VRageMath;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
+namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
 {
     public static class AsteroidSettings
     {

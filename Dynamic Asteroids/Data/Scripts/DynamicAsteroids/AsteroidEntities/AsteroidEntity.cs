@@ -18,7 +18,7 @@ using VRage.Utils;
 using VRageMath;
 using CollisionLayers = Sandbox.Engine.Physics.MyPhysics.CollisionLayers;
 
-namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
+namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
 {
     public enum AsteroidType
     {
