@@ -327,13 +327,13 @@ namespace DynamicAsteroids.AsteroidEntities
                 MyEntities.Add(this);
                 Log.Info($"{(MyAPIGateway.Session.IsServer ? "Server" : "Client")}: Added asteroid entity with ID {EntityId} to MyEntities");
 
-                if (MyAPIGateway.Session.IsServer)
-                {
-                    Log.Info("Creating physics");
-                    CreatePhysics();
-                }
+                Log.Info("Creating physics");
+                CreatePhysics();
+                Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
+                Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand);
+                Log.Info($"Initial LinearVelocity: {Physics.LinearVelocity}, Initial AngularVelocity: {Physics.AngularVelocity}");
 
-                BindPhysics(initialVelocity);
+                Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
 
                 if (MyAPIGateway.Session.IsServer)
                 {
@@ -356,48 +356,6 @@ namespace DynamicAsteroids.AsteroidEntities
             }
         }
 
-        private void BindPhysics(Vector3D initialVelocity)
-        {
-            if (Physics == null)
-            {
-                Log.Warning("Physics object is not created, binding failed.");
-                return;
-            }
-
-            Physics.Enabled = true;
-            Physics.LinearVelocity = initialVelocity + RandVector() * AsteroidSettings.VelocityVariability;
-            Physics.AngularVelocity = RandVector() * AsteroidSettings.GetRandomAngularVelocity(MainSession.I.Rand);
-
-            Log.Info($"Initial LinearVelocity: {Physics.LinearVelocity}, Initial AngularVelocity: {Physics.AngularVelocity}");
-            Log.Info($"Asteroid model {ModelString} loaded successfully with initial angular velocity: {Physics.AngularVelocity}");
-        }
-
-        private void CreatePhysics()
-        {
-            float radius = Size / 2; // Assuming Size represents the diameter
-            float volume = (4.0f / 3.0f) * (float)Math.PI * (radius * radius * radius);
-            float density = 917.0f; // Density of ice in kg/m³
-            float mass = density * volume;
-
-            PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
-                this,
-                WorldMatrix,
-                Vector3.Zero,
-                linearDamping: 0f, // Remove damping
-                angularDamping: 0f, // Remove damping
-                rigidBodyFlags: RigidBodyFlag.RBF_DEFAULT,
-                collisionLayer: CollisionLayers.NoVoxelCollisionLayer,
-                isPhantom: false,
-                mass: new ModAPIMass(volume, mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
-            );
-
-            MyAPIGateway.Physics.CreateSpherePhysics(settings, radius);
-            Physics.Enabled = true;
-            Physics.Activate();
-
-            Log.ServerInfo($"Physics created for asteroid with ID {EntityId}, Mass: {mass}, Radius: {radius}");
-        }
-
         public float Size;
         public string ModelString = "";
         public AsteroidType Type;
@@ -407,8 +365,6 @@ namespace DynamicAsteroids.AsteroidEntities
         {
             if (!MyAPIGateway.Session.IsServer)
                 return;
-
-            Log.ServerInfo($"Splitting asteroid with ID {EntityId}, Size: {Size}");
 
             int splits = MainSession.I.Rand.Next(2, 5);
 
@@ -427,14 +383,11 @@ namespace DynamicAsteroids.AsteroidEntities
                 {
                     int dropAmount = GetRandomDropAmount(Type);
                     MyFloatingObjects.Spawn(new MyPhysicalInventoryItem(dropAmount, newObject), PositionComp.GetPosition() + RandVector() * Size, Vector3D.Forward, Vector3D.Up, Physics);
-                    Log.ServerInfo($"Spawned {dropAmount} of {Type} at {PositionComp.GetPosition() + RandVector() * Size}");
                 }
 
                 var removalMessage = new AsteroidNetworkMessage(PositionComp.GetPosition(), Size, Vector3D.Zero, Vector3D.Zero, Type, false, EntityId, true, false, Quaternion.Identity);
                 var removalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(removalMessage);
                 MyAPIGateway.Multiplayer.SendMessageToOthers(32000, removalMessageBytes);
-
-                Log.ServerInfo($"Sent removal message for asteroid with ID {EntityId}");
 
                 MainSession.I._spawner._asteroids.Remove(this);
                 Close();
@@ -456,8 +409,6 @@ namespace DynamicAsteroids.AsteroidEntities
 
                 MainSession.I._spawner._asteroids.Add(subChunk);
 
-                Log.ServerInfo($"Created sub-chunk asteroid with ID {subChunk.EntityId} at {newPos}");
-
                 var message = new AsteroidNetworkMessage(newPos, newSize, newVelocity, newAngularVelocity, Type, true, subChunk.EntityId, false, true, newRotation);
                 var messageBytes = MyAPIGateway.Utilities.SerializeToBinary(message);
                 MyAPIGateway.Multiplayer.SendMessageToOthers(32000, messageBytes);
@@ -467,60 +418,45 @@ namespace DynamicAsteroids.AsteroidEntities
             var finalRemovalMessageBytes = MyAPIGateway.Utilities.SerializeToBinary(finalRemovalMessage);
             MyAPIGateway.Multiplayer.SendMessageToOthers(32000, finalRemovalMessageBytes);
 
-            Log.ServerInfo($"Sent final removal message for asteroid with ID {EntityId}");
-
             MainSession.I._spawner._asteroids.Remove(this);
             Close();
         }
 
         private int GetRandomDropAmount(AsteroidType type)
         {
-            int dropAmount = 0;
             switch (type)
             {
                 case AsteroidType.Ice:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.IceDropRange[0], AsteroidSettings.IceDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.IceDropRange[0], AsteroidSettings.IceDropRange[1]);
                 case AsteroidType.Stone:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.StoneDropRange[0], AsteroidSettings.StoneDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.StoneDropRange[0], AsteroidSettings.StoneDropRange[1]);
                 case AsteroidType.Iron:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.IronDropRange[0], AsteroidSettings.IronDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.IronDropRange[0], AsteroidSettings.IronDropRange[1]);
                 case AsteroidType.Nickel:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.NickelDropRange[0], AsteroidSettings.NickelDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.NickelDropRange[0], AsteroidSettings.NickelDropRange[1]);
                 case AsteroidType.Cobalt:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.CobaltDropRange[0], AsteroidSettings.CobaltDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.CobaltDropRange[0], AsteroidSettings.CobaltDropRange[1]);
                 case AsteroidType.Magnesium:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.MagnesiumDropRange[0], AsteroidSettings.MagnesiumDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.MagnesiumDropRange[0], AsteroidSettings.MagnesiumDropRange[1]);
                 case AsteroidType.Silicon:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.SiliconDropRange[0], AsteroidSettings.SiliconDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.SiliconDropRange[0], AsteroidSettings.SiliconDropRange[1]);
                 case AsteroidType.Silver:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.SilverDropRange[0], AsteroidSettings.SilverDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.SilverDropRange[0], AsteroidSettings.SilverDropRange[1]);
                 case AsteroidType.Gold:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.GoldDropRange[0], AsteroidSettings.GoldDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.GoldDropRange[0], AsteroidSettings.GoldDropRange[1]);
                 case AsteroidType.Platinum:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.PlatinumDropRange[0], AsteroidSettings.PlatinumDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.PlatinumDropRange[0], AsteroidSettings.PlatinumDropRange[1]);
                 case AsteroidType.Uraninite:
-                    dropAmount = MainSession.I.Rand.Next(AsteroidSettings.UraniniteDropRange[0], AsteroidSettings.UraniniteDropRange[1]);
-                    break;
+                    return MainSession.I.Rand.Next(AsteroidSettings.UraniniteDropRange[0], AsteroidSettings.UraniniteDropRange[1]);
+                default:
+                    return 0;
             }
-            Log.ServerInfo($"Generated drop amount for {type}: {dropAmount}");
-            return dropAmount;
         }
 
         public void OnDestroy()
         {
             try
             {
-                Log.ServerInfo($"OnDestroy called for asteroid with ID {EntityId}");
                 SplitAsteroid();
             }
             catch (Exception ex)
@@ -562,6 +498,28 @@ namespace DynamicAsteroids.AsteroidEntities
         public float Integrity => _integrity;
 
         public bool UseDamageSystem => true;
+
+        private void CreatePhysics()
+        {
+            float mass = 10000 * Size * Size * Size;
+            float radius = Size / 2; // Assuming Size represents the diameter
+
+            PhysicsSettings settings = MyAPIGateway.Physics.CreateSettingsForPhysics(
+                this,
+                WorldMatrix,
+                Vector3.Zero,
+                linearDamping: 0f, // Remove damping
+                angularDamping: 0f, // Remove damping
+                rigidBodyFlags: RigidBodyFlag.RBF_DEFAULT,
+                collisionLayer: CollisionLayers.NoVoxelCollisionLayer,
+                isPhantom: false,
+                mass: new ModAPIMass(PositionComp.LocalAABB.Volume(), mass, Vector3.Zero, mass * PositionComp.LocalAABB.Height * PositionComp.LocalAABB.Height / 6 * Matrix.Identity)
+            );
+
+            MyAPIGateway.Physics.CreateSpherePhysics(settings, radius);
+            Physics.Enabled = true;
+            Physics.Activate();
+        }
 
         private Vector3D RandVector()
         {

@@ -52,11 +52,6 @@ public class AsteroidSpawner
         public double Speed { get; set; }
     }
 
-    private int _spawnIntervalTimer = 0;
-    private int _updateIntervalTimer = 0;
-    private int _logUpdateTimer = 0;
-    private int totalSpawnAttempts = 0;
-
     public void Init(int seed)
     {
         if (!MyAPIGateway.Session.IsServer)
@@ -343,6 +338,9 @@ public class AsteroidSpawner
         playerZones = updatedZones;
     }
 
+    private int _spawnIntervalTimer = 0;
+    private int _updateIntervalTimer = 0;
+
     public void UpdateTick()
     {
         if (!MyAPIGateway.Session.IsServer) return;
@@ -350,35 +348,52 @@ public class AsteroidSpawner
         AssignZonesToPlayers();
         MergeZones();
         UpdateZones();
-        UpdatePlayerMovementData();
 
-        _updateIntervalTimer--;
-        _spawnIntervalTimer--;
-        _logUpdateTimer--;
-
-        if (_updateIntervalTimer <= 0)
+        try
         {
-            UpdateAsteroids(playerZones.Values.ToList());
-            ProcessAsteroidUpdates();
-            _updateIntervalTimer = AsteroidSettings.UpdateInterval;
-        }
+            List<IMyPlayer> players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players);
 
-        if (_spawnIntervalTimer <= 0)
+            if (_updateIntervalTimer > 0)
+            {
+                _updateIntervalTimer--;
+            }
+            else
+            {
+                UpdateAsteroids(playerZones.Values.ToList());
+                ProcessAsteroidUpdates();
+                _updateIntervalTimer = AsteroidSettings.UpdateInterval;
+            }
+
+            if (_spawnIntervalTimer > 0)
+            {
+                _spawnIntervalTimer--;
+            }
+            else
+            {
+                SpawnAsteroids(playerZones.Values.ToList());
+                _spawnIntervalTimer = AsteroidSettings.SpawnInterval;
+            }
+
+            foreach (var player in players)
+            {
+                Vector3D playerPosition = player.GetPosition();
+                AsteroidZone zone;
+                if (playerZones.TryGetValue(player.IdentityId, out zone))
+                {
+                    LoadAsteroidsInRange(playerPosition, zone);
+                }
+            }
+
+            ProcessGravityCheckQueue();
+
+            if (AsteroidSettings.EnableLogging)
+                MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
+        }
+        catch (Exception ex)
         {
-            SpawnAsteroids(playerZones.Values.ToList());
-            _spawnIntervalTimer = AsteroidSettings.SpawnInterval;
+            Log.Exception(ex, typeof(AsteroidSpawner));
         }
-
-        if (_logUpdateTimer <= 0)
-        {
-            Log.Info($"All zones spawn attempt complete. Total spawn attempts: {totalSpawnAttempts}, New total asteroid count: {_asteroids.Count}");
-            _logUpdateTimer = 300; // Log every 5 seconds (assuming 60 updates per second)
-        }
-
-        ProcessGravityCheckQueue();
-
-        if (AsteroidSettings.EnableLogging)
-            MyAPIGateway.Utilities.ShowNotification($"Active Asteroids: {_asteroids.Count}", 1000 / 60);
     }
 
     private void UpdateAsteroids(List<AsteroidZone> zones)
@@ -495,6 +510,8 @@ public class AsteroidSpawner
 
     public void SpawnAsteroids(List<AsteroidZone> zones)
     {
+        int totalSpawnAttempts = 0;
+
         if (AsteroidSettings.MaxAsteroidCount == 0)
         {
             Log.Info("Asteroid spawning is disabled.");
@@ -737,10 +754,19 @@ public class AsteroidSpawner
 
     private bool IsNearVanillaAsteroid(Vector3D position)
     {
-        double distance = AsteroidSettings.MinDistanceFromVanillaAsteroids;
-        BoundingBoxD box = new BoundingBoxD(position - new Vector3D(distance), position + new Vector3D(distance));
+        List<IMyVoxelBase> voxelMaps = new List<IMyVoxelBase>();
+        MyAPIGateway.Session.VoxelMaps.GetInstances(voxelMaps, v => v is IMyVoxelMap && !v.StorageName.StartsWith("mod_"));
 
-        return MyGamePruningStructure.AnyVoxelMapInBox(ref box);
+        foreach (var voxelMap in voxelMaps)
+        {
+            if (Vector3D.DistanceSquared(position, voxelMap.GetPosition()) < AsteroidSettings.MinDistanceFromVanillaAsteroids * AsteroidSettings.MinDistanceFromVanillaAsteroids)
+            {
+                Log.Info($"Position {position} is near vanilla asteroid {voxelMap.StorageName}");
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Vector3D RandVector()
