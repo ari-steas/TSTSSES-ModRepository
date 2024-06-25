@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" GroupingSetting="Access">
+  <Comment CommentText="Networking">
+    <Position X="15.97" Y="0.5" Height="0.334" Width="1.7" />
+  </Comment>
+  <Comment CommentText="CONFIG">
+    <Position X="21.901" Y="0.606" Height="0.352" Width="1.7" />
+  </Comment>
+  <Class Name="DynamicAsteroids.AsteroidEntities.AsteroidEntity" BaseTypeListCollapsed="true">
+    <Position X="8.5" Y="8.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>CQABgCAABBAA4AgQgAACAAAIIABAg0AAAQACAQAAAAA=</HashCode>
+      <FileName>Data\Scripts\DynamicAsteroids\AsteroidEntities\AsteroidEntity.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="AsteroidState">
+    <Position X="8.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAIAgAAgAAAAAAAAAAAAAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>Data\Scripts\DynamicAsteroids\AsteroidState.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DynamicAsteroids.AsteroidNetworkMessageContainer">
+    <Position X="15" Y="1.25" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAA=</HashCode>
+      <FileName>Data\Scripts\DynamicAsteroids\AsteroidNetworkMessage.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Messages" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="DynamicAsteroids.AsteroidSettings">
+    <Position X="21.25" Y="1.75" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>DGBCgIMGAIAIAIBmEkEADBWQOtQJQADGlCQ0ACjUAAA=</HashCode>
+      <FileName>Data\Scripts\DynamicAsteroids\AsteroidSettings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DynamicAsteroids.SpawnableArea">
+    <Position X="1.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAACAAAAAAAAABAAAAQAAAAAAAAAAAAAAAAAABA=</HashCode>
+      <FileName>Data\Scripts\DynamicAsteroids\AsteroidSettings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DynamicAsteroids.MainSession">
+    <Position X="1" Y="6.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAAQQAAAgAAAAgICAAQAgIKACAgAACAAAgA=</HashCode>
+      <FileName>Data\Scripts\DynamicAsteroids\MainSession.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Invalid.DynamicRoids.Log">
+    <Position X="26.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAABAAAAAAAEAAAABCEGCAAIA=</HashCode>
+      <FileName>Data\Scripts\DynamicAsteroids\Log.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="DynamicAsteroids.AsteroidNetworkMessage">
+    <Position X="16" Y="3" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQ5KKDgAAAAAAAwAIAAAAAAEGAAQAAAABAEwA=</HashCode>
+      <FileName>Data\Scripts\DynamicAsteroids\AsteroidNetworkMessage.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Enum Name="DynamicAsteroids.AsteroidEntities.AsteroidType">
+    <Position X="11.5" Y="8.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAgIAAAAAAAAAAAQAACAAAAAAAAAAAgAEAAgAAAAQAE=</HashCode>
+      <FileName>Data\Scripts\DynamicAsteroids\AsteroidEntities\AsteroidEntity.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

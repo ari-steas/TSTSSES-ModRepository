@@ -1,14 +1,11 @@
-﻿using DynamicAsteroids.AsteroidEntities;
-using VRageMath;
+﻿using VRageMath;
 using ProtoBuf;
 
-namespace DynamicAsteroids
+namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 {
     [ProtoContract]
     public class AsteroidNetworkMessageContainer
     {
-        [ProtoMember(1)]
-        public int Version { get; set; } = 1;
 
         [ProtoMember(2)]
         public AsteroidNetworkMessage[] Messages { get; set; }

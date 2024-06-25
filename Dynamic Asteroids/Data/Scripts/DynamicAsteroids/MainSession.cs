@@ -1,6 +1,4 @@
-﻿using DynamicAsteroids.AsteroidEntities;
-using Invalid.DynamicRoids;
-using Sandbox.ModAPI;
+﻿using Sandbox.ModAPI;
 using System;
 using VRage.Game.Components;
 using VRage.Input;
@@ -12,7 +10,7 @@ using VRage.Game;
 using System.Collections.Generic;
 using VRage.ModAPI;
 
-namespace DynamicAsteroids
+namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 {
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
     public class MainSession : MySessionComponentBase
