@@ -1,13 +1,11 @@
 ﻿using System;
 using System.IO;
-using DynamicAsteroids.AsteroidEntities;
-using Invalid.DynamicRoids;
 using Sandbox.ModAPI;
 using VRageMath;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DynamicAsteroids
+namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
 {
     public static class AsteroidSettings
     {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Invalid.DynamicRoids;
 using Sandbox.Definitions;
 using Sandbox.Engine.Physics;
 using Sandbox.Game;
@@ -19,7 +18,7 @@ using VRage.Utils;
 using VRageMath;
 using CollisionLayers = Sandbox.Engine.Physics.MyPhysics.CollisionLayers;
 
-namespace DynamicAsteroids.AsteroidEntities
+namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
 {
     public enum AsteroidType
     {
@@ -502,7 +501,7 @@ namespace DynamicAsteroids.AsteroidEntities
         private void CreatePhysics()
         {
             float radius = Size / 2; // Assuming Size represents the diameter
-            float volume = (4.0f / 3.0f) * (float)Math.PI * (radius * radius * radius);
+            float volume = 4.0f / 3.0f * (float)Math.PI * (radius * radius * radius);
             float density = 917.0f; // Density of ice in kg/m³
             float mass = density * volume;
 

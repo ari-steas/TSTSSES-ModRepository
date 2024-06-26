@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using DynamicAsteroids;
+using DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities;
 using Sandbox.ModAPI;
 
-namespace Invalid.DynamicRoids
+namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 {
     internal class Log
     {
