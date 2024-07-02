@@ -246,7 +246,7 @@ namespace bobzone
                 double renderdistance = (matrix.Translation - MyAPIGateway.Session.Camera.Position).Length();
 
                 if(renderdistance < 20*radius)
-                    MySimpleObjectDraw.DrawTransparentSphere(ref matrix, radius, ref color, MySimpleObjectRasterizer.Solid, 20, MyStringId.GetOrCompute("SafeZone_Texture_Disabled"), null, -1, -1, null, BlendTypeEnum.PostPP, 1);
+                    MySimpleObjectDraw.DrawTransparentSphere(ref matrix, radius, ref color, MySimpleObjectRasterizer.Wireframe, 1, null, null, -1, -1, null, BlendTypeEnum.PostPP, 1);
                     //MySimpleObjectDraw.DrawTransparentSphere(ref matrix, radius.Value, ref drawColor, MySimpleObjectRasterizer.Solid, 35, shield_mat, null, -1, -1, null, BlendTypeEnum.PostPP, 1);
 
                 //if (renderdistance < radius)
