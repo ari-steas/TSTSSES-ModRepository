@@ -253,9 +253,15 @@ namespace bobzone
             var faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId);
             if (faction != null)
             {
-                return faction.CustomColor;
+                var colorMask = faction.CustomColor;
+                return ColorMaskToRgb(colorMask).ToColor();
             }
             return Color.White; // Default to white if no faction or color is found
+        }
+
+        private Vector3 ColorMaskToRgb(Vector3 colorMask)
+        {
+            return MyColorPickerConstants.HSVOffsetToHSV(colorMask).HSVtoColor();
         }
 
         private void DrawRing(Vector3D center, double radius, int segments, Color color)
@@ -268,8 +274,16 @@ namespace bobzone
                 Vector3D start = center + new Vector3D(radius * Math.Cos(angle1), 0, radius * Math.Sin(angle1));
                 Vector3D end = center + new Vector3D(radius * Math.Cos(angle2), 0, radius * Math.Sin(angle2));
                 Vector4 colorVector = color.ToVector4();
-                MySimpleObjectDraw.DrawLine(start, end, MyStringId.GetOrCompute("Square"), ref colorVector, 0.5f);
+                MySimpleObjectDraw.DrawLine(start, end, MyStringId.GetOrCompute("Square"), ref colorVector, 1f);
             }
+        }
+    }
+
+    public static class Vector3Extensions
+    {
+        public static Color ToColor(this Vector3 vector)
+        {
+            return new Color(vector.X, vector.Y, vector.Z);
         }
     }
 }
