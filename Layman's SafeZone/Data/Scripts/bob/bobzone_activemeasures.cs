@@ -101,7 +101,7 @@ namespace bobzone
                                 playerInZone[player.Identity.IdentityId] = true;
                                 var color = GetFactionColor(zoneblock.OwnerId);
                                 var colorVector = color.ToVector4();
-                                MyVisualScriptLogicProvider.SendChatMessageColored("You have entered the zone.", colorVector, zoneblock.CubeGrid.CustomName);
+                                //MyVisualScriptLogicProvider.SendChatMessageColored("You have entered the zone.", colorVector, zoneblock.CubeGrid.CustomName);
                             }
                         }
                     }
@@ -112,7 +112,7 @@ namespace bobzone
                     if (playerInZone.ContainsKey(player.Identity.IdentityId) && playerInZone[player.Identity.IdentityId])
                     {
                         playerInZone[player.Identity.IdentityId] = false;
-                        MyAPIGateway.Utilities.ShowNotification("You have left the zone.", 2000, MyFontEnum.Red);
+                        //MyAPIGateway.Utilities.ShowNotification("You have left the zone.", 2000, MyFontEnum.Red);
                     }
                 }
             });
@@ -122,6 +122,7 @@ namespace bobzone
         {
             // No direct way to unregister damage handlers in current SE API
             // Ensure no references to prevent memory leaks or unintended behavior
+            // uhh yeah sure buddy
             MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(9, null);
             players?.Clear();
             dirties?.Clear();
