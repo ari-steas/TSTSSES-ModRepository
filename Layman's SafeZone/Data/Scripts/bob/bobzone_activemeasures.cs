@@ -46,29 +46,27 @@ namespace bobzone
         public static double tock;
         public static Session Instance;
 
-
-
         public static float radius = 500f;
         public long tick = 0;
         private HashSet<IMyPlayer> players;
         private List<byte> spacket = new List<byte>();
         private List<IMyCubeGrid> dirties = new List<IMyCubeGrid>();
         public static HashSet<IMyCubeBlock> zoneblocks = new HashSet<IMyCubeBlock>();
-        //public static ConcurrentBag<IMyCubeGrid> dirties = new ConcurrentBag<IMyCubeGrid>();
         public static Dictionary<long, long> zonelookup = new Dictionary<long, long>();
+
+        private Dictionary<long, bool> playerInZone = new Dictionary<long, bool>(); // Track players in zone
 
         public override void Init(MyObjectBuilder_SessionComponent sessionComponent)
         {
             MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(9, ProcessDamage);
-            
         }
-      
+
         public override void BeforeStart()
         {
             isHost = MyAPIGateway.Session.OnlineMode == MyOnlineModeEnum.OFFLINE || MyAPIGateway.Multiplayer.IsServer;
             isServer = MyAPIGateway.Utilities.IsDedicated;
         }
-        
+
         public override void UpdateBeforeSimulation()
         {
             if (MyAPIGateway.Session == null)
@@ -78,10 +76,6 @@ namespace bobzone
 
             tick++;
 
-            //MyAPIGateway.Utilities.ShowNotification("PLAYER: " + MyAPIGateway.Session.Player.Identity.IdentityId.ToString(), 1);
-
-            //if (isHost)
-            //{
             List<IMyPlayer> playerlist = new List<IMyPlayer>();
             MyAPIGateway.Players.GetPlayers(playerlist);
             players = new HashSet<IMyPlayer>(playerlist);
@@ -91,39 +85,52 @@ namespace bobzone
                 if (player == null)
                     return;
 
+                bool isInAnyZone = false;
+
                 foreach (IMyCubeBlock zoneblock in zoneblocks)
                 {
                     if (player.Controller?.ControlledEntity?.Entity is IMyCharacter)
                     {
                         IMyCharacter character = player.Controller.ControlledEntity.Entity as IMyCharacter;
                         double distance = (zoneblock.WorldMatrix.Translation - character.WorldMatrix.Translation).LengthSquared();
-                        if (distance < radius*radius)
+                        if (distance < radius * radius)
                         {
-                            if (MyIDModule.GetRelationPlayerBlock(zoneblock.OwnerId, player.Identity.IdentityId) == MyRelationsBetweenPlayerAndBlock.Enemies)
+                            isInAnyZone = true;
+                            if (!playerInZone.ContainsKey(player.Identity.IdentityId) || !playerInZone[player.Identity.IdentityId])
                             {
-                                character.Physics.AddForce(MyPhysicsForceType.APPLY_WORLD_FORCE, Vector3D.Normalize(character.WorldMatrix.Translation - zoneblock.WorldMatrix.Translation) * 1000 * character.Physics.Mass, null, null, applyImmediately: true);
+                                playerInZone[player.Identity.IdentityId] = true;
+                                var color = GetFactionColor(zoneblock.OwnerId);
+                                var colorVector = color.ToVector4();
+                                MyVisualScriptLogicProvider.SendChatMessageColored("You have entered the zone.", colorVector, zoneblock.CubeGrid.CustomName);
                             }
-                            MyVisualScriptLogicProvider.SetPlayersHydrogenLevel(player.Identity.IdentityId, 1f);
-
                         }
                     }
-                    else if (player.Controller?.ControlledEntity?.Entity is IMyCubeBlock && MyIDModule.GetRelationPlayerBlock(zoneblock.OwnerId, player.Identity.IdentityId) == MyRelationsBetweenPlayerAndBlock.Enemies)
+                }
+
+                if (!isInAnyZone)
+                {
+                    if (playerInZone.ContainsKey(player.Identity.IdentityId) && playerInZone[player.Identity.IdentityId])
                     {
-                        IMyCubeBlock terminalBlock = player.Controller.ControlledEntity.Entity as IMyCubeBlock;
-                        IMyCubeGrid grid = terminalBlock.CubeGrid;
-                        var sphere = new BoundingSphereD(zoneblock.WorldMatrix.Translation, radius);
-                        if (grid.WorldAABB.Intersects(ref sphere))
-                        {
-                            grid.Physics.AddForce(MyPhysicsForceType.APPLY_WORLD_FORCE, Vector3D.Normalize(grid.Physics.CenterOfMassWorld - zoneblock.WorldMatrix.Translation) * 1000 * grid.Physics.Mass, null, null, applyImmediately: true);
-                        }
+                        playerInZone[player.Identity.IdentityId] = false;
+                        MyAPIGateway.Utilities.ShowNotification("You have left the zone.", 2000, MyFontEnum.Red);
                     }
-
                 }
             });
-            //}
         }
 
-    public void ProcessDamage(object target, ref MyDamageInformation info)
+        protected override void UnloadData()
+        {
+            // No direct way to unregister damage handlers in current SE API
+            // Ensure no references to prevent memory leaks or unintended behavior
+            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(9, null);
+            players?.Clear();
+            dirties?.Clear();
+            zoneblocks?.Clear();
+            zonelookup?.Clear();
+            playerInZone?.Clear();
+        }
+
+        public void ProcessDamage(object target, ref MyDamageInformation info)
         {
             IMySlimBlock slim = target as IMySlimBlock;
             long idZone = 0;
@@ -155,7 +162,6 @@ namespace bobzone
                 if (player != null && MyIDModule.GetRelationPlayerBlock(idZone, player.Identity.IdentityId) == MyRelationsBetweenPlayerAndBlock.Enemies)
                 {
                     info.Amount = 0;
-                   // MyAPIGateway.Utilities.ShowNotification("IS ENEMY. OWNER = " + idZone.ToString() + ", ATTACKER = " + player.Identity.IdentityId.ToString(), 600);
                 }
                 else
                 {
@@ -166,33 +172,38 @@ namespace bobzone
                         if (MyIDModule.GetRelationPlayerBlock(idZone, block.OwnerId) == MyRelationsBetweenPlayerAndBlock.Enemies)
                         {
                             info.Amount = 0;
-                            //MyAPIGateway.Utilities.ShowNotification("IS ENEMY GRINDER BLOCK. OWNER = " + idZone.ToString() + ", ATTACKER = " + block.OwnerId.ToString(), 600);
                         }
-                        //else
-                            //MyAPIGateway.Utilities.ShowNotification("IS FRIENDLY GRINDER BLOCK", 600);
                     }
                     else if (tool != null)
                     {
                         if (MyIDModule.GetRelationPlayerBlock(idZone, tool.OwnerIdentityId) == MyRelationsBetweenPlayerAndBlock.Enemies)
                         {
                             info.Amount = 0;
-                            //MyAPIGateway.Utilities.ShowNotification("IS ENEMY GRINDER TOOL. OWNER = " + idZone.ToString() + ", ATTACKER = " + tool.OwnerId.ToString(), 600);
                         }
-                        //else
-                            //MyAPIGateway.Utilities.ShowNotification("IS FRIENDLY GRINDER TOOl", 600);
                     }
-                    //else
-                        //MyAPIGateway.Utilities.ShowNotification("IS FRIENDLY", 600);
                 }
             }
             else
             {
                 info.Amount = 0;
-               // MyAPIGateway.Utilities.ShowNotification("IS WEAPON", 600);
             }
-
         }
 
+        private Color GetFactionColor(long ownerId)
+        {
+            var faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId);
+            if (faction != null)
+            {
+                var colorMask = faction.CustomColor;
+                return ColorMaskToRgb(colorMask).ToColor();
+            }
+            return Color.White; // Default to white if no faction or color is found
+        }
+
+        private Vector3 ColorMaskToRgb(Vector3 colorMask)
+        {
+            return MyColorPickerConstants.HSVOffsetToHSV(colorMask).HSVtoColor();
+        }
     }
 
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_UpgradeModule), false, "bobzone")]
@@ -248,6 +259,15 @@ namespace bobzone
             }
         }
 
+        public override void Close()
+        {
+            lock (Session.zoneblocks)
+            {
+                Session.zoneblocks.Remove(ModBlock);
+            }
+            base.Close();
+        }
+
         private Color GetFactionColor(long ownerId)
         {
             var faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId);
@@ -286,4 +306,5 @@ namespace bobzone
             return new Color(vector.X, vector.Y, vector.Z);
         }
     }
+
 }
