@@ -194,16 +194,14 @@ namespace bobzone
         }
 
     }
-    
+
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_UpgradeModule), false, "bobzone")]
     public class bobzoneblock : MyGameLogicComponent
     {
-
         public IMyUpgradeModule ModBlock { get; private set; }
         public IMyCubeGrid ModGrid;
         public string faction;
         public float radius = 50f; // defer to session value
-        public Color color = new Color(255, 255, 255, 10);
         private MatrixD matrix;
         private long tock = 0;
 
@@ -219,40 +217,73 @@ namespace bobzone
         {
             if (ModBlock == null || !ModBlock.IsFunctional || ModBlock.MarkedForClose || ModBlock.Closed || ModBlock.MarkedForClose || !ModBlock.Enabled || !ModGrid.IsStatic)
             {
-
                 lock (Session.zoneblocks)
                 {
                     Session.zoneblocks.Remove(ModBlock);
                 }
-                
+
                 return;
             }
-
-            //MyAPIGateway.Utilities.ShowNotification("ZONEBLOCK: " + ModBlock.OwnerId.ToString(), 1);
 
             lock (Session.zoneblocks)
             {
                 Session.zoneblocks.Add(ModBlock);
             }
-            
+
             tock++;
             Vector3D storage = matrix.Up;
             matrix = ModBlock.WorldMatrix;
-            double rad = ((double)tock/100) % 360 * Math.PI / 180;
-            matrix = MatrixD.CreateWorld(matrix.Translation, matrix.Up, matrix.Right * Math.Cos(rad) + matrix.Forward * Math.Sin(rad));          
+            double rad = ((double)tock / 100) % 360 * Math.PI / 180;
+            matrix = MatrixD.CreateWorld(matrix.Translation, matrix.Up, matrix.Right * Math.Cos(rad) + matrix.Forward * Math.Sin(rad));
+
             if (!Session.isServer)
             {
-
                 double renderdistance = (matrix.Translation - MyAPIGateway.Session.Camera.Position).Length();
 
-                if(renderdistance < 20*radius)
-                    MySimpleObjectDraw.DrawTransparentSphere(ref matrix, radius, ref color, MySimpleObjectRasterizer.Wireframe, 1, null, null, -1, -1, null, BlendTypeEnum.PostPP, 1);
-                    //MySimpleObjectDraw.DrawTransparentSphere(ref matrix, radius.Value, ref drawColor, MySimpleObjectRasterizer.Solid, 35, shield_mat, null, -1, -1, null, BlendTypeEnum.PostPP, 1);
-
-                //if (renderdistance < radius)
-                    //MyAPIGateway.Utilities.ShowNotification("INSIDE " + ModBlock.GetOwnerFactionTag() + "'S BOBZONE", 1);
-
+                if (renderdistance < 20 * radius)
+                {
+                    var factionColor = GetFactionColor(ModBlock.OwnerId);
+                    DrawRing(matrix.Translation, radius, 32, factionColor); // Draw a ring with 32 segments
+                }
             }
+        }
+
+        private Color GetFactionColor(long ownerId)
+        {
+            var faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId);
+            if (faction != null)
+            {
+                var colorMask = faction.CustomColor;
+                return ColorMaskToRgb(colorMask).ToColor();
+            }
+            return Color.White; // Default to white if no faction or color is found
+        }
+
+        private Vector3 ColorMaskToRgb(Vector3 colorMask)
+        {
+            return MyColorPickerConstants.HSVOffsetToHSV(colorMask).HSVtoColor();
+        }
+
+        private void DrawRing(Vector3D center, double radius, int segments, Color color)
+        {
+            double angleStep = 2 * Math.PI / segments;
+            for (int i = 0; i < segments; i++)
+            {
+                double angle1 = i * angleStep;
+                double angle2 = (i + 1) * angleStep;
+                Vector3D start = center + new Vector3D(radius * Math.Cos(angle1), 0, radius * Math.Sin(angle1));
+                Vector3D end = center + new Vector3D(radius * Math.Cos(angle2), 0, radius * Math.Sin(angle2));
+                Vector4 colorVector = color.ToVector4();
+                MySimpleObjectDraw.DrawLine(start, end, MyStringId.GetOrCompute("Square"), ref colorVector, 1f);
+            }
+        }
+    }
+
+    public static class Vector3Extensions
+    {
+        public static Color ToColor(this Vector3 vector)
+        {
+            return new Color(vector.X, vector.Y, vector.Z);
         }
     }
 }
