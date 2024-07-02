@@ -244,15 +244,65 @@ namespace bobzone
             {
 
                 double renderdistance = (matrix.Translation - MyAPIGateway.Session.Camera.Position).Length();
+                var factionColor = GetFactionColor(ModBlock.OwnerId);
+                if (renderdistance < 20*radius)
 
-                if(renderdistance < 20*radius)
-                    MySimpleObjectDraw.DrawTransparentSphere(ref matrix, radius, ref color, MySimpleObjectRasterizer.Solid, 20, MyStringId.GetOrCompute("SafeZoneShield_Material"), null, -1, -1, null, BlendTypeEnum.PostPP, 1);
-                    //MySimpleObjectDraw.DrawTransparentSphere(ref matrix, radius.Value, ref drawColor, MySimpleObjectRasterizer.Solid, 35, shield_mat, null, -1, -1, null, BlendTypeEnum.PostPP, 1);
+                DrawRing(matrix.Translation, radius, 32, factionColor); // Draw a ring with 32 segments
+
+                //MySimpleObjectDraw.DrawTransparentSphere(ref matrix, radius, ref color, MySimpleObjectRasterizer.Solid, 20, MyStringId.GetOrCompute("SafeZoneShield_Material"), null, -1, -1, null, BlendTypeEnum.PostPP, 1);
+                //MySimpleObjectDraw.DrawTransparentSphere(ref matrix, radius.Value, ref drawColor, MySimpleObjectRasterizer.Solid, 35, shield_mat, null, -1, -1, null, BlendTypeEnum.PostPP, 1);
 
                 //if (renderdistance < radius)
-                    //MyAPIGateway.Utilities.ShowNotification("INSIDE " + ModBlock.GetOwnerFactionTag() + "'S BOBZONE", 1);
+                //MyAPIGateway.Utilities.ShowNotification("INSIDE " + ModBlock.GetOwnerFactionTag() + "'S BOBZONE", 1);
 
+            }
+            if (!Session.isServer)
+            {
+                double renderdistance = (matrix.Translation - MyAPIGateway.Session.Camera.Position).Length();
+
+                if (renderdistance < 20 * radius)
+                {
+                 }
+            }
+        }
+
+        private Color GetFactionColor(long ownerId)
+        {
+            var faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId);
+            if (faction != null)
+            {
+                var colorMask = faction.CustomColor;
+                return ColorMaskToRgb(colorMask).ToColor();
+            }
+            return Color.White; // Default to white if no faction or color is found
+        }
+
+        private Vector3 ColorMaskToRgb(Vector3 colorMask)
+        {
+            return MyColorPickerConstants.HSVOffsetToHSV(colorMask).HSVtoColor();
+        }
+
+        private void DrawRing(Vector3D center, double radius, int segments, Color color)
+        {
+            double angleStep = 2 * Math.PI / segments;
+            for (int i = 0; i < segments; i++)
+            {
+                double angle1 = i * angleStep;
+                double angle2 = (i + 1) * angleStep;
+                Vector3D start = center + new Vector3D(radius * Math.Cos(angle1), 0, radius * Math.Sin(angle1));
+                Vector3D end = center + new Vector3D(radius * Math.Cos(angle2), 0, radius * Math.Sin(angle2));
+                Vector4 colorVector = color.ToVector4();
+                MySimpleObjectDraw.DrawLine(start, end, MyStringId.GetOrCompute("Square"), ref colorVector, 1f);
             }
         }
     }
+
+    public static class Vector3Extensions
+    {
+        public static Color ToColor(this Vector3 vector)
+        {
+            return new Color(vector.X, vector.Y, vector.Z);
+        }
+    }
 }
+
