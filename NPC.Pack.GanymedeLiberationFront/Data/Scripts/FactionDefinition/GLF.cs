@@ -119,12 +119,14 @@ namespace FactionsStruct
             },
             Friendly = new List<Policies>
             {
-                Policies.Police,
+                Policies.Criminal,
+                Policies.Terrorist,
             },
             Hostile = new List<Policies>
             {
-                Policies.Criminal,
-                Policies.Terrorist,
+                Policies.Police,
+                Policies.Corporation,
+                Policies.Industrialists,
             },
             Neutral = new List<Policies>
             {
