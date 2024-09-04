@@ -133,6 +133,10 @@ namespace FactionsStruct
                 Policies.Traders,
                 Policies.Explorers,
             },
+            Player = new List<string>
+            {
+                "GLF"
+            },
 
             // formations
             Formations = new List<Formation>

@@ -132,6 +132,10 @@ namespace FactionsStruct
                 Policies.Traders,
                 Policies.Explorers,
             },
+            Player = new List<string>
+            {
+                "ECO"
+            },
 
             // formations
             Formations = new List<Formation>
