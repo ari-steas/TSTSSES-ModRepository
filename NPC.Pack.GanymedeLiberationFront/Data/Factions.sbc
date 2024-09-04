@@ -2,12 +2,12 @@
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <Factions>
 
-        <Faction Tag="GLF" Founder="Great Leader">
+        <Faction Tag="GLF-NPC" Founder="Great Leader">
             <Id>
                 <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>GLF</SubtypeId>
+                <SubtypeId>GLF-NPC</SubtypeId>
             </Id>
-            <DisplayName>Ganymede Liberation Front</DisplayName>
+            <DisplayName>GLF Logistics</DisplayName>
             <IsDefault>true</IsDefault>
             <StartingBalance>1000000000</StartingBalance>
             <Type>Trader</Type>
@@ -16,7 +16,7 @@
             <AutoAcceptPeace>false</AutoAcceptPeace>
             <DiscoveredByDefault>true</DiscoveredByDefault>
             <DefaultRelation>Neutral</DefaultRelation>
-            <Description>Ganymede Liberation Front</Description>
+            <Description>Ganymede Liberation Front NPCs</Description>
         </Faction>
 
     </Factions>

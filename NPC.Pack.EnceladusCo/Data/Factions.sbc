@@ -2,12 +2,12 @@
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <Factions>
 
-        <Faction Tag="ECO" Founder="John Enceladus">
+        <Faction Tag="ECO-NPC" Founder="John Enceladus">
             <Id>
                 <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>ECO</SubtypeId>
+                <SubtypeId>ECO-NPC</SubtypeId>
             </Id>
-            <DisplayName>Enceladus Corporation</DisplayName>
+            <DisplayName>ECO Logistics</DisplayName>
             <IsDefault>true</IsDefault>
             <StartingBalance>1000000000</StartingBalance>
             <Type>Trader</Type>
@@ -16,7 +16,7 @@
             <AutoAcceptPeace>false</AutoAcceptPeace>
             <DiscoveredByDefault>true</DiscoveredByDefault>
             <DefaultRelation>Neutral</DefaultRelation>
-            <Description>Enceladus Corporation</Description>
+            <Description>Enceladus Corporation NPCs</Description>
         </Faction>
 
     </Factions>

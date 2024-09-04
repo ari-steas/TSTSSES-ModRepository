@@ -49,6 +49,7 @@ namespace FactionsStruct
         [ProtoMember(16)] public List<Policies> Friendly = new List<Policies>();
         [ProtoMember(17)] public List<Policies> Hostile = new List<Policies>();
         [ProtoMember(18)] public List<Policies> Neutral = new List<Policies>();
+        [ProtoMember(19)] public List<string> Player = new List<string>();
     }
     
     [ProtoContract]
