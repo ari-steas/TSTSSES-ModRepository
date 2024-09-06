@@ -13,6 +13,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
         public static bool EnablePersistence = false;
         public static bool EnableMiddleMouseAsteroidSpawn = false;
         public static bool EnableVanillaAsteroidSpawnLatching = false;
+        public static bool EnableGasGiantRingSpawning = false;
         public static double VanillaAsteroidSpawnLatchingRadius = 10000;
         public static bool DisableZoneWhileMovingFast = true;
         public static double ZoneSpeedThreshold = 2000.0;
@@ -140,6 +141,8 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
                     writer.WriteLine($"EnableMiddleMouseAsteroidSpawn={EnableMiddleMouseAsteroidSpawn}");
                     writer.WriteLine($"EnableVanillaAsteroidSpawnLatching={EnableVanillaAsteroidSpawnLatching}");
                     writer.WriteLine($"VanillaAsteroidSpawnLatchingRadius={VanillaAsteroidSpawnLatchingRadius}");
+                    writer.WriteLine("[GasGiantIntegration]");
+                    writer.WriteLine($"EnableGasGiantRingSpawning={EnableGasGiantRingSpawning}");
                     writer.WriteLine($"DisableZoneWhileMovingFast={DisableZoneWhileMovingFast}");
                     writer.WriteLine($"ZoneSpeedThreshold={ZoneSpeedThreshold}");
                     writer.WriteLine($"SaveStateInterval={SaveStateInterval}");
@@ -250,6 +253,9 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
                                     break;
                                 case "VanillaAsteroidSpawnLatchingRadius":
                                     VanillaAsteroidSpawnLatchingRadius = double.Parse(value);
+                                    break;
+                                case "EnableGasGiantRingSpawning":
+                                    EnableGasGiantRingSpawning = bool.Parse(value);
                                     break;
                                 case "DisableZoneWhileMovingFast":
                                     DisableZoneWhileMovingFast = bool.Parse(value);

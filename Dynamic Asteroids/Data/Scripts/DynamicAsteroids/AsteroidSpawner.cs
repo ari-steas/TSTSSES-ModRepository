@@ -8,6 +8,7 @@ using System;
 using Sandbox.Game.Entities;
 using VRage.Game.Entity;
 using DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities;
+using RealGasGiants;
 
 namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 {
@@ -44,6 +45,14 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 
         private Queue<AsteroidEntity> _updateQueue = new Queue<AsteroidEntity>();
         private const int UpdatesPerTick = 50; // Adjust this number based on performance needs
+
+        private RealGasGiantsApi _realGasGiantsApi;
+
+        public AsteroidSpawner(RealGasGiantsApi realGasGiantsApi)
+        {
+            _realGasGiantsApi = realGasGiantsApi;
+            // ... (initialize other fields)
+        }
 
         private class PlayerMovementData
         {
@@ -542,13 +551,28 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                        zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts && totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts)
                 {
                     Vector3D newPosition;
+                    bool validPosition = false;
+
                     do
                     {
                         newPosition = zone.Center + RandVector() * AsteroidSettings.ZoneRadius;
                         zoneSpawnAttempts++;
                         totalSpawnAttempts++;
                         Log.Info($"Attempting to spawn asteroid at {newPosition} (attempt {totalSpawnAttempts})");
-                    } while (!IsValidSpawnPosition(newPosition, zones) && zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts &&
+
+                        validPosition = IsValidSpawnPosition(newPosition, zones);
+
+                        if (!validPosition && AsteroidSettings.EnableGasGiantRingSpawning && _realGasGiantsApi != null && _realGasGiantsApi.IsReady)
+                        {
+                            float ringInfluence = _realGasGiantsApi.GetRingInfluenceAtPositionGlobal(newPosition);
+                            if (ringInfluence > 0)
+                            {
+                                validPosition = true;
+                                Log.Info($"Position {newPosition} is within a gas giant ring (influence: {ringInfluence})");
+                            }
+                        }
+
+                    } while (!validPosition && zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts &&
                              totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts);
 
                     if (zoneSpawnAttempts >= AsteroidSettings.MaxZoneAttempts || totalSpawnAttempts >= AsteroidSettings.MaxTotalAttempts)

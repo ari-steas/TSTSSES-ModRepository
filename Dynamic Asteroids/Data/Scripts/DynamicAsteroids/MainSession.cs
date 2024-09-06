@@ -10,6 +10,7 @@ using VRage.Game;
 using System.Collections.Generic;
 using VRage.ModAPI;
 using DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities;
+using RealGasGiants;
 
 namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 {
@@ -19,17 +20,18 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
         public static MainSession I;
         public Random Rand;
         private int seed;
-        public AsteroidSpawner _spawner = new AsteroidSpawner();
+        public AsteroidSpawner _spawner;
         private int _saveStateTimer;
         private int _networkMessageTimer;
+        private RealGasGiantsApi _realGasGiantsApi;
 
         public override void LoadData()
         {
             I = this;
-            Log.Init(); // Ensure this is called on both server and client
+            Log.Init();
             Log.Info("Log initialized in LoadData method.");
 
-            AsteroidSettings.LoadSettings(); // Load settings from the config file
+            AsteroidSettings.LoadSettings();
 
             try
             {
@@ -37,8 +39,15 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                 seed = AsteroidSettings.Seed;
                 Rand = new Random(seed);
 
+                _realGasGiantsApi = new RealGasGiantsApi();
+                if (!_realGasGiantsApi.Load())
+                {
+                    Log.Warning("Failed to load RealGasGiants API. Gas giant ring spawning will be disabled.");
+                }
+
                 if (MyAPIGateway.Session.IsServer)
                 {
+                    _spawner = new AsteroidSpawner(_realGasGiantsApi);
                     _spawner.Init(seed);
                     if (AsteroidSettings.EnablePersistence)
                     {
@@ -69,10 +78,12 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                     _spawner.Close();
                 }
 
-                AsteroidSettings.SaveSettings(); // Save settings to the config file
+                AsteroidSettings.SaveSettings();
 
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(32000, OnMessageReceived);
                 MyAPIGateway.Utilities.MessageEntered -= OnMessageEntered;
+
+                _realGasGiantsApi.Unload();
             }
             catch (Exception ex)
             {
