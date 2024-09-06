@@ -23,7 +23,8 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
         public AsteroidSpawner _spawner;
         private int _saveStateTimer;
         private int _networkMessageTimer;
-        private RealGasGiantsApi _realGasGiantsApi;
+        public RealGasGiantsApi RealGasGiantsApi { get; private set; }
+        private int _testTimer = 0;
 
         public override void LoadData()
         {
@@ -33,36 +34,34 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 
             AsteroidSettings.LoadSettings();
 
-            try
+            seed = AsteroidSettings.Seed;
+            Rand = new Random(seed);
+
+            // Initialize RealGasGiantsApi
+            RealGasGiantsApi = new RealGasGiantsApi();
+            RealGasGiantsApi.Load();
+            Log.Info("RealGasGiants API loaded in LoadData");
+
+            if (MyAPIGateway.Session.IsServer)
             {
-                Log.Info("Loading data in MainSession");
-                seed = AsteroidSettings.Seed;
-                Rand = new Random(seed);
-
-                _realGasGiantsApi = new RealGasGiantsApi();
-                if (!_realGasGiantsApi.Load())
+                _spawner = new AsteroidSpawner(RealGasGiantsApi);
+                _spawner.Init(seed);
+                if (AsteroidSettings.EnablePersistence)
                 {
-                    Log.Warning("Failed to load RealGasGiants API. Gas giant ring spawning will be disabled.");
+                    _spawner.LoadAsteroidState();
                 }
-
-                if (MyAPIGateway.Session.IsServer)
-                {
-                    _spawner = new AsteroidSpawner(_realGasGiantsApi);
-                    _spawner.Init(seed);
-                    if (AsteroidSettings.EnablePersistence)
-                    {
-                        _spawner.LoadAsteroidState();
-                    }
-                }
-
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(32000, OnMessageReceived);
-                MyAPIGateway.Utilities.MessageEntered += OnMessageEntered;
             }
-            catch (Exception ex)
-            {
-                Log.Exception(ex, typeof(MainSession));
-            }
+
+            MyAPIGateway.Multiplayer.RegisterMessageHandler(32000, OnMessageReceived);
+            MyAPIGateway.Utilities.MessageEntered += OnMessageEntered;
         }
+
+        public override void BeforeStart()
+        {
+            // Simple IsReady check
+            Log.Info($"RealGasGiants API IsReady: {RealGasGiantsApi.IsReady}");
+        }
+
 
         protected override void UnloadData()
         {
@@ -83,11 +82,11 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(32000, OnMessageReceived);
                 MyAPIGateway.Utilities.MessageEntered -= OnMessageEntered;
 
-                _realGasGiantsApi.Unload();
+                RealGasGiantsApi?.Unload();
             }
             catch (Exception ex)
             {
-                Log.Exception(ex, typeof(MainSession));
+                Log.Exception(ex, typeof(MainSession), "Error in UnloadData: ");
             }
 
             Log.Close();
@@ -193,6 +192,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                     }
                 }
 
+
                 if (MyAPIGateway.Session?.Player?.Character != null && _spawner._asteroids != null)
                 {
                     Vector3D characterPosition = MyAPIGateway.Session.Player.Character.PositionComp.GetPosition();
@@ -217,11 +217,101 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                         Log.Info($"Asteroid created at {position} with velocity {velocity}");
                     }
                 }
+                // Run the gas giant test every 10 seconds (600 frames at 60 FPS)
+                if (++_testTimer >= 240)
+                {
+                    _testTimer = 0;
+                    TestNearestGasGiant();
+                }
+
             }
             catch (Exception ex)
             {
-                Log.Exception(ex, typeof(MainSession));
+                Log.Exception(ex, typeof(MainSession), "Error in UpdateAfterSimulation: ");
             }
+        }
+
+        private void TestNearestGasGiant()
+        {
+            if (RealGasGiantsApi == null || !RealGasGiantsApi.IsReady || MyAPIGateway.Session?.Player == null)
+                return;
+
+            Vector3D playerPosition = MyAPIGateway.Session.Player.GetPosition();
+            MyPlanet nearestGasGiant = FindNearestGasGiant(playerPosition);
+
+            // Get the global ring influence at the player's position
+            float ringInfluence = RealGasGiantsApi.GetRingInfluenceAtPositionGlobal(playerPosition);
+
+            string message;
+
+            if (nearestGasGiant != null)
+            {
+                var basicInfo = RealGasGiantsApi.GetGasGiantConfig_BasicInfo_Base(nearestGasGiant);
+                if (basicInfo.Item1) // If operation was successful
+                {
+                    double distance = Vector3D.Distance(playerPosition, nearestGasGiant.PositionComp.GetPosition()) - basicInfo.Item2;
+                    message = $"Nearest Gas Giant:\n" +
+                              $"Distance: {distance:N0}m\n" +
+                              $"Radius: {basicInfo.Item2:N0}m\n" +
+                              $"Color: {basicInfo.Item3}\n" +
+                              $"Skin: {basicInfo.Item4}\n" +
+                              $"Day Length: {basicInfo.Item5:F2}s\n" +
+                              $"Current Ring Influence: {ringInfluence:F3}";
+                }
+                else
+                {
+                    message = "Failed to get gas giant info";
+                }
+            }
+            else
+            {
+                message = $"No gas giants found within 1 million km\n" +
+                          $"Current Ring Influence: {ringInfluence:F3}";
+            }
+
+            MyAPIGateway.Utilities.ShowNotification(message, 10000, "White");
+            Log.Info(message); // Also log the message for easier debugging
+        }
+
+
+
+        private MyPlanet FindNearestGasGiant(Vector3D position)
+        {
+            const double searchRadius = 1000000000; // 1 million km in meters
+            MyPlanet nearestGasGiant = null;
+            double nearestDistance = double.MaxValue;
+
+            // Get all gas giants within the larger search sphere
+            var gasGiants = RealGasGiantsApi.GetAtmoGasGiantsAtPosition(position);
+
+            foreach (var gasGiant in gasGiants)
+            {
+                var basicInfo = RealGasGiantsApi.GetGasGiantConfig_BasicInfo_Base(gasGiant);
+                if (!basicInfo.Item1) continue; // Skip if we couldn't get the info
+
+                float gasGiantRadius = basicInfo.Item2;
+                Vector3D gasGiantCenter = gasGiant.PositionComp.GetPosition();
+
+                // Calculate distance from player to the surface of the gas giant
+                double distance = Vector3D.Distance(position, gasGiantCenter) - gasGiantRadius;
+
+                if (distance < nearestDistance && distance <= searchRadius)
+                {
+                    nearestDistance = distance;
+                    nearestGasGiant = gasGiant;
+                }
+            }
+
+            if (nearestGasGiant != null)
+            {
+                Log.Info($"Found nearest gas giant at distance: {nearestDistance:N0} meters");
+            }
+            else
+            {
+                Log.Info("No gas giants found within 1 million km");
+            }
+
+            return nearestGasGiant;
         }
 
         private void OnMessageReceived(byte[] message)
