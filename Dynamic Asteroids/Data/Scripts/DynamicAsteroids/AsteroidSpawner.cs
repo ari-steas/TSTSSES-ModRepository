@@ -547,11 +547,14 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                     continue;
                 }
 
-                while (zone.AsteroidCount < AsteroidSettings.MaxAsteroidsPerZone && asteroidsSpawned < 10 &&
-                       zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts && totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts)
+                while (zone.AsteroidCount < AsteroidSettings.MaxAsteroidsPerZone &&
+                       asteroidsSpawned < 10 &&
+                       zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts &&
+                       totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts)
                 {
                     Vector3D newPosition;
                     bool validPosition = false;
+                    bool isInRing = false;
 
                     do
                     {
@@ -562,20 +565,32 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 
                         validPosition = IsValidSpawnPosition(newPosition, zones);
 
-                        if (!validPosition && AsteroidSettings.EnableGasGiantRingSpawning && _realGasGiantsApi != null && _realGasGiantsApi.IsReady)
+                        // First, check if the position is in a ring
+                        if (AsteroidSettings.EnableGasGiantRingSpawning && _realGasGiantsApi != null && _realGasGiantsApi.IsReady)
                         {
                             float ringInfluence = _realGasGiantsApi.GetRingInfluenceAtPositionGlobal(newPosition);
-                            if (ringInfluence > 0)
+                            if (ringInfluence > AsteroidSettings.MinimumRingInfluenceForSpawn)
                             {
                                 validPosition = true;
+                                isInRing = true;
                                 Log.Info($"Position {newPosition} is within a gas giant ring (influence: {ringInfluence})");
                             }
                         }
 
-                    } while (!validPosition && zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts &&
+                        // If not in a ring, check other validity conditions
+                        if (!isInRing)
+                        {
+                            validPosition = IsValidSpawnPosition(newPosition, zones);
+                        }
+
+
+                    } while (!validPosition &&
+                             zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts &&
                              totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts);
 
-                    if (zoneSpawnAttempts >= AsteroidSettings.MaxZoneAttempts || totalSpawnAttempts >= AsteroidSettings.MaxTotalAttempts)
+
+                    if (zoneSpawnAttempts >= AsteroidSettings.MaxZoneAttempts ||
+                        totalSpawnAttempts >= AsteroidSettings.MaxTotalAttempts)
                         break;
 
                     Vector3D newVelocity;
