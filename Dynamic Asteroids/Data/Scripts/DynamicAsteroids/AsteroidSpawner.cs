@@ -553,6 +553,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                     Vector3D newPosition;
                     bool isInRing = false;
                     bool validPosition = false;
+                    float ringInfluence = 0f;
 
                     do
                     {
@@ -563,7 +564,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 
                         if (AsteroidSettings.EnableGasGiantRingSpawning && _realGasGiantsApi != null && _realGasGiantsApi.IsReady)
                         {
-                            float ringInfluence = _realGasGiantsApi.GetRingInfluenceAtPositionGlobal(newPosition);
+                            ringInfluence = _realGasGiantsApi.GetRingInfluenceAtPositionGlobal(newPosition);
                             if (ringInfluence > AsteroidSettings.MinimumRingInfluenceForSpawn)
                             {
                                 validPosition = true;
@@ -609,11 +610,30 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                         break;
                     }
 
+                    // Scale spawn chance based on ring influence
+                    float spawnChance = isInRing ?
+                        MathHelper.Lerp(0.1f, 1f, ringInfluence) * AsteroidSettings.MaxRingAsteroidDensityMultiplier :
+                        1f;
+
+                    if (MainSession.I.Rand.NextDouble() > spawnChance)
+                    {
+                        Log.Info($"Asteroid spawn skipped due to density scaling (spawn chance: {spawnChance})");
+                        continue;
+                    }
+
                     AsteroidType type = AsteroidSettings.GetAsteroidType(newPosition);
                     float size = AsteroidSettings.GetAsteroidSize(newPosition);
-                    Quaternion rotation = Quaternion.CreateFromYawPitchRoll((float)rand.NextDouble() * MathHelper.TwoPi,
-                                                                            (float)rand.NextDouble() * MathHelper.TwoPi,
-                                                                            (float)rand.NextDouble() * MathHelper.TwoPi);
+
+                    // Optionally scale size based on ring influence
+                    if (isInRing)
+                    {
+                        size *= MathHelper.Lerp(0.5f, 1f, ringInfluence);
+                    }
+
+                    Quaternion rotation = Quaternion.CreateFromYawPitchRoll(
+                        (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi,
+                        (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi,
+                        (float)MainSession.I.Rand.NextDouble() * MathHelper.TwoPi);
 
                     var asteroid = AsteroidEntity.CreateAsteroid(newPosition, size, newVelocity, type, rotation);
 
@@ -626,7 +646,12 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                         var message = new AsteroidNetworkMessage(newPosition, size, newVelocity, Vector3D.Zero, type, false, asteroid.EntityId, false, true, rotation);
                         _networkMessages.Add(message);
                         asteroidsSpawned++;
+
+                        Log.Info($"Spawned asteroid at {newPosition} with size {size} and type {type}");
                     }
+
+
+
                 }
 
                 totalAsteroidsSpawned += asteroidsSpawned;

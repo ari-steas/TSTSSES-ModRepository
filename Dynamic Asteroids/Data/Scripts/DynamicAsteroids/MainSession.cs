@@ -236,6 +236,10 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
             if (RealGasGiantsApi == null || !RealGasGiantsApi.IsReady || MyAPIGateway.Session?.Player == null)
                 return;
 
+            if (!AsteroidSettings.EnableLogging)
+                return;
+
+
             Vector3D playerPosition = MyAPIGateway.Session.Player.GetPosition();
             MyPlanet nearestGasGiant = FindNearestGasGiant(playerPosition);
 
@@ -265,11 +269,10 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
             }
             else
             {
-                message = $"No gas giants found within 1 million km\n" +
-                          $"Current Ring Influence: {ringInfluence:F3}";
+                message = $"Current Ring Influence: {ringInfluence:F3}";
             }
 
-            MyAPIGateway.Utilities.ShowNotification(message, 10000, "White");
+            MyAPIGateway.Utilities.ShowNotification(message, 4000, "White");
             Log.Info(message); // Also log the message for easier debugging
         }
 
