@@ -13,6 +13,9 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
         public static bool EnablePersistence = false;
         public static bool EnableMiddleMouseAsteroidSpawn = false;
         public static bool EnableVanillaAsteroidSpawnLatching = false;
+        public static bool EnableGasGiantRingSpawning = false;
+        public static float MinimumRingInfluenceForSpawn = 0.1f;
+        public static double RingAsteroidVelocityBase = 50.0; // Adjust as needed
         public static double VanillaAsteroidSpawnLatchingRadius = 10000;
         public static bool DisableZoneWhileMovingFast = true;
         public static double ZoneSpeedThreshold = 2000.0;
@@ -65,8 +68,14 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
 
         public static List<SpawnableArea> ValidSpawnLocations = new List<SpawnableArea>();
 
-        public static bool CanSpawnAsteroidAtPoint(Vector3D point, out Vector3D velocity)
+        public static bool CanSpawnAsteroidAtPoint(Vector3D point, out Vector3D velocity, bool isInRing = false)
         {
+            if (isInRing)
+            {
+                velocity = Vector3D.Zero; // You might want to calculate an appropriate orbital velocity here
+                return true;
+            }
+
             foreach (var area in ValidSpawnLocations)
             {
                 if (area.ContainsPoint(point))
@@ -75,6 +84,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
                     return true;
                 }
             }
+
             velocity = Vector3D.Zero;
             return false;
         }
@@ -140,6 +150,8 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
                     writer.WriteLine($"EnableMiddleMouseAsteroidSpawn={EnableMiddleMouseAsteroidSpawn}");
                     writer.WriteLine($"EnableVanillaAsteroidSpawnLatching={EnableVanillaAsteroidSpawnLatching}");
                     writer.WriteLine($"VanillaAsteroidSpawnLatchingRadius={VanillaAsteroidSpawnLatchingRadius}");
+                    writer.WriteLine("[GasGiantIntegration]");
+                    writer.WriteLine($"EnableGasGiantRingSpawning={EnableGasGiantRingSpawning}");
                     writer.WriteLine($"DisableZoneWhileMovingFast={DisableZoneWhileMovingFast}");
                     writer.WriteLine($"ZoneSpeedThreshold={ZoneSpeedThreshold}");
                     writer.WriteLine($"SaveStateInterval={SaveStateInterval}");
@@ -250,6 +262,9 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
                                     break;
                                 case "VanillaAsteroidSpawnLatchingRadius":
                                     VanillaAsteroidSpawnLatchingRadius = double.Parse(value);
+                                    break;
+                                case "EnableGasGiantRingSpawning":
+                                    EnableGasGiantRingSpawning = bool.Parse(value);
                                     break;
                                 case "DisableZoneWhileMovingFast":
                                     DisableZoneWhileMovingFast = bool.Parse(value);
@@ -484,6 +499,6 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
         {
             return (point - CenterPosition).Normalized() * AsteroidSettings.AsteroidVelocityBase;
         }
-
     }
+
 }

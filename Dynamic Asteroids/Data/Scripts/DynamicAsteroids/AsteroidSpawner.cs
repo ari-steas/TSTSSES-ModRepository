@@ -8,6 +8,7 @@ using System;
 using Sandbox.Game.Entities;
 using VRage.Game.Entity;
 using DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities;
+using RealGasGiants;
 
 namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 {
@@ -44,6 +45,14 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 
         private Queue<AsteroidEntity> _updateQueue = new Queue<AsteroidEntity>();
         private const int UpdatesPerTick = 50; // Adjust this number based on performance needs
+
+        private RealGasGiantsApi _realGasGiantsApi;
+
+        public AsteroidSpawner(RealGasGiantsApi realGasGiantsApi)
+        {
+            _realGasGiantsApi = realGasGiantsApi;
+            // ... (initialize other fields)
+        }
 
         private class PlayerMovementData
         {
@@ -542,20 +551,40 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                        zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts && totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts)
                 {
                     Vector3D newPosition;
+                    bool isInRing = false;
+                    bool validPosition = false;
+
                     do
                     {
                         newPosition = zone.Center + RandVector() * AsteroidSettings.ZoneRadius;
                         zoneSpawnAttempts++;
                         totalSpawnAttempts++;
                         Log.Info($"Attempting to spawn asteroid at {newPosition} (attempt {totalSpawnAttempts})");
-                    } while (!IsValidSpawnPosition(newPosition, zones) && zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts &&
+
+                        if (AsteroidSettings.EnableGasGiantRingSpawning && _realGasGiantsApi != null && _realGasGiantsApi.IsReady)
+                        {
+                            float ringInfluence = _realGasGiantsApi.GetRingInfluenceAtPositionGlobal(newPosition);
+                            if (ringInfluence > AsteroidSettings.MinimumRingInfluenceForSpawn)
+                            {
+                                validPosition = true;
+                                isInRing = true;
+                                Log.Info($"Position {newPosition} is within a gas giant ring (influence: {ringInfluence})");
+                            }
+                        }
+
+                        if (!isInRing)
+                        {
+                            validPosition = IsValidSpawnPosition(newPosition, zones);
+                        }
+
+                    } while (!validPosition && zoneSpawnAttempts < AsteroidSettings.MaxZoneAttempts &&
                              totalSpawnAttempts < AsteroidSettings.MaxTotalAttempts);
 
                     if (zoneSpawnAttempts >= AsteroidSettings.MaxZoneAttempts || totalSpawnAttempts >= AsteroidSettings.MaxTotalAttempts)
                         break;
 
                     Vector3D newVelocity;
-                    if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity))
+                    if (!AsteroidSettings.CanSpawnAsteroidAtPoint(newPosition, out newVelocity, isInRing))
                     {
                         Log.Info($"Cannot spawn asteroid at {newPosition}, skipping.");
                         continue;
@@ -667,14 +696,35 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                 }
             }
 
-            foreach (var zone in zones)
+            if (AsteroidSettings.EnableGasGiantRingSpawning && _realGasGiantsApi != null && _realGasGiantsApi.IsReady)
             {
-                if (zone.IsPointInZone(position))
+                float ringInfluence = _realGasGiantsApi.GetRingInfluenceAtPositionGlobal(position);
+                if (ringInfluence > AsteroidSettings.MinimumRingInfluenceForSpawn)
                 {
+                    Log.Info($"Valid position in ring: {position}, influence: {ringInfluence}");
                     return true;
                 }
             }
 
+            foreach (var area in AsteroidSettings.ValidSpawnLocations)
+            {
+                if (area.ContainsPoint(position))
+                {
+                    Log.Info($"Valid position in SpawnableArea: {position}");
+                    return true;
+                }
+            }
+
+            foreach (var zone in zones)
+            {
+                if (zone.IsPointInZone(position))
+                {
+                    Log.Info($"Valid position in player zone: {position}");
+                    return true;
+                }
+            }
+
+            Log.Info($"Invalid spawn position: {position}");
             return false;
         }
 
