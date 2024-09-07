@@ -68,8 +68,14 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
 
         public static List<SpawnableArea> ValidSpawnLocations = new List<SpawnableArea>();
 
-        public static bool CanSpawnAsteroidAtPoint(Vector3D point, out Vector3D velocity)
+        public static bool CanSpawnAsteroidAtPoint(Vector3D point, out Vector3D velocity, bool isInRing = false)
         {
+            if (isInRing)
+            {
+                velocity = Vector3D.Zero; // You might want to calculate an appropriate orbital velocity here
+                return true;
+            }
+
             foreach (var area in ValidSpawnLocations)
             {
                 if (area.ContainsPoint(point))
@@ -78,6 +84,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
                     return true;
                 }
             }
+
             velocity = Vector3D.Zero;
             return false;
         }
@@ -492,6 +499,6 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
         {
             return (point - CenterPosition).Normalized() * AsteroidSettings.AsteroidVelocityBase;
         }
-
     }
+
 }
