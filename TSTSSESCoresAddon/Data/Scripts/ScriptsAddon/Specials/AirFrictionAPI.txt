@@ -1,4 +1,4 @@
-﻿using System;
+﻿<!-- using System;
 using MIG.Shared.SE;
 using Scripts.Specials.ShipClass;
 using VRage.Game.Components;
@@ -41,4 +41,4 @@ namespace Scripts.Specials
             return getGridFriction?.Invoke(grid);
         }
     }
-}
+} -->
