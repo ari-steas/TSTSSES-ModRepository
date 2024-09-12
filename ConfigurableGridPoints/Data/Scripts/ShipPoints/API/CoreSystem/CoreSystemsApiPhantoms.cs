@@ -3,7 +3,7 @@ using VRage;
 using VRage.Game.Entity;
 using VRageMath;
 
-namespace TLB.ShareTrack.API.CoreSystem
+namespace CGP.ShareTrack.API.CoreSystem
 {
     /// <summary>
     ///     https://github.com/sstixrud/CoreSystems/blob/master/BaseData/Scripts/CoreSystems/Api/CoreSystemsApiPhantoms.cs

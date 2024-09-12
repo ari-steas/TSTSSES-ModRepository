@@ -1,13 +1,13 @@
 ﻿using System;
 using Sandbox.ModAPI;
-using TLB.ShareTrack.API;
-using TLB.ShareTrack.HeartNetworking;
-using TLB.ShareTrack.ShipTracking;
-using TLB.ShareTrack.TrackerApi;
+using CGP.ShareTrack.API;
+using CGP.ShareTrack.HeartNetworking;
+using CGP.ShareTrack.ShipTracking;
+using CGP.ShareTrack.TrackerApi;
 using VRage.Game.Components;
 using VRageMath;
 
-namespace TLB.ShareTrack
+namespace CGP.ShareTrack
 {
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
     internal class MasterSession : MySessionComponentBase

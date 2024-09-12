@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
-using TLB.ShareTrack.HeartNetworking;
-using TLB.ShareTrack.HeartNetworking.Custom;
+using CGP.ShareTrack.HeartNetworking;
+using CGP.ShareTrack.HeartNetworking.Custom;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 
-namespace TLB.ShareTrack.ShipTracking
+namespace CGP.ShareTrack.ShipTracking
 {
     internal class TrackingManager
     {

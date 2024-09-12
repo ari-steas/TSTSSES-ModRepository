@@ -4,7 +4,7 @@ using Sandbox.ModAPI;
 using VRage;
 using VRageMath;
 
-namespace TLB.ShareTrack.TrackerApi
+namespace CGP.ShareTrack.TrackerApi
 {
     internal class ApiProvider
     {

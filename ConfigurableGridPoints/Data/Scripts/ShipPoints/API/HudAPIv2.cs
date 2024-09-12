@@ -10,7 +10,7 @@ using VRage.Utils;
 using VRageMath;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 
-namespace TLB.ShareTrack.API
+namespace CGP.ShareTrack.API
 {
     public class HudAPIv2
     {

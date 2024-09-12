@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using TLB.ShareTrack.ShipTracking;
+using CGP.ShareTrack.ShipTracking;
 using VRage.Game.ModAPI;
 
-namespace TLB.ShareTrack.TrackerApi
+namespace CGP.ShareTrack.TrackerApi
 {
     internal class ApiMethods
     {

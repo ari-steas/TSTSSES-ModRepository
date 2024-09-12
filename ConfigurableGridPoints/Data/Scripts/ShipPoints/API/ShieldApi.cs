@@ -8,7 +8,7 @@ using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
 
-namespace TLB.ShareTrack.API
+namespace CGP.ShareTrack.API
 {
     public class ShieldApi
     {

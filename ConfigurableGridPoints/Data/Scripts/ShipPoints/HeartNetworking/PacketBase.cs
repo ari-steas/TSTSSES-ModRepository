@@ -1,8 +1,8 @@
 ﻿using System;
 using ProtoBuf;
-using TLB.ShareTrack.HeartNetworking.Custom;
+using CGP.ShareTrack.HeartNetworking.Custom;
 
-namespace TLB.ShareTrack.HeartNetworking
+namespace CGP.ShareTrack.HeartNetworking
 {
     [ProtoInclude(91, typeof(TrackingSyncPacket))]
     [ProtoInclude(92, typeof(SyncRequestPacket))]

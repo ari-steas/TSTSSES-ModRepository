@@ -10,7 +10,7 @@ using VRageMath;
 
 //using CoreSystems.Platform;
 
-namespace TLB.ShareTrack.API.CoreSystem
+namespace CGP.ShareTrack.API.CoreSystem
 {
     /// <summary>
     ///     https://github.com/sstixrud/CoreSystems/blob/master/BaseData/Scripts/CoreSystems/Api/CoreSystemsApiBase.cs

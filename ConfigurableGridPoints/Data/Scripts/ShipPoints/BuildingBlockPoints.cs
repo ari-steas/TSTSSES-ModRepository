@@ -1,11 +1,11 @@
 ﻿using System.Text;
 using Sandbox.Game.Gui;
 using Sandbox.ModAPI;
-using TLB.ShareTrack.API;
+using CGP.ShareTrack.API;
 using VRageMath;
 using VRageRender;
 
-namespace TLB.ShareTrack
+namespace CGP.ShareTrack
 {
     internal class BuildingBlockPoints
     {
@@ -17,20 +17,13 @@ namespace TLB.ShareTrack
             MasterSession.I.HudRegistered += () =>
             {
                 _pointsMessage = new HudAPIv2.HUDMessage(scale: 1f, font: "BI_SEOutlined", Message: new StringBuilder(""),
-                    origin: new Vector2D(0, 0.2), blend: MyBillboard.BlendTypeEnum.PostPP);
+                    origin: new Vector2D(-0.969, 0.57), blend: MyBillboard.BlendTypeEnum.PostPP);
             };
         }
 
         private int _ticks;
         public void Update()
         {
-            // Disable the tooltip by ensuring it is not visible
-            if (_pointsMessage != null)
-            {
-                _pointsMessage.Visible = false;
-            }
-
-            // Existing logic, but now it won't display anything
             if (_ticks++ % 10 != 0)
                 return;
 
@@ -46,7 +39,6 @@ namespace TLB.ShareTrack
             if (_pointsMessage == null)
                 return;
 
-            // This code is still executed, but the message is never made visible
             double blockPoints;
             if (blockInfo == null || !AllGridsList.PointValues.TryGetValue(blockInfo.DefinitionId.SubtypeName, out blockPoints))
             {
@@ -57,15 +49,13 @@ namespace TLB.ShareTrack
             string blockDisplayName = blockInfo.BlockName;
 
             float thisClimbingCostMult = 0;
-            AllGridsList.ClimbingCostRename(ref blockDisplayName, ref thisClimbingCostMult);  // Use double instead of float.
+            AllGridsList.ClimbingCostRename(ref blockDisplayName, ref thisClimbingCostMult);
 
             _pointsMessage.Message.Clear();
             _pointsMessage.Message.Append($"{blockDisplayName}:\n{blockPoints}bp");
             if (thisClimbingCostMult != 0)
-                _pointsMessage.Message.Append($" +{(blockPoints * thisClimbingCostMult)}bp/b");
-
-            // Even though this is here, the tooltip will not be visible
-            //_pointsMessage.Visible = false; // Ensures the HUD is never displayed
+                _pointsMessage.Message.Append($" +{(int)(blockPoints*thisClimbingCostMult)}bp/b");
+            _pointsMessage.Visible = true;
         }
     }
 }

@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text;
 using Sandbox.Definitions;
 using Sandbox.ModAPI;
-using TLB.ShareTrack.API;
-using TLB.ShareTrack.API.CoreSystem;
-using TLB.ShareTrack.ShipTracking;
+using CGP.ShareTrack.API;
+using CGP.ShareTrack.API.CoreSystem;
+using CGP.ShareTrack.ShipTracking;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
 using static VRageRender.MyBillboard;
 
-namespace TLB.ShareTrack
+namespace CGP.ShareTrack
 {
     /// <summary>
     ///     Shift-T screen
@@ -202,7 +202,7 @@ namespace TLB.ShareTrack
             //sb.AppendFormat("<color=Green>Max Speed<color=White>: {0} | <color=Green>TWR<color=White>: {1}\n", speed, twRs);
             //sb.AppendFormat(
             //    "<color=Green>Max Speed<color=White>: {0} | <color=Green>Reduced Angular Speed<color=White>: {1:F2} | <color=Green>TWR<color=White>: {2}\n",
-            //    speed, reducedAngularSpeed, twRs); //this is for starcore's weird RTS fork that can reduce angular speed limits
+            //    speed, reducedAngularSpeed, twRs); //this is for CGP's weird RTS fork that can reduce angular speed limits
             sb.AppendLine(); //blank line
 
             // Battle Stats

@@ -6,7 +6,7 @@ using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
-namespace TLB.ShareTrack.TrackerApi
+namespace CGP.ShareTrack.TrackerApi
 {
     // Aristeas? Reuse code? NEVER...
     public class ShareTrackApi

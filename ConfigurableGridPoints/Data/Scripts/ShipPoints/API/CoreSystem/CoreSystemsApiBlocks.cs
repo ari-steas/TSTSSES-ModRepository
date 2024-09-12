@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Sandbox.ModAPI;
 
-namespace TLB.ShareTrack.API.CoreSystem
+namespace CGP.ShareTrack.API.CoreSystem
 {
     /// <summary>
     ///     https://github.com/sstixrud/CoreSystems/blob/master/BaseData/Scripts/CoreSystems/Api/CoreSystemsApiBlocks.cs

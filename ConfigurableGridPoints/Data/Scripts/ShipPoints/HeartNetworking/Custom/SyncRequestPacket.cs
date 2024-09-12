@@ -1,9 +1,9 @@
 ﻿using System;
 using ProtoBuf;
 using Sandbox.ModAPI;
-using TLB.ShareTrack.ShipTracking;
+using CGP.ShareTrack.ShipTracking;
 
-namespace TLB.ShareTrack.HeartNetworking.Custom
+namespace CGP.ShareTrack.HeartNetworking.Custom
 {
     [ProtoContract]
     internal class SyncRequestPacket : PacketBase

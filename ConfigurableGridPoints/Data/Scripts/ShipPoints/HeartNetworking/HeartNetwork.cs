@@ -4,7 +4,7 @@ using System.Linq;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 
-namespace TLB.ShareTrack.HeartNetworking
+namespace CGP.ShareTrack.HeartNetworking
 {
     public class HeartNetwork
     {
