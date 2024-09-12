@@ -296,16 +296,20 @@ namespace TLB.ShareTrack.ShipTracking
             if (blockPoints == 0) return;
 
             var blockDisplayName = block.DefinitionDisplayNameText;
-            float thisClimbingCostMult = 0;
-            AllGridsList.ClimbingCostRename(ref blockDisplayName, ref thisClimbingCostMult);
+            float climbingCostMultiplier = 0;  // Updated name
+            AllGridsList.ClimbingCostRename(ref blockDisplayName, ref climbingCostMultiplier);
+
+            // DEBUG: Check multiplier
+            //MyAPIGateway.Utilities.ShowNotification($"Block: {blockDisplayName}, Multiplier: {climbingCostMultiplier}", 3000);
+
 
             if (!BlockCounts.ContainsKey(blockDisplayName))
                 BlockCounts.Add(blockDisplayName, 0);
 
             var thisSpecialBlocksCount = BlockCounts[blockDisplayName]++;
 
-            if (thisClimbingCostMult > 0)
-                blockPoints += (blockPoints * thisSpecialBlocksCount * thisClimbingCostMult);
+            if (climbingCostMultiplier > 0)  // Use consistent variable name
+                blockPoints += (blockPoints * thisSpecialBlocksCount * climbingCostMultiplier);
 
             if (block is IMyThrust || block is IMyGyro)
                 MovementPoints += blockPoints;
