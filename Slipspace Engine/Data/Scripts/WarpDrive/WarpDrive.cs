@@ -347,27 +347,44 @@ namespace WarpDriveMod
 
         public bool ProxymityDangerCharge(MatrixD gridMatrix, IMyCubeGrid WarpGrid)
         {
-            if (WarpGrid == null || WarpGrid.Physics == null)
+            // Check if WarpGrid is null
+            if (WarpGrid == null)
+            {
+                MyLog.Default.WriteLineAndConsole("ProxymityDangerCharge: WarpGrid is null!");
                 return false;
+            }
+
+            // Check if WarpGrid's physics are null
+            if (WarpGrid.Physics == null)
+            {
+                MyLog.Default.WriteLineAndConsole("ProxymityDangerCharge: WarpGrid.Physics is null!");
+                return false;
+            }
 
             List<IMyEntity> entList;
             Vector3D forward = gridMatrix.Forward;
             MatrixD FrontStart = MatrixD.CreateFromDir(-forward);
             Vector3D PointFromFront;
 
+            // Checking player permissions in safe zones (possibly null or causing issues)
             if (MyAPIGateway.Session?.Player != null)
             {
                 bool allowed = MySessionComponentSafeZones.IsActionAllowed(MyAPIGateway.Session.Player.Character.WorldMatrix.Translation, CastProhibit(MySessionComponentSafeZones.AllowedActions, 1));
                 if (!allowed)
+                {
+                    MyLog.Default.WriteLineAndConsole("ProxymityDangerCharge: Player is in a restricted area (safe zone).");
                     return true;
+                }
             }
 
+            // Calculate positions based on grid size
             if (WarpGrid.GridSizeEnum == MyCubeSize.Small)
             {
                 Vector3D effectOffsetSmall = forward * WarpGrid.WorldAABB.HalfExtents.AbsMax();
                 FrontStart.Translation = WarpGrid.WorldAABB.Center + effectOffsetSmall;
                 FrontStart.Translation += forward * 400.0;
                 PointFromFront = FrontStart.Translation;
+
                 var sphere = new BoundingSphereD(PointFromFront, 300.0);
                 entList = MyAPIGateway.Entities.GetTopMostEntitiesInSphere(ref sphere);
             }
@@ -377,38 +394,40 @@ namespace WarpDriveMod
                 FrontStart.Translation = WarpGrid.WorldAABB.Center + effectOffsetLarge;
                 FrontStart.Translation += forward * 500.0;
                 PointFromFront = FrontStart.Translation;
+
                 var sphere = new BoundingSphereD(PointFromFront, 400.0);
                 entList = MyAPIGateway.Entities.GetTopMostEntitiesInSphere(ref sphere);
             }
 
+            // Check if the list of entities is null or empty
             if (entList == null || entList.Count == 0)
+            {
+                MyLog.Default.WriteLineAndConsole("ProxymityDangerCharge: No entities found in proximity.");
                 return false;
+            }
 
             var AttachedList = new List<IMyCubeGrid>();
-
-            // get all subgrids grids and locked on landing gear.
             MyAPIGateway.GridGroups.GetGroup(WarpGrid, GridLinkTypeEnum.Physical, AttachedList);
 
             foreach (var ent in entList)
             {
                 if (ent is MySafeZone)
+                {
+                    MyLog.Default.WriteLineAndConsole("ProxymityDangerCharge: Found a safe zone nearby.");
                     return true;
+                }
 
                 if (!(ent is MyCubeGrid || ent is MyVoxelMap))
                     continue;
 
-                if (ent is MyCubeGrid)
-                {
-                    var FoundGrid = ent as IMyCubeGrid;
-
-                    if (FoundGrid != null && AttachedList != null && AttachedList.Count > 0 && AttachedList.Contains(FoundGrid))
-                        continue;
-                }
-
+                // Checking proximity to entities
                 var EntityPosition = ent.PositionComp.GetPosition() + Vector3D.Zero;
 
                 if ((EntityPosition - PointFromFront).Length() <= 250.0)
+                {
+                    MyLog.Default.WriteLineAndConsole($"ProxymityDangerCharge: Found a nearby entity (distance <= 250.0). Entity: {ent.GetType().Name}");
                     return true;
+                }
             }
 
             return false;
