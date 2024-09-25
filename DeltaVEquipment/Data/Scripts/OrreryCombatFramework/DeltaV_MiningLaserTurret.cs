@@ -49,22 +49,22 @@ namespace OrreryFramework.Communication
             {
                 Ammos = new string[]
                 {
-                    ExampleAmmoBeam.Name,
+                    DeltaVMiningLaserAmmoBeam.Name,
                 },
 
-                RateOfFire = 10,
+                RateOfFire = 60,
                 BarrelsPerShot = 1,
                 ProjectilesPerBarrel = 1,
-                ReloadTime = 6,
-                DelayUntilFire = 2,
+                ReloadTime = 1,
+                DelayUntilFire = 0,
                 MagazinesToLoad = 1,
 
                 MaxReloads = -1,
             },
             Audio = new Audio()
             {
-                PreShootSound = "ArcWepRailgunLargeCharge",
-                ShootSound = "PunisherNewFire",
+                PreShootSound = "",
+                ShootSound = "",
                 ReloadSound = "PunisherNewReload",
                 RotationSound = "WepTurretGatlingRotate",
             },

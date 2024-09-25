@@ -88,15 +88,15 @@ namespace OrreryFramework.Communication
             }
         };
         
-        ProjectileDefinitionBase ExampleAmmoBeam => new ProjectileDefinitionBase()
+        ProjectileDefinitionBase DeltaVMiningLaserAmmoBeam => new ProjectileDefinitionBase()
         {
-            Name = "ExampleAmmoBeam",
+            Name = "DeltaVMiningLaserAmmoBeam",
             Ungrouped = new Ungrouped()
             {
                 ReloadPowerUsage = 0,
                 Recoil = 0,
                 Impulse = 0,
-                ShotsPerMagazine = 1,
+                ShotsPerMagazine = 360,
                 MagazineItemToConsume = "",
             },
             Networking = new Networking()
