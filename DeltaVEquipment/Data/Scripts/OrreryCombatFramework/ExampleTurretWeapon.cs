@@ -20,14 +20,14 @@ namespace OrreryFramework.Communication
             Assignments = new Assignments()
             {
                 BlockSubtype = "DeltaV_MiningLaserTurret",
-                MuzzleSubpart = "MissileTurretBarrels",
-                ElevationSubpart = "MissileTurretBarrels",
-                AzimuthSubpart = "subpart _MissileTurretBase1",
+                MuzzleSubpart = "MiningLaserTurretBarrels",
+                ElevationSubpart = "MiningLaserTurretBarrels",
+                AzimuthSubpart = "MiningLaserTurretBase",
                 DurabilityModifier = 1,
                 InventoryIconName = "",
                 Muzzles = new string[]
                 {
-                    "muzzle_missile_001",
+                    "muzzle_01",
                 },
             },
             Hardpoint = new Hardpoint()
@@ -49,7 +49,7 @@ namespace OrreryFramework.Communication
             {
                 Ammos = new string[]
                 {
-                    ExampleAmmoProjectile.Name,
+                    ExampleAmmoBeam.Name,
                 },
 
                 RateOfFire = 10,
