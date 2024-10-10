@@ -4,7 +4,7 @@
 		<Definition xsi:type="MyObjectBuilder_ConveyorSorterDefinition">
 			<Id>
 				<TypeId>ConveyorSorter</TypeId>
-				<SubtypeId>FixedLaser</SubtypeId>
+				<SubtypeId>DeltaVEquipment_FixedLaser</SubtypeId>
 			</Id>
 			<DisplayName>Fixed Laser</DisplayName>
 			<Description>Fixed Laser</Description>
