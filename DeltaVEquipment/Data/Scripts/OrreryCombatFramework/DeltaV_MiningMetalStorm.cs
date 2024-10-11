@@ -95,7 +95,7 @@ namespace OrreryFramework.Communication
             Audio = new Audio()
             {
                 PreShootSound = "",
-                ShootSound = "",
+                ShootSound = "metalstorm",
                 ReloadSound = "PunisherNewReload",
                 RotationSound = "WepTurretGatlingRotate",
             },

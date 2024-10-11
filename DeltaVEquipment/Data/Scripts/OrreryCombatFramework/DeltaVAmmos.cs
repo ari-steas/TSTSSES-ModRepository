@@ -74,9 +74,6 @@ namespace OrreryFramework.Communication
                 ImpactSound = "WepSmallWarheadExpl",
                 SoundChance = 0.1f,
             },
-            Guidance = new Guidance[]
-            {
-            },
             LiveMethods = new LiveMethods()
             {
                // OnImpact = (projectileInfo, hitPosition, hitNormal, hitEntity) =>
@@ -185,7 +182,7 @@ namespace OrreryFramework.Communication
                 ReloadPowerUsage = 10,
                 Recoil = 5000,
                 Impulse = 5000,
-                ShotsPerMagazine = 100,
+                ShotsPerMagazine = 32,
                 MagazineItemToConsume = "",
             },
             Networking = new Networking()
@@ -207,24 +204,23 @@ namespace OrreryFramework.Communication
             },
             PhysicalProjectile = new PhysicalProjectile()
             {
-                Velocity = 800,
+                Velocity = 1000,
                 VelocityVariance = 0,
                 Acceleration = 0,
                 Health = 0,
                 MaxTrajectory = 4000,
                 MaxLifetime = -1,
                 IsHitscan = false,
-                GravityInfluenceMultiplier = 0.01f,
                 ProjectileSize = 0.5f,
             },
             Visual = new Visual()
             {
                 //Model = "Models\\Weapons\\Projectile_Missile.mwm",
-                TrailTexture = MyStringId.GetOrCompute("WeaponLaser"),
+                TrailTexture = MyStringId.GetOrCompute("ProjectileTrailLine"),
                 TrailFadeTime = 0f,
-                TrailLength = 8,
-                TrailWidth = 0.5f,
-                TrailColor = new VRageMath.Vector4(61, 24, 24, 200),
+                TrailLength = 5,
+                TrailWidth = 0.1f,
+                TrailColor = new VRageMath.Vector4(25, 2, 0, 1),
                 //AttachedParticle = "Smoke_Missile",
                 ImpactParticle = "MaterialHit_Metal",
                 VisibleChance = 1f,
@@ -234,12 +230,9 @@ namespace OrreryFramework.Communication
                 TravelSound = "",
                 TravelVolume = 100,
                 TravelMaxDistance = 1000,
-                ImpactSound = "WepSmallWarheadExpl",
+                ImpactSound = "cbar",
                 SoundChance = 0.1f,
             },
-            Guidance = new Guidance[]
-    {
-    },
             LiveMethods = new LiveMethods()
             {
                 // OnImpact = (projectileInfo, hitPosition, hitNormal, hitEntity) =>
