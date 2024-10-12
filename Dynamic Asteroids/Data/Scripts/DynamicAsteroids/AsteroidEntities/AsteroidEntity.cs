@@ -511,7 +511,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
             if (Integrity < 0)
             {
                 Log.Info("Integrity below 0, calling OnDestroy");
-                OnDestroy();
+                //OnDestroy();
             }
 
             return true;

@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using VRage.Utils;
 using Sandbox.Game;
 using System.Linq;
+using DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities;
+using VRage.Game.ModAPI;
 
 namespace DynamicAsteroids
 {
@@ -69,6 +71,36 @@ namespace DynamicAsteroids
         {
             string notificationText = $"Explosion at {explosion.ExplosionSphere.Center}, Radius: {explosion.ExplosionSphere.Radius}, Damage: {explosion.Damage}";
             MyAPIGateway.Utilities.ShowNotification(notificationText, 1000, MyFontEnum.Red);
+
+            // Find the nearest asteroid to the explosion
+            var nearestAsteroid = FindNearestAsteroid(explosion.ExplosionSphere.Center);
+            if (nearestAsteroid != null)
+            {
+                string nearestAsteroidText = $"Nearest Asteroid to Explosion: ID {nearestAsteroid.EntityId}, Position: {nearestAsteroid.PositionComp.GetPosition()}";
+                MyAPIGateway.Utilities.ShowNotification(nearestAsteroidText, 2000, MyFontEnum.Green);
+
+                IMyGps gps = MyAPIGateway.Session.GPS.Create("Nearest Asteroid", nearestAsteroidText, nearestAsteroid.PositionComp.GetPosition(), true, true);
+                MyAPIGateway.Session.GPS.AddGps(MyAPIGateway.Session.Player.IdentityId, gps);
+            }
+        }
+
+        private AsteroidEntity FindNearestAsteroid(Vector3D explosionPosition)
+        {
+            double minDistance = double.MaxValue;
+            AsteroidEntity nearestAsteroid = null;
+
+            // Iterate through all asteroids to find the nearest one
+            foreach (var entity in MyEntities.GetEntities().OfType<AsteroidEntity>())
+            {
+                double distance = Vector3D.DistanceSquared(explosionPosition, entity.PositionComp.GetPosition());
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    nearestAsteroid = entity;
+                }
+            }
+
+            return nearestAsteroid;
         }
 
         public List<MyExplosionInfo> GetExplosionsNear(Vector3D position, double effectiveRadius)
@@ -77,6 +109,5 @@ namespace DynamicAsteroids
                 Vector3D.DistanceSquared(position, explosion.ExplosionSphere.Center) <= effectiveRadius * effectiveRadius
             ).ToList();
         }
-
     }
 }
