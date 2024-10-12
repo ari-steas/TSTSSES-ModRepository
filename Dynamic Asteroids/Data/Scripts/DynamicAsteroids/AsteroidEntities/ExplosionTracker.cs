@@ -26,7 +26,7 @@ namespace DynamicAsteroids
         public override void BeforeStart()
         {
             base.BeforeStart();
-            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(1000, DamageHandler);
+            _instance = this;
         }
 
         public override void UpdateAfterSimulation()
@@ -63,7 +63,6 @@ namespace DynamicAsteroids
         public override void LoadData()
         {
             base.LoadData();
-            _instance = this;
             MyExplosions.OnExplosion += OnExplosion;
         }
 
@@ -101,15 +100,24 @@ namespace DynamicAsteroids
 
                     // Adjust the distance to account for the asteroid's radius
                     double effectiveDistance = distance - asteroidRadius;
+                    effectiveDistance = Math.Max(0, effectiveDistance); // Ensure effectiveDistance is not negative
 
-                    // Calculate the impact factor based on the adjusted distance
-                    double impactFactor = 1.0 - (effectiveDistance / explosion.ExplosionSphere.Radius);
+                    // Calculate the impact factor using a quadratic fall-off model
+                    double impactFactor = 1.0 - Math.Pow(effectiveDistance / explosion.ExplosionSphere.Radius, 2);
+
+                    // Clamp the impact factor between 0 and 1 manually
+                    if (impactFactor < 0.0) impactFactor = 0.0;
+                    if (impactFactor > 1.0) impactFactor = 1.0;
 
                     if (impactFactor > 0)
                     {
                         // Apply damage scaled by the impact factor based on distance
                         float damageToApply = (float)(explosion.Damage * impactFactor);
+                        damageToApply = Math.Min(damageToApply, explosion.Damage); // Ensure damage doesn't exceed the original damage
+
+                        // Reduce asteroid integrity
                         nearestAsteroid.ReduceIntegrity(damageToApply);
+                        nearestAsteroid._integrity = Math.Max(0, nearestAsteroid._integrity); // Clamp integrity to 0 to prevent negative values
 
                         // Notify about the damage applied
                         string notificationText = $"Damaged Asteroid ID: {nearestAsteroid.EntityId}, Damage: {damageToApply}, New Integrity: {nearestAsteroid._integrity}";
@@ -167,49 +175,6 @@ namespace DynamicAsteroids
             }
 
             return nearestAsteroid;
-        }
-
-        // Added DamageHandler method back
-        private void DamageHandler(object target, ref MyDamageInformation info)
-        {
-            try
-            {
-                // Only handle explosion damage
-                if (info.Type != MyStringHash.GetOrCompute("Explosion"))
-                {
-                    return;
-                }
-
-                // Only proceed if the target is an AsteroidEntity
-                var asteroid = target as AsteroidEntity;
-                if (asteroid != null)
-                {
-                    // Check if the asteroid is actually within any active explosion radius
-                    foreach (var explosion in activeExplosions)
-                    {
-                        try
-                        {
-                            double distanceSquared = Vector3D.DistanceSquared(asteroid.PositionComp.GetPosition(), explosion.ExplosionSphere.Center);
-                            if (distanceSquared <= explosion.ExplosionSphere.Radius * explosion.ExplosionSphere.Radius)
-                            {
-                                // Allow the damage to be applied
-                                return;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Exception(ex, typeof(ExplosionTracker), "ExplosionTracker.DamageHandler - Iteration Exception");
-                        }
-                    }
-
-                    // If no explosion affects this asteroid, set damage to zero
-                    info.Amount = 0;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Exception(ex, typeof(ExplosionTracker), "ExplosionTracker.DamageHandler Exception");
-            }
         }
     }
 }
