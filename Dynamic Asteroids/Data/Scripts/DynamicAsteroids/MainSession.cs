@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using VRage.ModAPI;
 using DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities;
 using RealGasGiants;
+using VRage.Utils;
 
 namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 {
@@ -60,8 +61,28 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
         {
             // Simple IsReady check
             Log.Info($"RealGasGiants API IsReady: {RealGasGiantsApi.IsReady}");
+            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(1000, DamageHandler);
+
         }
 
+        private void DamageHandler(object target, ref MyDamageInformation info)
+        {
+            if (info.Type == MyStringHash.GetOrCompute("Explosion"))
+            {
+                var asteroid = target as AsteroidEntity;
+                if (asteroid != null)
+                {
+                    // Check if the asteroid is managed by this session (in spawner)
+                    if (_spawner._asteroids.Contains(asteroid))
+                    {
+                        Log.Info($"Applying {info.Amount} damage to Asteroid ID {asteroid.EntityId}");
+
+                        // Apply the damage directly to the asteroid's integrity
+                        asteroid.ReduceIntegrity(info.Amount);
+                    }
+                }
+            }
+        }
 
         protected override void UnloadData()
         {
@@ -186,7 +207,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                     }
                     else
                     {
-                        Log.Info($"Server: Sending network messages, asteroid count: {_spawner._asteroids.Count}");
+                        //Log.Info($"Server: Sending network messages, asteroid count: {_spawner._asteroids.Count}");
                         _spawner.SendNetworkMessages();
                         _networkMessageTimer = AsteroidSettings.NetworkMessageInterval;
                     }
@@ -273,7 +294,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
             }
 
             MyAPIGateway.Utilities.ShowNotification(message, 4000, "White");
-            Log.Info(message); // Also log the message for easier debugging
+            //Log.Info(message); // Also log the message for easier debugging
         }
 
 
@@ -307,11 +328,11 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 
             if (nearestGasGiant != null)
             {
-                Log.Info($"Found nearest gas giant at distance: {nearestDistance:N0} meters");
+                //Log.Info($"Found nearest gas giant at distance: {nearestDistance:N0} meters");
             }
             else
             {
-                Log.Info("No gas giants found within 1 million km");
+                //Log.Info("No gas giants found within 1 million km");
             }
 
             return nearestGasGiant;
@@ -335,10 +356,10 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                     var asteroid = MyEntities.GetEntityById(asteroidMessage.EntityId) as AsteroidEntity;
                     if (asteroid != null)
                     {
-                        Log.Info($"Client: Removing asteroid with ID {asteroidMessage.EntityId}");
+                        //Log.Info($"Client: Removing asteroid with ID {asteroidMessage.EntityId}");
                         MyEntities.Remove(asteroid);
                         asteroid.Close();
-                        Log.Info($"Client: Removed asteroid with ID {asteroidMessage.EntityId}");
+                        //Log.Info($"Client: Removed asteroid with ID {asteroidMessage.EntityId}");
                     }
                     else
                     {
@@ -354,7 +375,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                     }
                     else
                     {
-                        Log.Info($"Client: Creating asteroid with provided details");
+                        //Log.Info($"Client: Creating asteroid with provided details");
                         var asteroid = AsteroidEntity.CreateAsteroid(
                             asteroidMessage.GetPosition(),
                             asteroidMessage.Size,
@@ -367,7 +388,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                         {
                             asteroid.Physics.AngularVelocity = asteroidMessage.GetAngularVelocity();
                             MyEntities.Add(asteroid);
-                            Log.Info($"Client: Created asteroid with ID {asteroid.EntityId}");
+                            //Log.Info($"Client: Created asteroid with ID {asteroid.EntityId}");
                         }
                         else
                         {

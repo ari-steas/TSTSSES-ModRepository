@@ -402,7 +402,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 
         private void UpdateAsteroids(List<AsteroidZone> zones)
         {
-            Log.Info($"Updating asteroids. Total asteroids: {_asteroids.Count}, Total zones: {zones.Count}");
+            //Log.Info($"Updating asteroids. Total asteroids: {_asteroids.Count}, Total zones: {zones.Count}");
             int removedCount = 0;
 
             foreach (var asteroid in _asteroids.ToArray())
@@ -439,10 +439,10 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
                 }
             }
 
-            Log.Info($"Update complete. Removed asteroids: {removedCount}, Remaining asteroids: {_asteroids.Count}");
+            //Log.Info($"Update complete. Removed asteroids: {removedCount}, Remaining asteroids: {_asteroids.Count}");
             foreach (var zone in zones)
             {
-                Log.Info($"Zone center: {zone.Center}, Radius: {zone.Radius}, Asteroid count: {zone.AsteroidCount}");
+                //Log.Info($"Zone center: {zone.Center}, Radius: {zone.Radius}, Asteroid count: {zone.AsteroidCount}");
             }
         }
 

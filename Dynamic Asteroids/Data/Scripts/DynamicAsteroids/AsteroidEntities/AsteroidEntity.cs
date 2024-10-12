@@ -36,7 +36,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
         Uraninite
     }
 
-    public class AsteroidEntity : MyEntity, IMyDestroyableObject
+    public class AsteroidEntity : MyEntity
     {
         private static readonly string[] IceAsteroidModels = {
         @"Models\IceAsteroid_1.mwm",
@@ -359,7 +359,6 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
         public float Size;
         public string ModelString = "";
         public AsteroidType Type;
-        private float _integrity;
 
         public void SplitAsteroid()
         {
@@ -466,25 +465,19 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
             }
         }
 
-        public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0L, long realHitEntityId = 0L, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
+        public float _integrity;
+
+        public void ReduceIntegrity(float damage)
         {
-            // Apply the damage directly, as the DamageHandler already validated this asteroid is within an explosion's radius
             _integrity -= damage;
-            Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
+            Log.Info($"Integrity reduced by {damage}, new integrity: {_integrity}");
 
-            if (Integrity < 0)
+            if (_integrity <= 0)
             {
-                Log.Info("Integrity below 0, calling OnDestroy");
+                Log.Info("Integrity below or equal to 0, calling OnDestroy");
                 OnDestroy();
-                return true;
             }
-
-            return true;
         }
-
-        public float Integrity => _integrity;
-
-        public bool UseDamageSystem => true;
 
         private void CreatePhysics()
         {
