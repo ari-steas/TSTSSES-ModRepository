@@ -67,19 +67,17 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 
         private void DamageHandler(object target, ref MyDamageInformation info)
         {
-            if (info.Type == MyStringHash.GetOrCompute("Explosion"))
+            // Apply damage if the target is an AsteroidEntity
+            var asteroid = target as AsteroidEntity;
+            if (asteroid != null)
             {
-                var asteroid = target as AsteroidEntity;
-                if (asteroid != null)
+                // Check if this asteroid is managed by the current session's spawner (important to avoid unintended damage)
+                if (_spawner._asteroids.Contains(asteroid))
                 {
-                    // Check if the asteroid is managed by this session (in spawner)
-                    if (_spawner._asteroids.Contains(asteroid))
-                    {
-                        Log.Info($"Applying {info.Amount} damage to Asteroid ID {asteroid.EntityId}");
+                    Log.Info($"Applying {info.Amount} damage to Asteroid ID {asteroid.EntityId}");
 
-                        // Apply the damage directly to the asteroid's integrity
-                        asteroid.ReduceIntegrity(info.Amount);
-                    }
+                    // Apply the damage by reducing integrity
+                    asteroid.ReduceIntegrity(info.Amount);
                 }
             }
         }
