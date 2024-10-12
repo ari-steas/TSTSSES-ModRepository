@@ -107,7 +107,7 @@ namespace DynamicAsteroids
                         nearestAsteroid._integrity = Math.Max(0, nearestAsteroid._integrity); // Clamp integrity to 0 to prevent negative values
 
                         string notificationText = $"Damaged Asteroid ID: {nearestAsteroid.EntityId}, Damage: {damageToApply}, New Integrity: {nearestAsteroid._integrity}";
-                        MyAPIGateway.Utilities.ShowNotification(notificationText, 2000, MyFontEnum.Red);
+                        //MyAPIGateway.Utilities.ShowNotification(notificationText, 2000, MyFontEnum.Red);
                     }
                     else
                     {
