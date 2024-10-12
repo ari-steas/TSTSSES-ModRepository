@@ -12,6 +12,12 @@ namespace DynamicAsteroids
     [MySessionComponentDescriptor(MyUpdateOrder.AfterSimulation)]
     public class ExplosionTracker : MySessionComponentBase
     {
+        private static ExplosionTracker _instance;
+        public static ExplosionTracker Instance => _instance;
+
+        // Make activeExplosions accessible from outside the class
+        public List<MyExplosionInfo> ActiveExplosions => activeExplosions;
+
         private List<MyExplosionInfo> activeExplosions = new List<MyExplosionInfo>();
 
         public override void UpdateAfterSimulation()
@@ -33,15 +39,15 @@ namespace DynamicAsteroids
             MyExplosionInfo explosionInfo = new MyExplosionInfo
             {
                 ExplosionSphere = new BoundingSphereD(position, radius),
-                Damage = damage // Correctly set the damage value
+                Damage = damage
             };
             activeExplosions.Add(explosionInfo);
         }
 
-
         public override void LoadData()
         {
             base.LoadData();
+            _instance = this;
             MyExplosions.OnExplosion += OnExplosion;
         }
 
@@ -49,6 +55,7 @@ namespace DynamicAsteroids
         {
             base.UnloadData();
             MyExplosions.OnExplosion -= OnExplosion;
+            _instance = null;
         }
 
         private void OnExplosion(ref MyExplosionInfo explosionInfo)
@@ -59,7 +66,6 @@ namespace DynamicAsteroids
 
         private void HandleExplosion(MyExplosionInfo explosion)
         {
-            // Display explosion details including damage
             string notificationText = $"Explosion at {explosion.ExplosionSphere.Center}, Radius: {explosion.ExplosionSphere.Radius}, Damage: {explosion.Damage}";
             MyAPIGateway.Utilities.ShowNotification(notificationText, 1000, MyFontEnum.Red);
         }
