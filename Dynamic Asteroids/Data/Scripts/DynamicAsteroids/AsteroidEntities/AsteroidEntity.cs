@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Sandbox.Definitions;
 using Sandbox.Engine.Physics;
 using Sandbox.Game;
@@ -358,7 +359,6 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
         public float Size;
         public string ModelString = "";
         public AsteroidType Type;
-        private float _integrity;
 
         public void SplitAsteroid()
         {
@@ -465,38 +465,53 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
             }
         }
 
-        public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
-        {
-            //Disabling explosion damage is an awful way to fix this weird rocket bug, but it's okay we'll be using weaponcore :)
-            var explosionDamageType = MyStringHash.GetOrCompute("Explosion");
+        // Required property implementation for `IMyDestroyableObject`
+        public bool UseDamageSystem => true;
 
-            // Check if the damage source is explosion
-            if (damageSource == explosionDamageType)
-            {
-                Log.Info($"Ignoring explosion damage for asteroid. Damage source: {damageSource.String}");
-                return false; // Ignore the damage
-            }
-
-            _integrity -= damage;
-            Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
-
-            if (hitInfo.HasValue)
-            {
-                var hit = hitInfo.Value;
-                Log.Info($"HitInfo - Position: {hit.Position}, Normal: {hit.Normal}, Velocity: {hit.Velocity}");
-            }
-
-            if (Integrity < 0)
-            {
-                Log.Info("Integrity below 0, calling OnDestroy");
-                OnDestroy();
-            }
-            return true;
-        }
-
+        // Required property implementation for `IMyDestroyableObject`
         public float Integrity => _integrity;
 
-        public bool UseDamageSystem => true;
+        public float _integrity;
+
+        public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0,
+            long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
+        {
+            try
+            {
+                // Ignore all explosion types, as we are manually managing them with ExplosionTracker
+                if (damageSource == MyDamageType.Explosion)
+                {
+                    Log.Info($"Ignored explosion damage for Asteroid ID: {EntityId}");
+                    return false; // i wish i had the slightest idea why this was needed what is WRONG WITH DESTROYABLEOBJECTS 
+                }
+
+                ReduceIntegrity(damage);
+
+                if (_integrity <= 0)
+                {
+                    OnDestroy();
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Exception(ex, typeof(AsteroidEntity), "Exception in DoDamage");
+                return false;
+            }
+        }
+
+        public void ReduceIntegrity(float damage)
+        {
+            _integrity -= damage;
+            Log.Info($"Integrity reduced by {damage}, new integrity: {_integrity}");
+
+            if (_integrity <= 0)
+            {
+                Log.Info("Integrity below or equal to 0, calling OnDestroy");
+                OnDestroy();
+            }
+        }
 
         private void CreatePhysics()
         {
