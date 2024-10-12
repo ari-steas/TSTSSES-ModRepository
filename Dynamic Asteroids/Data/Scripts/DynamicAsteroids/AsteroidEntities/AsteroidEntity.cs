@@ -468,50 +468,15 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
 
         public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0L, long realHitEntityId = 0L, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
-            var explosionDamageType = MyStringHash.GetOrCompute("Explosion");
-
-            // Handle Explosion Damage using ExplosionTracker
-            if (damageSource == explosionDamageType)
-            {
-                var explosions = ExplosionTracker.Instance?.ActiveExplosions;
-                if (explosions != null)
-                {
-                    // Calculate distance between this asteroid and each active explosion
-                    Vector3D asteroidPosition = PositionComp.GetPosition();
-                    foreach (var explosion in explosions)
-                    {
-                        double distanceSquared = Vector3D.DistanceSquared(asteroidPosition, explosion.ExplosionSphere.Center);
-
-                        // Check if the asteroid is within the explosion radius
-                        if (distanceSquared <= explosion.ExplosionSphere.Radius * explosion.ExplosionSphere.Radius)
-                        {
-                            // Asteroid is within the radius of the explosion, apply the damage
-                            Log.Info($"Applying explosion damage to asteroid {EntityId}.");
-
-                            // Proceed to apply the damage
-                            _integrity -= explosion.Damage;
-                            Log.Info($"DoDamage called with damage: {explosion.Damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
-
-                            if (Integrity < 0)
-                            {
-                                Log.Info("Integrity below 0, calling OnDestroy");
-                                OnDestroy();
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Handle other damage types (like bullets) here if necessary
-            // Apply non-explosion-related damage to the asteroid
+            // Apply the damage directly, as the DamageHandler already validated this asteroid is within an explosion's radius
             _integrity -= damage;
             Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
 
             if (Integrity < 0)
             {
                 Log.Info("Integrity below 0, calling OnDestroy");
-                //OnDestroy();
+                OnDestroy();
+                return true;
             }
 
             return true;

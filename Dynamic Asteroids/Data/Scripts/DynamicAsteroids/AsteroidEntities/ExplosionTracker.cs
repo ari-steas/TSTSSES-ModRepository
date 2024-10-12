@@ -23,6 +23,12 @@ namespace DynamicAsteroids
 
         private List<MyExplosionInfo> activeExplosions = new List<MyExplosionInfo>();
 
+        public override void BeforeStart()
+        {
+            base.BeforeStart();
+            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(1000, DamageHandler);
+        }
+
         public override void UpdateAfterSimulation()
         {
             base.UpdateAfterSimulation();
@@ -52,6 +58,7 @@ namespace DynamicAsteroids
             base.LoadData();
             _instance = this;
             MyExplosions.OnExplosion += OnExplosion;
+
         }
 
         protected override void UnloadData()
@@ -84,6 +91,23 @@ namespace DynamicAsteroids
             }
         }
 
+        private List<AsteroidEntity> FindAsteroidsInRange(BoundingSphereD explosionSphere)
+        {
+            var asteroidsInRange = new List<AsteroidEntity>();
+
+            // Iterate through all asteroids to find those within the explosion radius
+            foreach (var entity in MyEntities.GetEntities().OfType<AsteroidEntity>())
+            {
+                double distanceSquared = Vector3D.DistanceSquared(explosionSphere.Center, entity.PositionComp.GetPosition());
+                if (distanceSquared <= explosionSphere.Radius * explosionSphere.Radius)
+                {
+                    asteroidsInRange.Add(entity);
+                }
+            }
+
+            return asteroidsInRange;
+        }
+
         private AsteroidEntity FindNearestAsteroid(Vector3D explosionPosition)
         {
             double minDistance = double.MaxValue;
@@ -101,6 +125,34 @@ namespace DynamicAsteroids
             }
 
             return nearestAsteroid;
+        }
+
+        private void DamageHandler(object target, ref MyDamageInformation info)
+        {
+            // Only handle explosion damage
+            if (info.Type != MyStringHash.GetOrCompute("Explosion"))
+            {
+                return;
+            }
+
+            // Only proceed if the target is an AsteroidEntity
+            var asteroid = target as AsteroidEntity;
+            if (asteroid != null)
+            {
+                // Check if the asteroid is actually within any active explosion radius
+                foreach (var explosion in activeExplosions)
+                {
+                    double distanceSquared = Vector3D.DistanceSquared(asteroid.PositionComp.GetPosition(), explosion.ExplosionSphere.Center);
+                    if (distanceSquared <= explosion.ExplosionSphere.Radius * explosion.ExplosionSphere.Radius)
+                    {
+                        // Allow the damage to be applied
+                        return;
+                    }
+                }
+
+                // If no explosion affects this asteroid, set damage to zero
+                info.Amount = 0;
+            }
         }
 
         public List<MyExplosionInfo> GetExplosionsNear(Vector3D position, double effectiveRadius)
