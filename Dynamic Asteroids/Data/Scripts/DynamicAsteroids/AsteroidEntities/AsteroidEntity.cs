@@ -36,7 +36,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
         Uraninite
     }
 
-    public class AsteroidEntity : MyEntity
+    public class AsteroidEntity : MyEntity, IMyDestroyableObject
     {
         private static readonly string[] IceAsteroidModels = {
         @"Models\IceAsteroid_1.mwm",
@@ -465,7 +465,41 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
             }
         }
 
+        // Required property implementation for `IMyDestroyableObject`
+        public bool UseDamageSystem => true;
+
+        // Required property implementation for `IMyDestroyableObject`
+        public float Integrity => _integrity;
+
         public float _integrity;
+
+        public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0,
+            long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
+        {
+            try
+            {
+                // Ignore all explosion types, as we are manually managing them with ExplosionTracker
+                if (damageSource == MyDamageType.Explosion)
+                {
+                    Log.Info($"Ignored explosion damage for Asteroid ID: {EntityId}");
+                    return false; // i wish i had the slightest idea why this was needed what is WRONG WITH DESTROYABLEOBJECTS 
+                }
+
+                ReduceIntegrity(damage);
+
+                if (_integrity <= 0)
+                {
+                    OnDestroy();
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Exception(ex, typeof(AsteroidEntity), "Exception in DoDamage");
+                return false;
+            }
+        }
 
         public void ReduceIntegrity(float damage)
         {
@@ -475,7 +509,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
             if (_integrity <= 0)
             {
                 Log.Info("Integrity below or equal to 0, calling OnDestroy");
-                OnDestroy(); // This will handle splitting or destroying the asteroid
+                OnDestroy();
             }
         }
 
