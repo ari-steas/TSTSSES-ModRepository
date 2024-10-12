@@ -61,26 +61,26 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
         {
             // Simple IsReady check
             Log.Info($"RealGasGiants API IsReady: {RealGasGiantsApi.IsReady}");
-            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(1000, DamageHandler);
+            //MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(1000, DamageHandler);
 
         }
 
-        private void DamageHandler(object target, ref MyDamageInformation info)
-        {
-            // Apply damage if the target is an AsteroidEntity
-            var asteroid = target as AsteroidEntity;
-            if (asteroid != null)
-            {
-                // Check if this asteroid is managed by the current session's spawner (important to avoid unintended damage)
-                if (_spawner._asteroids.Contains(asteroid))
-                {
-                    Log.Info($"Applying {info.Amount} damage to Asteroid ID {asteroid.EntityId}");
-
-                    // Apply the damage by reducing integrity
-                    asteroid.ReduceIntegrity(info.Amount);
-                }
-            }
-        }
+        //private void DamageHandler(object target, ref MyDamageInformation info)
+        //{
+        //    // Apply damage if the target is an AsteroidEntity
+        //    var asteroid = target as AsteroidEntity;
+        //    if (asteroid != null)
+        //    {
+        //        // Check if this asteroid is managed by the current session's spawner (important to avoid unintended damage)
+        //        if (_spawner._asteroids.Contains(asteroid))
+        //        {
+        //            Log.Info($"Applying {info.Amount} damage to Asteroid ID {asteroid.EntityId}");
+        //
+        //            // Apply the damage by reducing integrity
+        //            asteroid.ReduceIntegrity(info.Amount);
+        //        }
+        //    }
+        //}
 
         protected override void UnloadData()
         {

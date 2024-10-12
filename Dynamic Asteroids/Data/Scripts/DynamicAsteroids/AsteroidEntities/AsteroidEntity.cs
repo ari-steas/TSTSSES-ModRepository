@@ -475,7 +475,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
             if (_integrity <= 0)
             {
                 Log.Info("Integrity below or equal to 0, calling OnDestroy");
-                OnDestroy();
+                OnDestroy(); // This will handle splitting or destroying the asteroid
             }
         }
 
