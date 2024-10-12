@@ -6,6 +6,7 @@ using Sandbox.Game.Entities;
 using System.Collections.Generic;
 using VRage.Utils;
 using Sandbox.Game;
+using System.Linq;
 
 namespace DynamicAsteroids
 {
@@ -69,5 +70,13 @@ namespace DynamicAsteroids
             string notificationText = $"Explosion at {explosion.ExplosionSphere.Center}, Radius: {explosion.ExplosionSphere.Radius}, Damage: {explosion.Damage}";
             MyAPIGateway.Utilities.ShowNotification(notificationText, 1000, MyFontEnum.Red);
         }
+
+        public List<MyExplosionInfo> GetExplosionsNear(Vector3D position, double effectiveRadius)
+        {
+            return activeExplosions.Where(explosion =>
+                Vector3D.DistanceSquared(position, explosion.ExplosionSphere.Center) <= effectiveRadius * effectiveRadius
+            ).ToList();
+        }
+
     }
 }

@@ -516,7 +516,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 
                 if (zone.AsteroidCount >= AsteroidSettings.MaxAsteroidsPerZone)
                 {
-                    Log.Info($"Zone at {zone.Center} has reached its maximum asteroid count ({AsteroidSettings.MaxAsteroidsPerZone}). Skipping further spawning in this zone.");
+                    //Log.Info($"Zone at {zone.Center} has reached its maximum asteroid count ({AsteroidSettings.MaxAsteroidsPerZone}). Skipping further spawning in this zone.");
                     continue;
                 }
 
@@ -660,8 +660,8 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids
 
             if (AsteroidSettings.EnableLogging)
             {
-                Log.Info($"All zones spawn attempt complete. Total spawn attempts: {totalSpawnAttempts}, New total asteroid count: {_asteroids.Count}");
-                Log.Info($"Total asteroids spawned: {totalAsteroidsSpawned}, Total zone spawn attempts: {totalZoneSpawnAttempts}");
+                //Log.Info($"All zones spawn attempt complete. Total spawn attempts: {totalSpawnAttempts}, New total asteroid count: {_asteroids.Count}");
+                //Log.Info($"Total asteroids spawned: {totalAsteroidsSpawned}, Total zone spawn attempts: {totalZoneSpawnAttempts}");
                 if (skippedPositions.Count > 0)
                 {
                     Log.Info($"Skipped spawning asteroids due to proximity to vanilla asteroids. Positions: {string.Join(", ", skippedPositions.Select(p => p.ToString()))}");
