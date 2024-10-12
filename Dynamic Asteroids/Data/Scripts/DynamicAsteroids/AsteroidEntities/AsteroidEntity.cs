@@ -465,32 +465,41 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
             }
         }
 
-        public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
+        public bool DoDamage(float damage, MyStringHash damageSource, bool sync, MyHitInfo? hitInfo = null, long attackerId = 0L, long realHitEntityId = 0L, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
-            //Disabling explosion damage is an awful way to fix this weird rocket bug, but it's okay we'll be using weaponcore :)
             var explosionDamageType = MyStringHash.GetOrCompute("Explosion");
 
-            // Check if the damage source is explosion
+            // Simplified Explosion Handling:
+            // Trust that if this method is called with the damage source as "Explosion",
+            // the caller has already confirmed that this asteroid is within the explosion radius.
             if (damageSource == explosionDamageType)
             {
-                Log.Info($"Ignoring explosion damage for asteroid. Damage source: {damageSource.String}");
-                return false; // Ignore the damage
+                Log.Info($"Applying explosion damage to asteroid {EntityId}.");
+
+                // Proceed to apply the damage
+                _integrity -= damage;
+                Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
+
+                if (Integrity < 0)
+                {
+                    Log.Info("Integrity below 0, calling OnDestroy");
+                    OnDestroy();
+                }
+
+                return true;
             }
 
+            // Handle other damage types (like bullets) here if necessary
+            // Apply non-explosion-related damage to the asteroid
             _integrity -= damage;
             Log.Info($"DoDamage called with damage: {damage}, damageSource: {damageSource.String}, attackerId: {attackerId}, realHitEntityId: {realHitEntityId}, new integrity: {_integrity}");
-
-            if (hitInfo.HasValue)
-            {
-                var hit = hitInfo.Value;
-                Log.Info($"HitInfo - Position: {hit.Position}, Normal: {hit.Normal}, Velocity: {hit.Velocity}");
-            }
 
             if (Integrity < 0)
             {
                 Log.Info("Integrity below 0, calling OnDestroy");
                 OnDestroy();
             }
+
             return true;
         }
 
