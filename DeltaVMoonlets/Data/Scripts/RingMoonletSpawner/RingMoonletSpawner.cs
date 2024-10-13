@@ -8,7 +8,8 @@ using VRage.Game.Components;
 using VRage.Library.Utils;
 using VRage;
 using VRage.ModAPI;
-using VRage.Game.ModAPI;
+using Sandbox.Game.Entities.Planet;
+using VRage.Game.ModAPI; // Import for MyPlanet
 
 namespace RingMoonletSpawner
 {
@@ -37,8 +38,10 @@ namespace RingMoonletSpawner
             _rand = new Random(seed);
         }
 
-        public void PopulateMoonlets(int moonletCount, Vector3D planetCenter)
+        public void PopulateMoonlets(int moonletCount, MyPlanet targetPlanet)
         {
+            Vector3D planetCenter = targetPlanet.PositionComp.GetPosition(); // Get the planet's center
+
             MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Spawning moonlets along Saturn's ring. Planet center: {planetCenter}");
             MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Ring Inner Radius: {RingInnerRadiusKm:N2} km, Outer Radius: {RingOuterRadiusKm:N2} km");
 
@@ -136,9 +139,19 @@ namespace RingMoonletSpawner
                 try
                 {
                     int moonletCount = int.Parse(tokens[1]);
-                    Vector3D planetCenter = MyAPIGateway.Session.Player.GetPosition(); // Assuming we know how to find the planet center
+
+                    // Get the closest planet using MyGamePruningStructure.GetClosestPlanet
+                    Vector3D playerPosition = MyAPIGateway.Session.Player.GetPosition();
+                    MyPlanet closestPlanet = MyGamePruningStructure.GetClosestPlanet(playerPosition);
+
+                    if (closestPlanet == null)
+                    {
+                        MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "No planet found!");
+                        return;
+                    }
+
                     var spawner = new RingMoonletSpawner(MyRandom.Instance.Next());
-                    spawner.PopulateMoonlets(moonletCount, planetCenter);
+                    spawner.PopulateMoonlets(moonletCount, closestPlanet);
                 }
                 catch (Exception ex)
                 {
