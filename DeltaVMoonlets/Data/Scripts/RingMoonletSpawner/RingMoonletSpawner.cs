@@ -13,75 +13,32 @@ namespace RingMoonletSpawner
 {
     public class RingMoonletSpawner
     {
-        private RealGasGiantsApi _realGasGiantsApi;
         private Random _rand;
-        private bool _apiInit = false;
+
+        // Hardcoded planet and ring properties based on your clarification
+        private const double PlanetRadiusKm = 60268; // Planet's radius in kilometers
+        private const double RingInnerScale = 1.2;   // Start the ring at 20% beyond the planet's radius
+        private const double RingOuterScale = 2.5;   // Outer ring scale, based on your preference
+
+        // Calculate the inner and outer ring distances from the planet's surface
+        private const double RingInnerRadiusKm = PlanetRadiusKm * RingInnerScale; // 72,321.6 km
+        private const double RingOuterRadiusKm = PlanetRadiusKm * RingOuterScale; // 150,670 km
 
         public RingMoonletSpawner(int seed)
         {
             _rand = new Random(seed);
-            InitializeApi();
         }
 
-        private void InitializeApi()
+        public void PopulateMoonlets(int moonletCount, Vector3D planetCenter)
         {
-            if (_apiInit) return;
-
-            _realGasGiantsApi = new RealGasGiantsApi();
-            if (_realGasGiantsApi.Load())
-            {
-                _apiInit = true;
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "RealGasGiants API initialized successfully.");
-            }
-            else
-            {
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "Failed to initialize RealGasGiants API.");
-            }
-        }
-
-        public void PopulateMoonlets(int moonletCount)
-        {
-            if (!_apiInit || !_realGasGiantsApi.IsReady)
-            {
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "RealGasGiants API is not ready.");
-                return;
-            }
-
-            Vector3D playerPosition = MyAPIGateway.Session.Player.GetPosition();
-            MyPlanet targetGasGiant = FindNearestGasGiant(playerPosition);
-
-            if (targetGasGiant == null)
-            {
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "No nearby gas giant with significant ring influence found.");
-                return;
-            }
-
-            // Fetch the ring configuration (position and size) from the API
-            var ringInfo = _realGasGiantsApi.GetGasGiantConfig_RingInfo_Size(targetGasGiant);
-            if (!ringInfo.Item1)
-            {
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "Could not retrieve ring information for the gas giant.");
-                return;
-            }
-
-            Vector3D ringCenter = targetGasGiant.PositionComp.GetPosition();   // Use the actual gas giant's position
-            double ringInnerRadius = ringInfo.Item3; // Inner radius of the ring (large scale, ensure correct handling in meters)
-            double ringOuterRadius = ringInfo.Item4; // Outer radius of the ring (large scale, ensure correct handling in meters)
-
-            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Gas giant ring info: Center at {ringCenter}, Inner Radius: {ringInnerRadius / 1000:N0} km, Outer Radius: {ringOuterRadius / 1000:N0} km");
-
-            if (ringInnerRadius <= 0 || ringOuterRadius <= 0)
-            {
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "Error: Invalid inner or outer radius for the gas giant's ring.");
-                return;
-            }
+            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Spawning moonlets along Saturn's ring. Planet center: {planetCenter}");
+            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Ring Inner Radius: {RingInnerRadiusKm:N2} km, Outer Radius: {RingOuterRadiusKm:N2} km");
 
             int spawnedMoonlets = 0;
 
-            // Distribute moonlets around the ring plane within the ring's inner and outer bounds
             for (int i = 0; i < moonletCount; i++)
             {
-                Vector3D moonletPosition = GetRandomPositionInRingPlane(ringCenter, ringInnerRadius, ringOuterRadius);
+                Vector3D moonletPosition = GetRandomPositionInRingPlane(planetCenter);
                 SpawnMoonlet(moonletPosition);
                 spawnedMoonlets++;
             }
@@ -89,26 +46,30 @@ namespace RingMoonletSpawner
             MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Spawned {spawnedMoonlets} moonlets out of {moonletCount} requested.");
         }
 
-        // Method to generate a position within the gas giant's ring plane, based on the ring's inner and outer radius
-        private Vector3D GetRandomPositionInRingPlane(Vector3D ringCenter, double innerRadius, double outerRadius)
+        // Generate a random position in the ring plane, respecting inner and outer radii
+        private Vector3D GetRandomPositionInRingPlane(Vector3D planetCenter)
         {
-            // Random angle around the ring plane
+            // Generate a random angle to distribute the moonlets in a circular manner
             double angle = _rand.NextDouble() * Math.PI * 2;
 
-            // Random distance between the inner and outer ring radius (we're working with large distances in meters)
-            double distanceFromCenter = innerRadius + (outerRadius - innerRadius) * _rand.NextDouble();
+            // Random distance between inner and outer ring bounds, now in kilometers
+            double distanceFromCenterKm = RingInnerRadiusKm + (RingOuterRadiusKm - RingInnerRadiusKm) * _rand.NextDouble();
 
-            if (distanceFromCenter < innerRadius || distanceFromCenter > outerRadius)
-            {
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Error: Generated distance {distanceFromCenter} is out of bounds.");
-                return ringCenter; // Return ring center to avoid crashing, but ideally should never happen
-            }
+            // Convert distance to meters for position calculation (because we need positions in meters)
+            double distanceFromCenterMeters = distanceFromCenterKm * 1000;
 
-            // Calculate the moonlet's position relative to the gas giant's position (ringCenter)
-            Vector3D position = ringCenter + new Vector3D(distanceFromCenter * Math.Cos(angle), 0, distanceFromCenter * Math.Sin(angle));
+            // Generate the position along the XZ-plane (ring plane, assuming flat ring aligned to XY)
+            Vector3D positionInPlane = new Vector3D(
+                distanceFromCenterMeters * Math.Cos(angle),
+                0,
+                distanceFromCenterMeters * Math.Sin(angle)
+            );
 
-            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Generated random position at {distanceFromCenter / 1000:N0} km from the gas giant.");
-            return position;
+            // Final moonlet position relative to the planet's center
+            Vector3D finalPosition = planetCenter + positionInPlane;
+
+            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Generated random position at {distanceFromCenterKm:N2} km from the gas giant.");
+            return finalPosition;
         }
 
         private void SpawnMoonlet(Vector3D position)
@@ -123,52 +84,6 @@ namespace RingMoonletSpawner
             {
                 MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Failed to spawn moonlet at {position}. Check position and spawn parameters.");
             }
-        }
-
-        private MyPlanet FindNearestGasGiant(Vector3D position)
-        {
-            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "Searching for the nearest gas giant...");
-            const double searchRadius = 1e9; // 1 billion km
-            MyPlanet nearestGasGiant = null;
-            double nearestDistance = double.MaxValue;
-
-            // Get all gas giants within the larger search sphere
-            var gasGiants = _realGasGiantsApi.GetAtmoGasGiantsAtPosition(position);
-            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Found {gasGiants.Count} potential gas giants to evaluate.");
-
-            foreach (var gasGiant in gasGiants)
-            {
-                var basicInfo = _realGasGiantsApi.GetGasGiantConfig_BasicInfo_Base(gasGiant);
-                if (!basicInfo.Item1)
-                {
-                    MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "Skipping a gas giant due to missing basic info.");
-                    continue;
-                }
-
-                float gasGiantRadius = basicInfo.Item2;
-                Vector3D gasGiantCenter = gasGiant.PositionComp.GetPosition();
-
-                // Calculate distance from player to the surface of the gas giant
-                double distance = Vector3D.Distance(position, gasGiantCenter) - gasGiantRadius;
-
-                if (distance < nearestDistance && distance <= searchRadius)
-                {
-                    MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Found closer gas giant at distance: {distance:N0} meters.");
-                    nearestDistance = distance;
-                    nearestGasGiant = gasGiant;
-                }
-            }
-
-            if (nearestGasGiant != null)
-            {
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "Nearest gas giant found successfully.");
-            }
-            else
-            {
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "No suitable gas giant found within the search radius.");
-            }
-
-            return nearestGasGiant;
         }
 
         public static void HandleChatCommand(string messageText, ref bool sendToOthers)
@@ -187,8 +102,9 @@ namespace RingMoonletSpawner
                 try
                 {
                     int moonletCount = int.Parse(tokens[1]);
+                    Vector3D planetCenter = MyAPIGateway.Session.Player.GetPosition(); // Assuming we know how to find the planet center
                     var spawner = new RingMoonletSpawner(MyRandom.Instance.Next());
-                    spawner.PopulateMoonlets(moonletCount);
+                    spawner.PopulateMoonlets(moonletCount, planetCenter);
                 }
                 catch (Exception ex)
                 {
