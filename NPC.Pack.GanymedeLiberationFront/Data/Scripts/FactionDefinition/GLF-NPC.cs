@@ -10,7 +10,7 @@ namespace FactionsStruct
         public FactionDefinition GanymedeLiberationFrontFaction => new FactionDefinition
         {
             // basic information
-            Tag = "GLF", // faction tag from your vanilla faction definition
+            Tag = "GLF-NPC", // faction tag from your vanilla faction definition
             CanSpawnCombatShipsInMissions = true, // can spawn as an enemy faction in missions
             CanSpawnInRandomEncounters = true, // can spawn random space and planetary encounters (affects trade ship spawns as well)
             CanSpawnMissions = true, // missions offered by this faction can be created
@@ -135,7 +135,8 @@ namespace FactionsStruct
             },
             Player = new List<string>
             {
-                "GLF"
+                "GLF",
+                "ADM"
             },
 
             // formations
