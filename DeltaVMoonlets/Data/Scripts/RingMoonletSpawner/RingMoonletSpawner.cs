@@ -15,7 +15,6 @@ namespace RingMoonletSpawner
     {
         private RealGasGiantsApi _realGasGiantsApi;
         private Random _rand;
-        private const float MinimumRingInfluenceForSpawn = 0.1f; // Minimum influence required to spawn
         private bool _apiInit = false;
 
         public RingMoonletSpawner(int seed)
@@ -53,7 +52,7 @@ namespace RingMoonletSpawner
 
             if (targetGasGiant == null)
             {
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "No nearby gas giant with a significant ring influence found.");
+                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "No nearby gas giant with significant ring influence found.");
                 return;
             }
 
@@ -65,52 +64,50 @@ namespace RingMoonletSpawner
                 return;
             }
 
-            Vector3D ringCenter = ringInfo.Item2;   // Center of the ring
-            float ringInnerRadius = ringInfo.Item3; // Inner radius of the ring
-            float ringOuterRadius = ringInfo.Item4; // Outer radius of the ring
+            Vector3D ringCenter = targetGasGiant.PositionComp.GetPosition();   // Use the actual gas giant's position
+            double ringInnerRadius = ringInfo.Item3; // Inner radius of the ring (large scale, ensure correct handling in meters)
+            double ringOuterRadius = ringInfo.Item4; // Outer radius of the ring (large scale, ensure correct handling in meters)
 
-            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Gas giant ring info: Center at {ringCenter}, Inner Radius: {ringInnerRadius}, Outer Radius: {ringOuterRadius}");
+            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Gas giant ring info: Center at {ringCenter}, Inner Radius: {ringInnerRadius / 1000:N0} km, Outer Radius: {ringOuterRadius / 1000:N0} km");
 
-            int spawnedMoonlets = 0;
-            int maxAttempts = moonletCount * 5; // Limit attempts to prevent infinite loops
-            int attempts = 0;
-
-            while (spawnedMoonlets < moonletCount && attempts < maxAttempts)
+            if (ringInnerRadius <= 0 || ringOuterRadius <= 0)
             {
-                // Distribute moonlets around the ring plane within the ring's inner and outer bounds
-                Vector3D moonletPosition = GetRandomPositionInRingPlane(ringCenter, ringInnerRadius, ringOuterRadius);
-                float ringInfluence = _realGasGiantsApi.GetRingInfluenceAtPosition(targetGasGiant, moonletPosition);
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Attempt {attempts + 1}: Ring influence at position {moonletPosition}: {ringInfluence}");
-
-                attempts++;
-
-                if (ringInfluence >= MinimumRingInfluenceForSpawn)
-                {
-                    MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Sufficient ring influence ({ringInfluence}) for spawning moonlet at position {moonletPosition}.");
-                    SpawnMoonlet(moonletPosition);
-                    spawnedMoonlets++;
-                }
-                else
-                {
-                    MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Ring influence too low ({ringInfluence}), skipping position {moonletPosition}.");
-                }
+                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", "Error: Invalid inner or outer radius for the gas giant's ring.");
+                return;
             }
 
-            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Spawned {spawnedMoonlets} moonlets out of {moonletCount} requested after {attempts} attempts.");
+            int spawnedMoonlets = 0;
+
+            // Distribute moonlets around the ring plane within the ring's inner and outer bounds
+            for (int i = 0; i < moonletCount; i++)
+            {
+                Vector3D moonletPosition = GetRandomPositionInRingPlane(ringCenter, ringInnerRadius, ringOuterRadius);
+                SpawnMoonlet(moonletPosition);
+                spawnedMoonlets++;
+            }
+
+            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Spawned {spawnedMoonlets} moonlets out of {moonletCount} requested.");
         }
 
-        // New method: Correctly generate a position within the gas giant's ring plane, based on the ring's inner and outer radius
-        private Vector3D GetRandomPositionInRingPlane(Vector3D ringCenter, float innerRadius, float outerRadius)
+        // Method to generate a position within the gas giant's ring plane, based on the ring's inner and outer radius
+        private Vector3D GetRandomPositionInRingPlane(Vector3D ringCenter, double innerRadius, double outerRadius)
         {
             // Random angle around the ring plane
             double angle = _rand.NextDouble() * Math.PI * 2;
 
-            // Random distance between the inner and outer ring radius
+            // Random distance between the inner and outer ring radius (we're working with large distances in meters)
             double distanceFromCenter = innerRadius + (outerRadius - innerRadius) * _rand.NextDouble();
 
-            // Random position within the plane of the ring (Y is kept close to 0 to stay in the ring plane)
+            if (distanceFromCenter < innerRadius || distanceFromCenter > outerRadius)
+            {
+                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Error: Generated distance {distanceFromCenter} is out of bounds.");
+                return ringCenter; // Return ring center to avoid crashing, but ideally should never happen
+            }
+
+            // Calculate the moonlet's position relative to the gas giant's position (ringCenter)
             Vector3D position = ringCenter + new Vector3D(distanceFromCenter * Math.Cos(angle), 0, distanceFromCenter * Math.Sin(angle));
-            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Generated random position {position} along the ring.");
+
+            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Generated random position at {distanceFromCenter / 1000:N0} km from the gas giant.");
             return position;
         }
 
