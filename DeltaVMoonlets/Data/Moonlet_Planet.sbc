@@ -320,57 +320,7 @@
     <HillParams Min = "0.02" Max ="0.05"/>
     <MinimumSurfaceLayerDepth>2</MinimumSurfaceLayerDepth>
 	
-        <EnvironmentItems>
-            <Item>
-                <Biomes>
-                    <Biome>0</Biome>
-                </Biomes>
-                <Materials>
-                    <Material>MoonSoil</Material>
-                </Materials>
-                <Items>
-                    <Item TypeId="MyObjectBuilder_VoxelMapStorageDefinition" GroupId="StoneCoverageIronCore" ModifierId="Moon" Density="0.006" />
-                </Items>
-                <Rule>
-                    <Height Min="0" Max="10"/>
-                    <Latitude Min="0" Max="90"/>
-                    <Slope Min="0" Max="15"/>
-                </Rule>
-            </Item>
-
-            <Item>
-                <Biomes>
-                    <Biome>0</Biome>
-                </Biomes>
-                <Materials>
-                    <Material>MoonRocks</Material>
-                </Materials>
-                <Items>
-                    <Item TypeId="MyObjectBuilder_VoxelMapStorageDefinition" GroupId="StoneCoverageIronCore" ModifierId="Moon" Density="0.006" />
-                </Items>
-                <Rule>
-                    <Height Min="0" Max="10"/>
-                    <Latitude Min="0" Max="90"/>
-                    <Slope Min="0" Max="15"/>
-                </Rule>
-            </Item>
-
-            <Item>
-                <Biomes>
-                    <Biome>0</Biome>
-                </Biomes>
-                <Materials>
-                    <Material>MoonletGround</Material>
-                </Materials>
-                <Items>
-                    <Item TypeId="MyObjectBuilder_VoxelMapStorageDefinition" GroupId="StoneCoverageIronCore" ModifierId="Moon" Density="0.006" />
-                </Items>
-                <Rule>
-                    <Height Min="0" Max="10"/>
-                    <Latitude Min="0" Max="90"/>
-                    <Slope Min="0" Max="15"/>
-                </Rule>
-            </Item>			
+        <EnvironmentItems>	
 
         </EnvironmentItems>
 	
