@@ -8,6 +8,7 @@ using VRage.Game.Components;
 using VRage.Library.Utils;
 using VRage;
 using VRage.ModAPI;
+using VRage.Game.ModAPI;
 
 namespace RingMoonletSpawner
 {
@@ -19,6 +20,13 @@ namespace RingMoonletSpawner
         private const double PlanetRadiusKm = 60268; // Planet's radius in kilometers
         private const double RingInnerScale = 1.2;   // Start the ring at 20% beyond the planet's radius
         private const double RingOuterScale = 2.5;   // Outer ring scale, based on your preference
+
+        // Moonlet size range (in kilometers)
+        private const double MoonletMinSizeKm = 8.0;  // Minimum moonlet size (8 km diameter)
+        private const double MoonletMaxSizeKm = 30.0; // Maximum moonlet size (30 km diameter)
+
+        // Ring Normal (tilted plane) based on config
+        private readonly Vector3D RingNormal = new Vector3D(1, 10, 0.5).Normalized();
 
         // Calculate the inner and outer ring distances from the planet's surface
         private const double RingInnerRadiusKm = PlanetRadiusKm * RingInnerScale; // 72,321.6 km
@@ -34,20 +42,26 @@ namespace RingMoonletSpawner
             MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Spawning moonlets along Saturn's ring. Planet center: {planetCenter}");
             MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Ring Inner Radius: {RingInnerRadiusKm:N2} km, Outer Radius: {RingOuterRadiusKm:N2} km");
 
+            long playerId = MyAPIGateway.Session.Player.IdentityId;
             int spawnedMoonlets = 0;
 
             for (int i = 0; i < moonletCount; i++)
             {
-                Vector3D moonletPosition = GetRandomPositionInRingPlane(planetCenter);
-                SpawnMoonlet(moonletPosition);
+                Vector3D moonletPosition = GetRandomPositionInTiltedRingPlane(planetCenter);
+                double moonletSizeKm = GetRandomMoonletSize(); // Get a random size for the moonlet
+                SpawnMoonlet(moonletPosition, moonletSizeKm);
+
+                // Create a GPS marker for the moonlet
+                CreateGpsMarker(playerId, $"Moonlet {i + 1}", moonletPosition);
+
                 spawnedMoonlets++;
             }
 
             MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Spawned {spawnedMoonlets} moonlets out of {moonletCount} requested.");
         }
 
-        // Generate a random position in the ring plane, respecting inner and outer radii
-        private Vector3D GetRandomPositionInRingPlane(Vector3D planetCenter)
+        // Generate a random position in the tilted ring plane, respecting inner and outer radii
+        private Vector3D GetRandomPositionInTiltedRingPlane(Vector3D planetCenter)
         {
             // Generate a random angle to distribute the moonlets in a circular manner
             double angle = _rand.NextDouble() * Math.PI * 2;
@@ -58,32 +72,52 @@ namespace RingMoonletSpawner
             // Convert distance to meters for position calculation (because we need positions in meters)
             double distanceFromCenterMeters = distanceFromCenterKm * 1000;
 
-            // Generate the position along the XZ-plane (ring plane, assuming flat ring aligned to XY)
-            Vector3D positionInPlane = new Vector3D(
-                distanceFromCenterMeters * Math.Cos(angle),
-                0,
-                distanceFromCenterMeters * Math.Sin(angle)
-            );
+            // Create two perpendicular vectors in the ring plane
+            Vector3D ringRight = Vector3D.CalculatePerpendicularVector(RingNormal); // Perpendicular vector to RingNormal
+            Vector3D ringUp = Vector3D.Cross(ringRight, RingNormal); // Orthogonal vector for the ring's plane
+
+            // Calculate the moonlet's position in the tilted ring plane
+            Vector3D positionInPlane = (Math.Cos(angle) * ringRight + Math.Sin(angle) * ringUp) * distanceFromCenterMeters;
 
             // Final moonlet position relative to the planet's center
             Vector3D finalPosition = planetCenter + positionInPlane;
 
-            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Generated random position at {distanceFromCenterKm:N2} km from the gas giant.");
+            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Generated random position at {distanceFromCenterKm:N2} km from the gas giant, along the tilted ring plane.");
             return finalPosition;
         }
 
-        private void SpawnMoonlet(Vector3D position)
+        // Generate a random size for the moonlet (in kilometers)
+        private double GetRandomMoonletSize()
         {
-            MyPlanet moonlet = MyAPIGateway.Session.VoxelMaps.SpawnPlanet("Moonlet", 1000, _rand.Next(), position) as MyPlanet;
+            double moonletSizeKm = MoonletMinSizeKm + (MoonletMaxSizeKm - MoonletMinSizeKm) * _rand.NextDouble();
+            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Generated moonlet size: {moonletSizeKm:N2} km");
+            return moonletSizeKm;
+        }
+
+        // Spawn the moonlet with a given position and size (size is in kilometers)
+        private void SpawnMoonlet(Vector3D position, double sizeKm)
+        {
+            // Convert size from kilometers to meters for the game
+            double sizeMeters = sizeKm * 1000;
+
+            MyPlanet moonlet = MyAPIGateway.Session.VoxelMaps.SpawnPlanet("Moonlet", (float)sizeMeters, _rand.Next(), position) as MyPlanet;
 
             if (moonlet != null)
             {
-                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Moonlet spawned successfully at {position}");
+                MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Moonlet spawned successfully at {position} with size {sizeKm:N2} km");
             }
             else
             {
                 MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"Failed to spawn moonlet at {position}. Check position and spawn parameters.");
             }
+        }
+
+        // Create a GPS marker at the given position and send it to the player
+        private void CreateGpsMarker(long identityId, string gpsName, Vector3D position)
+        {
+            IMyGps gps = MyAPIGateway.Session.GPS.Create(gpsName, "Moonlet location", position, true, false);
+            MyAPIGateway.Session.GPS.AddGps(identityId, gps);
+            MyAPIGateway.Utilities.ShowMessage("RingMoonletSpawner", $"GPS marker '{gpsName}' created at {position}");
         }
 
         public static void HandleChatCommand(string messageText, ref bool sendToOthers)
