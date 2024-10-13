@@ -301,7 +301,7 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
                 Init(null, ModelString, null, Size);
 
                 Save = false;
-                NeedsWorldMatrix = true;
+                NeedsWorldMatrix = true;   //this might be related to hitbox desyncing
 
                 Log.Info("Setting WorldMatrix");
                 if (rotation.HasValue)
