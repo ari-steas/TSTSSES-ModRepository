@@ -302,8 +302,6 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
 
                 Save = false;
                 NeedsWorldMatrix = true;
-                PositionComp.LocalAABB = new BoundingBox(-Vector3.Half * Size, Vector3.Half * Size);
-                Log.Info($"LocalAABB: {PositionComp.LocalAABB}");
 
                 Log.Info("Setting WorldMatrix");
                 if (rotation.HasValue)
