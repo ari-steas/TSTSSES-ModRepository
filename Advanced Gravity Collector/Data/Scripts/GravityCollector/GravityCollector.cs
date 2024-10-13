@@ -21,8 +21,8 @@ namespace Digi.GravityCollector
     public class GravityCollector : MyGameLogicComponent
     {
         public const float RANGE_MIN = 0;
-        public const float RANGE_MAX_MEDIUM = 40;
-        public const float RANGE_MAX_LARGE = 60;
+        public const float RANGE_MAX_MEDIUM = 400;
+        public const float RANGE_MAX_LARGE = 600;
         public const float RANGE_OFF_EXCLUSIVE = 1;
 
         public const float STRENGTH_MIN = 1;
