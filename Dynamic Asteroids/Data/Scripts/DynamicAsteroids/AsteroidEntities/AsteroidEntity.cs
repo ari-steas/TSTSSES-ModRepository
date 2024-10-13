@@ -476,13 +476,6 @@ namespace DynamicAsteroids.Data.Scripts.DynamicAsteroids.AsteroidEntities
         {
             try
             {
-                // Ignore all explosion types, as we are manually managing them with ExplosionTracker
-                if (damageSource == MyDamageType.Explosion)
-                {
-                    Log.Info($"Ignored explosion damage for Asteroid ID: {EntityId}");
-                    return false; // i wish i had the slightest idea why this was needed what is WRONG WITH DESTROYABLEOBJECTS 
-                }
-
                 ReduceIntegrity(damage);
 
                 if (_integrity <= 0)
