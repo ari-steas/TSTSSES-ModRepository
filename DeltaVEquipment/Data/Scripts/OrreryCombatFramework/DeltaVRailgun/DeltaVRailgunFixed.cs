@@ -1,11 +1,11 @@
 ﻿using System;
-using OrreryFramework.Communication.WeaponBases;
+using DeltaVEquipment.WeaponBases;
 
-namespace OrreryFramework.Communication
+namespace DeltaVEquipment
 {
     internal partial class HeartDefinitions
     {
-        private WeaponDefinitionBase DeltaV_RailgunFixed => new WeaponDefinitionBase
+        private WeaponDefinitionBase DeltaVRailgunFixed => new WeaponDefinitionBase
         {
             Targeting = new Targeting
             {
@@ -45,7 +45,7 @@ namespace OrreryFramework.Communication
             {
                 Ammos = new[]
                 {
-                    DeltaV_AmmoRailgun.Name
+                    DeltaVAmmoRailgun.Name
                 },
 
                 RateOfFire = 1,

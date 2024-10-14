@@ -1,20 +1,10 @@
-﻿using EmptyKeys.UserInterface.Generated.StoreBlockView_Bindings;
-using Heart_Module.Data.Scripts.HeartModule.Projectiles.StandardClasses;
-using Sandbox.Game;
-using Sandbox.ModAPI;
-using System;
-using System.Collections.Generic;
-using System.Security.AccessControl;
-using OrreryFramework.Communication.ProjectileBases;
-using VRage.Game.Entity;
-using VRage.Utils;
-using VRageMath;
+﻿using DeltaVEquipment.ProjectileBases;
 
-namespace OrreryFramework.Communication
+namespace DeltaVEquipment
 {
     partial class HeartDefinitions
     {
-        ProjectileDefinitionBase DeltaV_AmmoRailgun => new ProjectileDefinitionBase
+        ProjectileDefinitionBase DeltaVAmmoRailgun => new ProjectileDefinitionBase
         {
             Name = "ExampleAmmoProjectile",
             Ungrouped = new Ungrouped

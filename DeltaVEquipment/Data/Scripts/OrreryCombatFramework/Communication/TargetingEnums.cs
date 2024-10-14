@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace OrreryFramework.Communication
+namespace DeltaVEquipment
 {
     [Flags]
-    public enum IFF_Enum
+    public enum IffEnum
     {
         None = 0,
         TargetSelf = 1,
@@ -14,7 +14,7 @@ namespace OrreryFramework.Communication
     }
 
     [Flags]
-    public enum TargetType_Enum
+    public enum TargetTypeEnum
     {
         None = 0,
         TargetGrids = 1,
