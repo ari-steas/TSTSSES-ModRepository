@@ -1,5 +1,8 @@
-﻿namespace OrreryFramework.Communication
+﻿using System;
+
+namespace OrreryFramework.Communication
 {
+    [Flags]
     public enum IFF_Enum
     {
         None = 0,
@@ -10,6 +13,7 @@
         TargetUnique = 16,
     }
 
+    [Flags]
     public enum TargetType_Enum
     {
         None = 0,

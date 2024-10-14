@@ -4,8 +4,8 @@
     {
         internal HeartDefinitions()
         {
-            LoadWeaponDefinitions(DeltaV_MiningLaserTurret);         //todo tell the user that they forgot to add stuff here when they get an error
-            LoadAmmoDefinitions(DeltaVMiningLaserAmmoBeam);
+            LoadWeaponDefinitions(DeltaV_MiningLaserTurret, DeltaV_RailgunFixed);         //todo tell the user that they forgot to add stuff here when they get an error
+            LoadAmmoDefinitions(DeltaVMiningLaserAmmoBeam, DeltaV_AmmoRailgun);
         }
     }
 }
